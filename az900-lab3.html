@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Lab 3 - Storage Services | My Cloud Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #09090f; --surface: #0f0f1a; --surface2: #141426; --border: #1e1e35;
+    --accent: #00d4ff; --accent2: #7c3aed; --accent3: #10b981;
+    --warn: #f59e0b; --danger: #ef4444;
+    --text: #e2e8f0; --text-muted: #64748b; --text-dim: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.7; max-width: 800px; margin: 0 auto; }
+
+  /* HEADER */
+  header { background: var(--surface); border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(124,58,237,0.06)); pointer-events: none; }
+  .header-inner { padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .brand-name { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; }
+  .brand-sub { font-size: 10px; color: var(--text-muted); }
+  .cert-badge { display: inline-block; background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .pathway { font-size: 10px; color: var(--text-muted); }
+  .pathway span { color: var(--accent3); }
+
+  /* HERO */
+  .hero { background: linear-gradient(90deg, rgba(0,212,255,0.06), rgba(124,58,237,0.08)); border-bottom: 1px solid var(--border); padding: 24px 24px 20px; }
+  .lab-number { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 8px; }
+  .hero-desc { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta-pill { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--text-dim); }
+  .meta-pill .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-blue { background: var(--accent); } .dot-green { background: var(--accent3); } .dot-amber { background: var(--warn); } .dot-purple { background: var(--accent2); }
+
+  /* STICKY PROGRESS */
+  .sticky-progress { position: sticky; top: 0; z-index: 50; background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; gap: 12px; }
+  .sticky-progress-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+  .sticky-progress-bar { flex: 1; background: var(--border); border-radius: 99px; height: 5px; overflow: hidden; }
+  .sticky-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 99px; transition: width 0.4s ease; }
+  .sticky-progress-count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); white-space: nowrap; }
+
+  /* MAIN */
+  main { padding: 20px 24px 60px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* INFO STRIP */
+  .info-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .info-card h3 { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .az500-tag { background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.25); border-radius: 8px; padding: 12px 14px; font-size: 11.5px; color: #a78bfa; line-height: 1.5; grid-column: span 2; }
+  .az500-tag strong { display: inline; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #c4b5fd; margin-right: 6px; }
+  .pathway-strip { display: flex; gap: 6px; flex-wrap: wrap; }
+  .path-item { font-size: 10px; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .path-item.done { color: var(--accent3); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+  .path-item.active { color: var(--accent); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+  .path-item.future { opacity: 0.4; }
+  .term-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .term-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; font-size: 11px; color: var(--text-dim); }
+  .term-pill code { background: none; border: none; padding: 0; font-size: 11px; color: var(--accent); }
+
+  /* TIERS TABLE */
+  .tier-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tier-table th { background: rgba(0,212,255,0.06); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .tier-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); vertical-align: top; }
+  .tier-table tr:last-child td { border-bottom: none; }
+  .tier-badge { display: inline-block; border-radius: 4px; padding: 2px 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; }
+  .tier-hot { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+  .tier-cool { background: rgba(0,212,255,0.10); color: #7dd3fc; border: 1px solid rgba(0,212,255,0.2); }
+  .tier-cold { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .tier-archive { background: rgba(100,116,139,0.12); color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
+
+  /* OBJECTIVES */
+  .obj-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .obj-panel-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+  .obj-panel-header:hover { background: rgba(0,212,255,0.03); }
+  .obj-panel-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .obj-panel-toggle { font-size: 11px; color: var(--text-muted); }
+  .obj-panel-body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); }
+  .obj-panel-body.collapsed { display: none; }
+  .obj-check { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 6px; border-radius: 5px; border: 1px solid transparent; transition: background 0.15s; user-select: none; }
+  .obj-check:hover { background: rgba(0,212,255,0.04); border-color: rgba(0,212,255,0.1); }
+  .obj-box { width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 9px; color: transparent; flex-shrink: 0; margin-top: 2px; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+  .obj-text { font-size: 12px; color: var(--text-muted); line-height: 1.4; transition: color 0.15s; }
+  .obj-check.obj-done .obj-box { background: var(--accent3); border-color: var(--accent3); color: #fff; }
+  .obj-check.obj-done .obj-text { color: var(--accent3); text-decoration: line-through; text-decoration-color: rgba(16,185,129,0.4); }
+
+  /* SECTIONS */
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .section-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: "JetBrains Mono", monospace; flex-shrink: 0; }
+  .icon-blue { background: rgba(0,212,255,0.1); } .icon-purple { background: rgba(124,58,237,0.12); } .icon-green { background: rgba(16,185,129,0.1); } .icon-amber { background: rgba(245,158,11,0.1); } .icon-red { background: rgba(239,68,68,0.1); }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+  .section-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+  p { color: var(--text-dim); font-size: 13.5px; }
+
+  /* TASKS */
+  .task { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 2px; }
+  .task-header { padding: 10px 14px; background: rgba(0,212,255,0.04); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .task-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); border-radius: 4px; padding: 2px 7px; flex-shrink: 0; }
+  .task-title { font-weight: 500; font-size: 13px; color: var(--text); }
+  .task-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .step-list { list-style: none; counter-reset: steps; display: flex; flex-direction: column; gap: 8px; }
+  .step-list li { counter-increment: steps; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .step-list li::before { content: counter(steps); font-family: 'JetBrains Mono', monospace; font-size: 9px; min-width: 20px; height: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+
+  /* CALLOUTS */
+  .callout { border-radius: 7px; padding: 11px 14px; font-size: 12.5px; line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .callout.info { background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); color: #7dd3fc; }
+  .callout.warn { background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
+  .callout.success { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+  .callout.danger { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: rgba(0,212,255,0.07); border: 1px solid rgba(0,212,255,0.12); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+  /* OS TABS */
+  .os-tabs { display: flex; gap: 6px; margin-bottom: 2px; }
+  .os-tab { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 5px 12px; border-radius: 5px 5px 0 0; border: 1px solid var(--border); border-bottom: none; cursor: pointer; color: var(--text-muted); background: var(--surface2); transition: background 0.15s, color 0.15s; user-select: none; }
+  .os-tab.active { background: rgba(0,212,255,0.08); color: var(--accent); border-color: rgba(0,212,255,0.2); }
+  .os-panel { display: none; }
+  .os-panel.active { display: flex; flex-direction: column; gap: 8px; }
+
+  /* SCENARIO */
+  .scenario { background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(0,212,255,0.05)); border: 1px solid rgba(124,58,237,0.25); border-radius: 8px; padding: 16px 18px; }
+  .scenario-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.15em; color: #a78bfa; text-transform: uppercase; margin-bottom: 8px; }
+  .scenario p { color: #c4b5fd; font-size: 13px; font-style: italic; line-height: 1.7; }
+
+  /* REFLECTION */
+  .reflection-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .reflection-list li { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--text-dim); }
+  .reflection-list li::before { content: '?'; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent3); background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+
+  /* KNOWLEDGE CHECK */
+  .kc-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; margin-bottom: 10px; }
+  .kc-q { font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 8px; }
+  .kc-opts { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .kc-opts li { font-size: 12.5px; color: var(--text-muted); padding: 8px 12px; border-left: 2px solid var(--border); border-radius: 0 5px 5px 0; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; user-select: none; }
+  .kc-opts li:hover { background: rgba(0,212,255,0.05); border-left-color: var(--accent); color: var(--text); }
+  .kc-opts li.answered-correct { background: rgba(16,185,129,0.1); border-left-color: var(--accent3); color: #6ee7b7; font-weight: 500; }
+  .kc-opts li.answered-wrong { background: rgba(239,68,68,0.08); border-left-color: var(--danger); color: #fca5a5; }
+  .answer-reveal { margin-top: 10px; font-size: 12px; color: #94a3b8; font-style: italic; background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.1); border-radius: 5px; padding: 8px 12px; display: flex; gap: 7px; align-items: flex-start; line-height: 1.6; }
+
+  /* SCREENSHOTS */
+  .screenshot-block { border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-top: 4px; }
+  .screenshot-label { background: rgba(0,212,255,0.05); border-bottom: 1px solid var(--border); padding: 6px 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.06em; }
+  .screenshot-block img { width: 100%; display: block; border: none; background: #1a1a2e; }
+  .screenshot-caption { padding: 6px 12px; font-size: 11px; color: var(--text-muted); font-style: italic; border-top: 1px solid var(--border); background: var(--surface2); }
+
+  /* FOOTER */
+  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .footer-brand span { color: var(--accent); }
+  .next-lab { font-size: 11px; color: var(--text-muted); }
+  .next-lab strong { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon" style="font-family:monospace;font-size:13px;font-weight:700;">MCA</div>
+      <div class="brand-text">
+        <div class="brand-name">My Cloud Academy</div>
+        <div class="brand-sub">Professional Cybersecurity Training</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div class="cert-badge">AZ-900 · Microsoft Azure Fundamentals</div>
+      <div class="pathway">Pathway: AZ-900 → SC-900 → <span>AZ-500</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="lab-number">Lab 03 of 06</div>
+  <h1>Azure Storage - Blobs,<br>Files & Access Tiers</h1>
+  <p class="hero-desc">Create a storage account, upload and manage blobs, explore access tiers, then create an Azure file share and map it as a drive on your own machine.</p>
+  <div class="meta-row">
+    <div class="meta-pill"><span class="dot dot-blue"></span> ~50–60 minutes</div>
+    <div class="meta-pill"><span class="dot dot-green"></span> Minimal credit spend</div>
+    <div class="meta-pill"><span class="dot dot-amber"></span> Drive mapping - Windows & Mac/Linux</div>
+    <div class="meta-pill"><span class="dot dot-purple"></span> AZ-500 data security foundation</div>
+  </div>
+</div>
+
+<!-- STICKY PROGRESS -->
+<div class="sticky-progress">
+  <span class="sticky-progress-label">Lab 03 Progress</span>
+  <div class="sticky-progress-bar"><div class="sticky-progress-fill" id="obj-bar"></div></div>
+  <span class="sticky-progress-count" id="obj-count">0 / 7</span>
+</div>
+
+<main>
+
+<!-- INFO STRIP -->
+<div class="info-strip">
+  <div class="info-card">
+    <h3>Lab Pathway</h3>
+    <div class="pathway-strip">
+      <span class="path-item done">01 Portal</span>
+      <span class="path-item done">02 Compute</span>
+      <span class="path-item active">03 Storage</span>
+      <span class="path-item future">04 Identity</span>
+      <span class="path-item future">05 Governance</span>
+      <span class="path-item future">06 Security</span>
+    </div>
+  </div>
+  <div class="info-card">
+    <h3>💳 Credit Estimate</h3>
+    <p style="font-size:11px; color:var(--text-muted); line-height:1.6; margin:0;">Storage is very cheap. LRS Blob storage costs roughly <strong style="color:var(--accent3);">$0.002/GB/month</strong>. Uploading a few test files costs fractions of a cent. Azure Files adds a small provisioning cost - delete both when done.</p>
+  </div>
+  <div class="az500-tag">
+    <strong>🔵 AZ-500 FOUNDATION</strong>
+    Storage security is a major AZ-500 domain - access keys vs SAS tokens vs Entra ID auth, public vs private blob access, storage firewalls, and soft delete. This lab introduces the storage concepts you'll secure in AZ-500.
+  </div>
+  <div class="info-card" style="grid-column: span 2;">
+    <h3>Key Terms</h3>
+    <div class="term-list">
+      <span class="term-pill"><code>Storage Account</code> - top-level container for all storage services</span>
+      <span class="term-pill"><code>Blob</code> - binary large object (files, images, video)</span>
+      <span class="term-pill"><code>Container</code> - logical group of blobs</span>
+      <span class="term-pill"><code>Access Tier</code> - Hot / Cool / Cold / Archive</span>
+      <span class="term-pill"><code>LRS</code> - locally redundant storage (3 copies, 1 datacenter)</span>
+      <span class="term-pill"><code>GRS</code> - geo-redundant storage (6 copies, 2 regions)</span>
+      <span class="term-pill"><code>Azure Files</code> - managed SMB file share in the cloud</span>
+      <span class="term-pill"><code>SMB</code> - Server Message Block (Windows/Linux file sharing protocol)</span>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECTIVES -->
+<div class="obj-panel">
+  <div class="obj-panel-header" onclick="toggleObjPanel()">
+    <span class="obj-panel-title">☑️ Lab Objectives <span id="obj-complete-badge" style="display:none; font-size:10px; color:var(--accent3); font-family:'JetBrains Mono',monospace; margin-left:8px;">ALL DONE ✓</span></span>
+    <span class="obj-panel-toggle" id="obj-toggle-icon">▼ click to expand</span>
+  </div>
+  <div class="obj-panel-body collapsed" id="obj-panel-body">
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Create a Storage Account with correct settings</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Create a blob container and upload files</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Change blob access tiers and explain the difference</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Explain redundancy options (LRS, ZRS, GRS, RA-GRS)</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Create an Azure Files share</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Map the file share as a drive on your own machine</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">✓</span><span class="obj-text">Delete storage resources after the lab</span></li>
+  </div>
+</div>
+
+<!-- WHAT YOU WILL NEED -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">i</div><div class="section-title">What You Will Need</div></div>
+  <div class="section-body">
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px;">
+        <div style="font-size:18px; flex-shrink:0;">✅</div>
+        <div><div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:2px;">Labs 1 & 2 completed</div><div style="font-size:12px; color:var(--text-muted);">Your <code>rg-contoso-labs</code> resource group must exist in UK South. The storage account goes in there.</div></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px;">
+        <div style="font-size:18px; flex-shrink:0;">📁</div>
+        <div><div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:2px;">A few test files ready to upload</div><div style="font-size:12px; color:var(--text-muted);">Create a couple of small files on your desktop - a .txt and an image will do. You'll upload these to blob storage in Part 2.</div></div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px;">
+        <div style="font-size:18px; flex-shrink:0;">🖥️</div>
+        <div><div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:2px;">Port 445 open on your network</div><div style="font-size:12px; color:var(--text-muted);">Azure Files uses SMB over port 445. This is open on most home networks. If you're on a corporate or university network it may be blocked - check with your IT team if the drive mapping fails.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">i</div><div class="section-title">Lab Overview</div></div>
+  <div class="section-body">
+    <p>Azure Storage is one of the most fundamental services in the platform. Everything you build in Azure eventually touches storage - VMs use it for disks, applications use it for files and blobs, and logs flow into it automatically. This lab covers the two most exam-relevant storage types: <strong style="color:var(--text);">Blob Storage</strong> for unstructured data and <strong style="color:var(--text);">Azure Files</strong> for shared file access.</p>
+    <p>You'll also explore access tiers - a key cost optimisation concept - and redundancy options, both of which appear heavily in AZ-900 exam questions.</p>
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <span>Storage accounts are very cheap for this lab. LRS blob storage costs fractions of a cent for a few test files. Just remember to delete the resources at the end - the housekeeping section tells you exactly what to remove.</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO -->
+<div class="scenario">
+  <div class="scenario-label">📋 Your Scenario</div>
+  <p>Contoso Ltd needs a cloud storage solution for two use cases: a document archive for infrequently accessed compliance files, and a shared drive that remote team members can map on their laptops. Your job is to set up both - a blob storage account with appropriate tiering for the archive, and an Azure Files share that can be mounted on Windows, Mac, or Linux machines.</p>
+</div>
+
+<!-- PART 1 - STORAGE ACCOUNT -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">1</div><div class="section-title">Part 1 - Create a Storage Account</div></div>
+  <div class="section-body">
+    <p>A storage account is the top-level Azure resource that provides a unique namespace for all your storage data. Every blob, file, queue, and table lives inside a storage account.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.1</span><span class="task-title">Create the storage account</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In the Azure portal, search for <code>Storage accounts</code> and click <strong>+ Create</strong></li>
+          <li>Set <strong>Subscription</strong> to your free subscription</li>
+          <li>Set <strong>Resource group</strong> to <code>rg-contoso-labs</code></li>
+          <li>Set <strong>Storage account name</strong> to <code>stcontosolab</code> followed by 4–6 random numbers (e.g. <code>stcontosolab4821</code>) - names must be globally unique, all lowercase, no hyphens</li>
+          <li>Set <strong>Region</strong> to <code>UK South</code></li>
+          <li>Set <strong>Primary service</strong> to <code>Azure Blob Storage or Azure Data Lake Storage Gen 2</code></li>
+          <li>Set <strong>Performance</strong> to <code>Standard</code></li>
+          <li>Set <strong>Redundancy</strong> to <code>Locally-redundant storage (LRS)</code></li>
+          <li>Click <strong>Review + create</strong>, then <strong>Create</strong></li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">📸 REFERENCE - Create Storage Account Basics Tab</div>
+          <img src="https://learn.microsoft.com/en-us/azure/storage/common/media/storage-account-create/create-account-basics.png" alt="Azure portal Create storage account basics tab showing name, region, performance and redundancy fields" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Create storage account form - note the name must be globally unique. Set redundancy to LRS for this lab. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><strong>Why LRS?</strong> For this lab we use LRS (3 copies in one datacenter) - it's cheapest. In production you'd typically use GRS or RA-GRS for resilience. The AZ-900 exam tests your understanding of when to use each redundancy option.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.2</span><span class="task-title">Understand redundancy options</span></div>
+      <div class="task-body">
+        <p style="font-size:13px;">Before moving on, take 2 minutes to review the redundancy table below - this is heavily tested in AZ-900.</p>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:7px; overflow:hidden;">
+          <table class="tier-table">
+            <thead>
+              <tr><th>Option</th><th>Copies</th><th>Locations</th><th>Best for</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong style="color:var(--text);">LRS</strong></td><td>3</td><td>1 datacenter, 1 region</td><td>Dev/test, low-cost scenarios</td></tr>
+              <tr><td><strong style="color:var(--text);">ZRS</strong></td><td>3</td><td>3 availability zones, 1 region</td><td>High availability within a region</td></tr>
+              <tr><td><strong style="color:var(--text);">GRS</strong></td><td>6</td><td>2 regions (primary + secondary)</td><td>Disaster recovery, compliance</td></tr>
+              <tr><td><strong style="color:var(--text);">RA-GRS</strong></td><td>6</td><td>2 regions + read access to secondary</td><td>Read-heavy apps needing DR</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <span><strong>Exam tip:</strong> GRS replicates data to a secondary region but you can't read from it unless Microsoft initiates a failover. RA-GRS lets you read from the secondary at any time. This distinction is a common exam question.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 2 - BLOB STORAGE -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">2</div><div class="section-title">Part 2 - Blob Storage & Access Tiers</div></div>
+  <div class="section-body">
+    <p>Blob storage is Azure's object store - perfect for unstructured data like documents, images, videos, and backups. Blobs live inside containers, which are like folders within your storage account.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.1</span><span class="task-title">Create a blob container</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Navigate to your new storage account in the portal</li>
+          <li>In the left menu under <strong>Data storage</strong>, click <strong>Containers</strong></li>
+          <li>Click <strong>+ Container</strong></li>
+          <li>Set the <strong>Name</strong> to <code>contoso-archive</code></li>
+          <li>Set <strong>Anonymous access level</strong> to <code>Private (no anonymous access)</code> - this is the secure default</li>
+          <li>Click <strong>Create</strong></li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">📸 REFERENCE - Blob Containers List</div>
+          <img src="https://learn.microsoft.com/en-us/azure/storage/blobs/media/storage-quickstart-blobs-portal/create-container-sml.png" alt="Azure portal storage account containers page showing the New container button and access level dropdown" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Containers page - click + Container and set access to Private. Never set blob containers to public access unless the content is genuinely public. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <span><strong>Never use anonymous (public) access</strong> unless the content is deliberately public-facing. Misconfigured public blob containers are one of the most common causes of cloud data breaches - this is a core AZ-500 concept.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.2</span><span class="task-title">Upload files to the container</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Click your new <code>contoso-archive</code> container to open it</li>
+          <li>Click <strong>Upload</strong> in the top menu</li>
+          <li>Browse and select your test files (a .txt and an image work well)</li>
+          <li>Expand <strong>Advanced</strong> - note the <strong>Access tier</strong> option. Leave it as <code>Hot</code> for now</li>
+          <li>Click <strong>Upload</strong></li>
+          <li>Once uploaded, your files appear in the blob list - click one to view its properties</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">📸 REFERENCE - Upload Blob</div>
+          <img src="https://learn.microsoft.com/en-us/azure/storage/blobs/media/storage-quickstart-blobs-portal/upload-blob.png" alt="Azure portal blob upload blade showing file selection and advanced settings including access tier" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Upload blob blade - expand Advanced to see the access tier option. Source: Microsoft Learn</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.3</span><span class="task-title">Explore and change access tiers</span></div>
+      <div class="task-body">
+        <p style="font-size:13px;">Access tiers control the cost balance between storage price and retrieval price. This is a key AZ-900 exam topic and a real-world cost optimisation technique.</p>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:7px; overflow:hidden; margin-bottom:8px;">
+          <table class="tier-table">
+            <thead><tr><th>Tier</th><th>Storage cost</th><th>Retrieval cost</th><th>Best for</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tier-badge tier-hot">Hot</span></td><td>Highest</td><td>Lowest</td><td>Frequently accessed data</td></tr>
+              <tr><td><span class="tier-badge tier-cool">Cool</span></td><td>Lower</td><td>Higher</td><td>Infrequently accessed, kept 30+ days</td></tr>
+              <tr><td><span class="tier-badge tier-cold">Cold</span></td><td>Lower still</td><td>Higher still</td><td>Rarely accessed, kept 90+ days</td></tr>
+              <tr><td><span class="tier-badge tier-archive">Archive</span></td><td>Lowest</td><td>Highest + rehydration time</td><td>Long-term backup, compliance data</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ol class="step-list">
+          <li>Click one of your uploaded blobs to open its properties</li>
+          <li>Click <strong>Change tier</strong> (or find the Access tier field)</li>
+          <li>Change the tier from <code>Hot</code> to <code>Cool</code> - click <strong>Save</strong></li>
+          <li>Note the tier change is reflected in the blob properties</li>
+          <li>Try changing to <code>Archive</code> - note the warning that retrieval requires rehydration (which can take hours)</li>
+          <li>Change back to <code>Hot</code> for now - Archive would prevent downloading in this lab</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><strong>Rehydration:</strong> Moving a blob out of Archive tier back to Hot or Cool is called rehydration. It can take up to 15 hours - this is an exam question. You set the priority (Standard or High) to trade time against cost.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.4</span><span class="task-title">Download and verify a blob</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In the container blob list, right-click one of your files</li>
+          <li>Select <strong>Download</strong></li>
+          <li>Verify the file downloads to your machine and opens correctly</li>
+          <li>Navigate back to the container - note the <strong>URL</strong> property of the blob in its properties panel</li>
+          <li>Copy the URL and try pasting it into a browser - since access is Private, you should get an <strong>ResourceNotFound</strong> or <strong>403</strong> error. This is correct and expected.</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">📸 REFERENCE - Download Blob</div>
+          <img src="https://learn.microsoft.com/en-us/azure/storage/blobs/media/storage-quickstart-blobs-portal/download-blob.png" alt="Azure portal blob list showing right-click context menu with Download option" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">Right-click a blob to download it. The URL being inaccessible in a browser confirms private access is working correctly. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout success">
+          <span class="callout-icon">✅</span>
+          <span>The 403 or ResourceNotFound error on the blob URL is a <strong>good thing</strong> - it confirms your container access level is correctly set to private. Publicly accessible blob URLs are a major security risk.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 3 - AZURE FILES -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">3</div><div class="section-title">Part 3 - Azure Files & Drive Mapping</div></div>
+  <div class="section-body">
+    <p>Azure Files provides fully managed SMB file shares in the cloud. Unlike blob storage, Azure Files can be mounted as a drive letter on Windows or a mount point on Mac and Linux - making it a direct replacement for traditional network drives.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.1</span><span class="task-title">Create a file share</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In your storage account, find <strong>File shares</strong> under <strong>Data storage</strong> in the left menu</li>
+          <li>Click <strong>+ File share</strong></li>
+          <li>Set the <strong>Name</strong> to <code>contoso-shared</code></li>
+          <li>Set <strong>Tier</strong> to <code>Transaction optimized</code> (cheapest for light use)</li>
+          <li>Click <strong>Review + create</strong>, then <strong>Create</strong></li>
+          <li>Once created, click the file share to open it</li>
+          <li>Click <strong>Upload</strong> and upload any small test file - confirm it appears in the share</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">📸 REFERENCE - Azure File Share Overview</div>
+          <img src="https://learn.microsoft.com/en-us/azure/storage/files/media/storage-how-to-use-files-portal/create-file-share-1.png" alt="Azure portal file share overview showing the Connect button and file listing" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The file share overview - the Connect button generates the mount script for your OS. Source: Microsoft Learn</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.2</span><span class="task-title">Map the file share as a drive on your machine</span></div>
+      <div class="task-body">
+        <p style="font-size:13px;">Azure generates a ready-to-run script for mounting the share. Select your OS below.</p>
+
+        <div class="os-tabs">
+          <div class="os-tab active" onclick="switchMount('windows', this)">Windows</div>
+          <div class="os-tab" onclick="switchMount('mac', this)">macOS</div>
+          <div class="os-tab" onclick="switchMount('linux', this)">Linux</div>
+        </div>
+
+        <div id="mount-windows" class="os-panel active">
+          <ol class="step-list">
+            <li>In your file share, click <strong>Connect</strong> in the top menu</li>
+            <li>Select <strong>Windows</strong> tab</li>
+            <li>Choose a drive letter (e.g. <code>Z:</code>)</li>
+            <li>Under <strong>Authentication method</strong>, select <strong>Storage account key</strong></li>
+            <li>Click <strong>Show script</strong> - a PowerShell script is generated</li>
+            <li>Copy the script</li>
+            <li>On your Windows machine, open <strong>PowerShell as Administrator</strong> (<code>Win + X → Windows PowerShell (Admin)</code>)</li>
+            <li>Paste and run the script</li>
+            <li>Open <strong>File Explorer</strong> - your new <code>Z:</code> drive should appear</li>
+            <li>Create a test file in the drive and verify it appears in the portal</li>
+          </ol>
+          <div class="callout info">
+            <span class="callout-icon">💡</span>
+            <span>The PowerShell script uses <code>net use</code> under the hood with your storage account key as the password. In production you'd use identity-based auth (Microsoft Entra Kerberos) instead - this is an AZ-500 topic.</span>
+          </div>
+          <div class="callout warn">
+            <span class="callout-icon">⚠️</span>
+            <span>If the script fails with a network error, port 445 may be blocked on your network. Try from a home connection or mobile hotspot.</span>
+          </div>
+        </div>
+
+        <div id="mount-mac" class="os-panel">
+          <ol class="step-list">
+            <li>In your file share, click <strong>Connect</strong> in the top menu</li>
+            <li>Select the <strong>macOS</strong> tab</li>
+            <li>Under <strong>Authentication method</strong>, select <strong>Storage account key</strong></li>
+            <li>Click <strong>Show script</strong> - a shell script is generated</li>
+            <li>Copy the script</li>
+            <li>Open <strong>Terminal</strong> on your Mac (Applications → Utilities → Terminal)</li>
+            <li>Paste and run the script</li>
+            <li>Open <strong>Finder</strong> - the share should appear under <strong>Network</strong> or <strong>Locations</strong></li>
+            <li>Create a test file and verify it appears in the portal</li>
+          </ol>
+          <div class="callout warn">
+            <span class="callout-icon">⚠️</span>
+            <span>If mounting fails, port 445 may be blocked. macOS also requires SMB 3 - this is supported on macOS 10.13+ (High Sierra and later).</span>
+          </div>
+        </div>
+
+        <div id="mount-linux" class="os-panel">
+          <ol class="step-list">
+            <li>In your file share, click <strong>Connect</strong> in the top menu</li>
+            <li>Select the <strong>Linux</strong> tab</li>
+            <li>Under <strong>Authentication method</strong>, select <strong>Storage account key</strong></li>
+            <li>Click <strong>Show script</strong> - a bash script is generated</li>
+            <li>Copy the script</li>
+            <li>Open a terminal and run: <code>sudo apt install cifs-utils -y</code> (Ubuntu/Debian) or <code>sudo yum install cifs-utils</code> (RHEL/CentOS)</li>
+            <li>Run the generated script with <code>sudo</code></li>
+            <li>Verify the share is mounted with: <code>df -h | grep cifs</code></li>
+            <li>Create a test file and verify it appears in the portal</li>
+          </ol>
+          <div class="callout warn">
+            <span class="callout-icon">⚠️</span>
+            <span>Linux requires the <code>cifs-utils</code> package and port 445 open. If on WSL2, the mount may need to be done from Windows PowerShell instead.</span>
+          </div>
+        </div>
+
+        <div class="callout success" style="margin-top:6px;">
+          <span class="callout-icon">✅</span>
+          <span>File share mounted and a file visible in both the portal and your local machine? You've just replaced a traditional network drive with cloud storage - and it cost fractions of a penny.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO CHALLENGE -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">4</div><div class="section-title">Part 4 - Scenario Challenge</div></div>
+  <div class="section-body">
+    <div class="scenario">
+      <div class="scenario-label">📋 Challenge Brief</div>
+      <p>The Contoso finance team stores monthly compliance reports that are accessed daily for the first 30 days, then rarely touched for the following year, and then never accessed again after that. They want to minimise storage costs without losing the data. Using what you know about access tiers, design a tiering strategy for these files - which tier should each lifecycle stage use, and why? Write your answer in your notes. Then, find and explore the <strong>Lifecycle Management</strong> feature in your storage account - this is the Azure tool that automates exactly this kind of tiering.</p>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <span><strong>Hint:</strong> In the portal, go to your storage account → <strong>Data management</strong> → <strong>Lifecycle management</strong>. You don't need to create a rule - just explore the interface and understand what it can do.</span>
+    </div>
+  </div>
+</div>
+
+<!-- REFLECTION -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">?</div><div class="section-title">Reflection Questions</div></div>
+  <div class="section-body">
+    <ul class="reflection-list">
+      <li>What is the difference between Blob Storage and Azure Files - when would you choose one over the other?</li>
+      <li>A blob is in Archive tier and you need to access it urgently. What do you need to do first, and how long might it take?</li>
+      <li>Your organisation needs storage that survives a complete regional outage in UK South. Which redundancy option would you recommend and why?</li>
+      <li>Why is it a security risk to set a blob container to public anonymous access?</li>
+      <li>What is the storage account access key, and why should it be treated like a password?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- KNOWLEDGE CHECK -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">✓</div><div class="section-title">Knowledge Check - AZ-900 Exam Style</div></div>
+  <div class="section-body">
+    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:10px 14px; margin-bottom:14px;">
+      <span style="font-size:12px; color:var(--text-muted);">Click an answer to check it. One attempt per question.</span>
+      <span id="kc-score" style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);">0 / 5</span>
+    </div>
+
+    <!-- Q1 -->
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">1. A company stores compliance documents that must be kept for 7 years but are almost never accessed. Which storage tier minimises cost?</div>
+      <ul class="kc-opts" data-correct="3">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Hot</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Cool</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Cold</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Archive</li>
+      </ul>
+      <div class="answer-reveal" id="explain-0" style="display:none;"><span>💡</span> Archive has the lowest storage cost but the highest retrieval cost and requires rehydration before access. It's ideal for data that must be retained but is almost never read - exactly like long-term compliance archives.</div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">2. Which Azure storage redundancy option provides read access to a secondary region without requiring a failover?</div>
+      <ul class="kc-opts" data-correct="3">
+        <li data-idx="0" onclick="checkAnswer(this)">A. LRS</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. ZRS</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. GRS</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. RA-GRS</li>
+      </ul>
+      <div class="answer-reveal" id="explain-1" style="display:none;"><span>💡</span> RA-GRS (Read-Access Geo-Redundant Storage) replicates to a secondary region and allows read access at all times. GRS also replicates to a secondary region but doesn't allow reads unless Microsoft initiates a failover.</div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">3. What is the main difference between Azure Blob Storage and Azure Files?</div>
+      <ul class="kc-opts" data-correct="1">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Blob storage supports larger files than Azure Files</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Azure Files can be mounted as a drive letter; Blob storage cannot</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Azure Files is cheaper than Blob storage</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Blob storage requires a VNet; Azure Files does not</li>
+      </ul>
+      <div class="answer-reveal" id="explain-2" style="display:none;"><span>💡</span> Azure Files uses SMB protocol and can be mounted as a drive on Windows, Mac, and Linux - making it a drop-in replacement for a traditional network drive. Blob storage is accessed via REST API or SDK, not as a mounted drive.</div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">4. A developer accidentally sets a blob container to public access. What is the immediate security risk?</div>
+      <ul class="kc-opts" data-correct="0">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Anyone on the internet can read the blobs without authentication</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. The blobs are automatically encrypted and cannot be read</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Only users in the same Azure tenant can access the blobs</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. The storage account is automatically deleted by Azure</li>
+      </ul>
+      <div class="answer-reveal" id="explain-3" style="display:none;"><span>💡</span> Public anonymous access means anyone with the blob URL can download the file with no authentication. This is one of the most common cloud misconfigurations leading to data breaches. Always use private access unless content is genuinely meant to be public.</div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">5. Which tool would you use to automate moving blobs from Hot to Cool tier after 30 days of inactivity?</div>
+      <ul class="kc-opts" data-correct="2">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Azure Policy</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Azure Advisor</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Lifecycle Management</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Azure Monitor</li>
+      </ul>
+      <div class="answer-reveal" id="explain-4" style="display:none;"><span>💡</span> Lifecycle Management in Azure Storage lets you define rules that automatically move blobs between tiers or delete them based on age or last access time. This is the correct tool for automated tiering - Azure Policy and Monitor serve different purposes.</div>
+    </div>
+
+    <div id="kc-result" style="display:none; margin-top:14px; border-radius:7px; padding:14px 16px; text-align:center; font-size:13.5px; line-height:1.6;"></div>
+
+    <script>
+      let kcCorrect = 0, kcAnswered = 0;
+      const kcTotal = 5;
+      function checkAnswer(el) {
+        const item = el.closest('.kc-item');
+        if (item.dataset.answered === 'true') return;
+        item.dataset.answered = 'true';
+        const opts = el.closest('.kc-opts');
+        const correctIdx = parseInt(opts.dataset.correct);
+        const clickedIdx = parseInt(el.dataset.idx);
+        const qIdx = Array.from(document.querySelectorAll('.kc-item')).indexOf(item);
+        opts.querySelectorAll('li').forEach(li => { li.style.pointerEvents = 'none'; li.style.cursor = 'default'; });
+        opts.querySelector(`[data-idx="${correctIdx}"]`).classList.add('answered-correct');
+        if (clickedIdx === correctIdx) { el.classList.add('answered-correct'); kcCorrect++; }
+        else { el.classList.add('answered-wrong'); }
+        document.getElementById(`explain-${qIdx}`).style.display = 'flex';
+        kcAnswered++;
+        document.getElementById('kc-score').textContent = `${kcCorrect} / ${kcTotal}`;
+        if (kcAnswered === kcTotal) {
+          const res = document.getElementById('kc-result');
+          res.style.display = 'block';
+          if (kcCorrect === 5) { res.style.cssText += 'background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;'; res.innerHTML = '🏆 Perfect - 5 out of 5. Storage concepts nailed. On to Lab 4!'; }
+          else if (kcCorrect >= 4) { res.style.cssText += 'background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;'; res.innerHTML = `✅ ${kcCorrect} out of 5 - solid. Review the missed question before Lab 4.`; }
+          else if (kcCorrect >= 3) { res.style.cssText += 'background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);color:#fcd34d;'; res.innerHTML = `⚠️ ${kcCorrect} out of 5 - revisit access tiers and redundancy before moving on.`; }
+          else { res.style.cssText += 'background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;'; res.innerHTML = `🔁 ${kcCorrect} out of 5 - go back through Parts 1 and 2 and re-read the tier and redundancy tables.`; }
+        }
+      }
+    </script>
+  </div>
+</div>
+
+<!-- HOUSEKEEPING -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-red">!</div><div class="section-title">Lab Housekeeping - Clean Up Storage Resources</div></div>
+  <div class="section-body">
+    <div class="callout danger">
+      <span class="callout-icon">🚨</span>
+      <span>Storage accounts and file shares continue to incur small charges even when idle. Delete the resources below when you're done with the lab.</span>
+    </div>
+    <ol class="step-list" style="margin-top:4px;">
+      <li>Navigate to your storage account in the portal</li>
+      <li>If you have a mapped drive, disconnect it first - Windows: right-click the drive in Explorer → <strong>Disconnect</strong>. Mac/Linux: <code>umount /path/to/mount</code></li>
+      <li>Delete the file share: go to <strong>File shares</strong> → select <code>contoso-shared</code> → click the <strong>…</strong> menu → <strong>Delete</strong></li>
+      <li>Delete the blob container: go to <strong>Containers</strong> → select <code>contoso-archive</code> → click the <strong>…</strong> menu → <strong>Delete</strong></li>
+      <li>Optionally delete the entire storage account: go to the storage account overview → <strong>Delete</strong> at the top</li>
+    </ol>
+    <div class="callout info" style="margin-top:4px;">
+      <span class="callout-icon">💡</span>
+      <span>If you plan to keep the storage account for the scenario challenge or further practice, that's fine - just delete the file share to avoid ongoing provisioning costs.</span>
+    </div>
+
+    <!-- SHUTDOWN ACKNOWLEDGEMENT -->
+    <div style="background: rgba(239,68,68,0.08); border: 2px solid rgba(239,68,68,0.5); border-radius: 10px; padding: 18px 20px; margin-top:12px;">
+      <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:13px; color:#ef4444; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:10px;">🔴 Storage Clean-Up Confirmation</div>
+      <p style="color:#fca5a5; font-size:13px; line-height:1.7; margin-bottom:12px;">Type <strong style="color:#ef4444; font-family:'JetBrains Mono',monospace;">YES</strong> to confirm you have deleted your storage resources or are aware of the ongoing costs.</p>
+      <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(239,68,68,0.2); border-radius:7px; padding:10px 12px; margin-bottom:12px;">
+        <p style="font-size:11px; color:#94a3b8; line-height:1.6; margin:0;"><strong style="color:#cbd5e1; display:block; margin-bottom:3px;">⚖️ Reminder</strong>By confirming you acknowledge responsibility for any Azure charges. My Cloud Academy accepts no liability for costs incurred through storage resources left active.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:12px; color:#fca5a5; font-weight:500;">Type <strong style="color:#ef4444; font-family:'JetBrains Mono',monospace;">YES</strong> to confirm:</label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input id="cleanup-input" type="text" maxlength="10" placeholder="Type YES here..." autocomplete="off" oninput="checkCleanup()" style="background:#0f0f1a; border:2px solid rgba(239,68,68,0.4); border-radius:6px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:13px; padding:8px 12px; width:160px; outline:none; letter-spacing:0.1em; transition:border-color 0.2s;" onfocus="this.style.borderColor='rgba(239,68,68,0.8)'" onblur="this.style.borderColor='rgba(239,68,68,0.4)'" />
+          <span id="cleanup-status" style="font-size:12px; color:var(--text-muted); font-style:italic;">Confirmation required</span>
+        </div>
+      </div>
+      <div id="cleanup-confirmed" style="display:none; margin-top:10px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:7px; padding:10px 14px; align-items:center; gap:8px;">
+        <span style="font-size:16px;">✅</span>
+        <span style="font-size:12px; color:#6ee7b7; font-weight:500;">Confirmed - resources cleaned up. See you in Lab 4!</span>
+      </div>
+      <script>
+        let cleanupFired = false;
+        function checkCleanup() {
+          const val = document.getElementById('cleanup-input').value.trim().toUpperCase();
+          const status = document.getElementById('cleanup-status');
+          const confirmed = document.getElementById('cleanup-confirmed');
+          const input = document.getElementById('cleanup-input');
+          if (val === 'YES') {
+            input.style.borderColor = 'rgba(16,185,129,0.8)'; input.style.color = '#6ee7b7';
+            status.style.display = 'none'; confirmed.style.display = 'flex';
+            if (!cleanupFired) {
+              cleanupFired = true;
+              const ts = new Date().toLocaleString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+              showCleanupModal(ts);
+            }
+          } else {
+            input.style.borderColor = 'rgba(239,68,68,0.4)'; input.style.color = '#fff';
+            confirmed.style.display = 'none'; status.style.display = 'inline';
+            status.style.color = val.length > 0 ? '#fca5a5' : 'var(--text-muted)';
+            status.textContent = val.length > 0 ? 'Please type YES (all capitals)' : 'Confirmation required';
+          }
+        }
+        function showCleanupModal(ts) {
+          document.getElementById('cleanup-ts').textContent = ts;
+          document.getElementById('cleanup-modal').style.display = 'flex';
+        }
+        function closeCleanupModal() { document.getElementById('cleanup-modal').style.display = 'none'; }
+      </script>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- CLEANUP MODAL -->
+<div id="cleanup-modal" style="display:none; background:rgba(16,185,129,0.08); border:2px solid rgba(16,185,129,0.4); border-radius:12px; padding:24px; margin-top:16px; text-align:center;">
+  <div style="font-size:13px; font-weight:700; color:#6ee7b7; margin-bottom:10px; font-family:'Syne',sans-serif;">Clean-Up Confirmed - My Cloud Academy AZ-900 Lab 03</div>
+  <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:7px; padding:12px; margin-bottom:12px;">
+    <div style="font-size:10px; color:#64748b; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:5px; font-family:'JetBrains Mono',monospace;">Confirmed at</div>
+    <div id="cleanup-ts" style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#6ee7b7; line-height:1.6;"></div>
+  </div>
+  <p style="font-size:12px; color:#94a3b8; line-height:1.6; margin-bottom:12px;">No data collected or transmitted. Screenshot this for your records if required.</p>
+  <button onclick="closeCleanupModal()" style="background:linear-gradient(135deg,#10b981,#059669); border:none; border-radius:7px; color:#fff; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; padding:10px 20px; cursor:pointer;">Continue to Lab 4</button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand"><span>My Cloud Academy</span> - AZ-900 Azure Fundamentals</div>
+  <div class="next-lab">Next: <strong>Lab 04 - Identity & Zero Trust</strong> →</div>
+</footer>
+
+<script>
+  // OBJECTIVES
+  function toggleObj(el) { el.classList.toggle('obj-done'); updateObjProgress(); }
+  function updateObjProgress() {
+    const all = document.querySelectorAll('.obj-check');
+    const done = document.querySelectorAll('.obj-check.obj-done').length;
+    document.getElementById('obj-bar').style.width = Math.round((done/all.length)*100) + '%';
+    document.getElementById('obj-count').textContent = done + ' / ' + all.length;
+    const badge = document.getElementById('obj-complete-badge');
+    if (badge) badge.style.display = done === all.length ? 'inline' : 'none';
+  }
+  let objOpen = false;
+  function toggleObjPanel() {
+    objOpen = !objOpen;
+    document.getElementById('obj-panel-body').classList.toggle('collapsed', !objOpen);
+    document.getElementById('obj-toggle-icon').textContent = objOpen ? '▲ click to collapse' : '▼ click to expand';
+  }
+
+  // MOUNT OS TABS
+  function switchMount(os, clickedTab) {
+    const tabGroup = clickedTab.parentElement;
+    tabGroup.querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+    clickedTab.classList.add('active');
+    ['mount-windows','mount-mac','mount-linux'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === `mount-${os}`);
+    });
+  }
+</script>
+
+</body>
+</html>
