@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Lab 4 - Identity, Access & Zero Trust | My Cloud Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#09090f;--surface:#0f0f1a;--surface2:#141426;--border:#1e1e35;
+    --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;
+    --warn:#f59e0b;--danger:#ef4444;
+    --text:#e2e8f0;--text-muted:#64748b;--text-dim:#94a3b8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;max-width:800px;margin:0 auto;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(124,58,237,0.06));pointer-events:none;}
+  .header-inner{padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0;}
+  .brand-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;}
+  .brand-sub{font-size:10px;color:var(--text-muted);}
+  .cert-badge{display:inline-block;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:.06em;margin-bottom:3px;}
+  .pathway{font-size:10px;color:var(--text-muted);}
+  .pathway span{color:var(--accent3);}
+  .hero{background:linear-gradient(90deg,rgba(0,212,255,0.06),rgba(124,58,237,0.08));border-bottom:1px solid var(--border);padding:24px 24px 20px;}
+  .lab-number{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+  h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px;}
+  .hero-desc{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+  .meta-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .meta-pill{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text-dim);}
+  .meta-pill .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .dot-blue{background:var(--accent);}.dot-green{background:var(--accent3);}.dot-amber{background:var(--warn);}.dot-purple{background:var(--accent2);}
+  .sticky-progress{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:12px;}
+  .sticky-progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;}
+  .sticky-progress-bar{flex:1;background:var(--border);border-radius:99px;height:5px;overflow:hidden;}
+  .sticky-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent3));border-radius:99px;transition:width 0.4s ease;}
+  .sticky-progress-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);white-space:nowrap;}
+  main{padding:20px 24px 60px;display:flex;flex-direction:column;gap:20px;}
+  .info-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .info-card h3{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+  .az500-tag{background:rgba(124,58,237,0.10);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:12px 14px;font-size:11.5px;color:#a78bfa;line-height:1.5;grid-column:span 2;}
+  .az500-tag strong{display:inline;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#c4b5fd;margin-right:6px;}
+  .pathway-strip{display:flex;gap:6px;flex-wrap:wrap;}
+  .path-item{font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+  .path-item.done{color:var(--accent3);border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05);}
+  .path-item.active{color:var(--accent);border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);}
+  .path-item.future{opacity:.4;}
+  .term-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .term-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--text-dim);}
+  .term-pill code{background:none;border:none;padding:0;font-size:11px;color:var(--accent);}
+  .obj-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .obj-panel-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .obj-panel-header:hover{background:rgba(0,212,255,0.03);}
+  .obj-panel-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;}
+  .obj-panel-toggle{font-size:11px;color:var(--text-muted);}
+  .obj-panel-body{padding:12px 16px 14px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);}
+  .obj-panel-body.collapsed{display:none;}
+  .obj-check{display:flex;align-items:flex-start;gap:8px;cursor:pointer;padding:6px;border-radius:5px;border:1px solid transparent;transition:background 0.15s;user-select:none;}
+  .obj-check:hover{background:rgba(0,212,255,0.04);border-color:rgba(0,212,255,0.1);}
+  .obj-box{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;flex-shrink:0;margin-top:2px;transition:all 0.15s;}
+  .obj-text{font-size:12px;color:var(--text-muted);line-height:1.4;transition:color 0.15s;}
+  .obj-check.obj-done .obj-box{background:var(--accent3);border-color:var(--accent3);color:#fff;}
+  .obj-check.obj-done .obj-text{color:var(--accent3);text-decoration:line-through;text-decoration-color:rgba(16,185,129,0.4);}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .section-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .section-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+  .icon-blue{background:rgba(0,212,255,0.1);color:var(--accent);}
+  .icon-purple{background:rgba(124,58,237,0.12);color:#a78bfa;}
+  .icon-green{background:rgba(16,185,129,0.1);color:var(--accent3);}
+  .icon-amber{background:rgba(245,158,11,0.1);color:var(--warn);}
+  .icon-red{background:rgba(239,68,68,0.1);color:var(--danger);}
+  .section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}
+  .section-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+  p{color:var(--text-dim);font-size:13.5px;}
+  .task{background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:2px;}
+  .task-header{padding:10px 14px;background:rgba(0,212,255,0.04);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .task-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);border-radius:4px;padding:2px 7px;flex-shrink:0;}
+  .task-title{font-weight:500;font-size:13px;color:var(--text);}
+  .task-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+  .step-list{list-style:none;counter-reset:steps;display:flex;flex-direction:column;gap:8px;}
+  .step-list li{counter-increment:steps;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-dim);line-height:1.6;}
+  .step-list li::before{content:counter(steps);font-family:'JetBrains Mono',monospace;font-size:9px;min-width:20px;height:20px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;margin-top:3px;}
+  .callout{border-radius:7px;padding:11px 14px;font-size:12.5px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+  .callout-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+  .callout.info{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);color:#7dd3fc;}
+  .callout.warn{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;}
+  .callout.success{background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;}
+  .callout.danger{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;}
+  code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.12);color:var(--accent);padding:1px 5px;border-radius:3px;}
+  .scenario{background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(0,212,255,0.05));border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:16px 18px;}
+  .scenario-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:#a78bfa;text-transform:uppercase;margin-bottom:8px;}
+  .scenario p{color:#c4b5fd;font-size:13px;font-style:italic;line-height:1.7;}
+  .reflection-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .reflection-list li{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text-dim);}
+  .reflection-list li::before{content:'?';font-family:'Syne',sans-serif;font-weight:800;font-size:11px;color:var(--accent3);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .kc-item{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px 14px;margin-bottom:10px;}
+  .kc-q{font-size:13px;color:var(--text);font-weight:500;margin-bottom:8px;}
+  .kc-opts{list-style:none;display:flex;flex-direction:column;gap:5px;}
+  .kc-opts li{font-size:12.5px;color:var(--text-muted);padding:8px 12px;border-left:2px solid var(--border);border-radius:0 5px 5px 0;cursor:pointer;transition:all 0.15s;user-select:none;}
+  .kc-opts li:hover{background:rgba(0,212,255,0.05);border-left-color:var(--accent);color:var(--text);}
+  .kc-opts li.answered-correct{background:rgba(16,185,129,0.1);border-left-color:var(--accent3);color:#6ee7b7;font-weight:500;}
+  .kc-opts li.answered-wrong{background:rgba(239,68,68,0.08);border-left-color:var(--danger);color:#fca5a5;}
+  .answer-reveal{margin-top:10px;font-size:12px;color:#94a3b8;font-style:italic;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);border-radius:5px;padding:8px 12px;display:flex;gap:7px;align-items:flex-start;line-height:1.6;}
+  .screenshot-block{border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-top:4px;}
+  .screenshot-label{background:rgba(0,212,255,0.05);border-bottom:1px solid var(--border);padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.06em;}
+  .screenshot-block img{width:100%;display:block;border:none;background:#1a1a2e;}
+  .screenshot-caption{padding:6px 12px;font-size:11px;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);background:var(--surface2);}
+  .rbac-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .rbac-table th{background:rgba(0,212,255,0.06);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);}
+  .rbac-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;}
+  .rbac-table tr:last-child td{border-bottom:none;}
+  footer{background:var(--surface);border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .footer-brand{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+  .footer-brand span{color:var(--accent);}
+  .next-lab{font-size:11px;color:var(--text-muted);}
+  .next-lab strong{color:var(--text-dim);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">MCA</div>
+      <div class="brand-text">
+        <div class="brand-name">My Cloud Academy</div>
+        <div class="brand-sub">Professional Cybersecurity Training</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div class="cert-badge">AZ-900 - Microsoft Azure Fundamentals</div>
+      <div class="pathway">Pathway: AZ-900 - SC-900 - <span>AZ-500</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="lab-number">Lab 04 of 06</div>
+  <h1>Identity, Access<br>& Zero Trust</h1>
+  <p class="hero-desc">Explore Microsoft Entra ID, create users, assign RBAC roles, configure Conditional Access, and understand the Zero Trust security model.</p>
+  <div class="meta-row">
+    <div class="meta-pill"><span class="dot dot-blue"></span> ~50-60 minutes</div>
+    <div class="meta-pill"><span class="dot dot-green"></span> Zero credit spend</div>
+    <div class="meta-pill"><span class="dot dot-purple"></span> Core AZ-500 domain</div>
+    <div class="meta-pill"><span class="dot dot-amber"></span> Entra ID P2 needed for Conditional Access</div>
+  </div>
+</div>
+
+<div class="sticky-progress">
+  <span class="sticky-progress-label">Lab 04 Progress</span>
+  <div class="sticky-progress-bar"><div class="sticky-progress-fill" id="obj-bar"></div></div>
+  <span class="sticky-progress-count" id="obj-count">0 / 6</span>
+</div>
+
+<main>
+
+<!-- INFO STRIP -->
+<div class="info-strip">
+  <div class="info-card">
+    <h3>Lab Pathway</h3>
+    <div class="pathway-strip">
+      <span class="path-item done">01 Portal</span>
+      <span class="path-item done">02 Compute</span>
+      <span class="path-item done">03 Storage</span>
+      <span class="path-item active">04 Identity</span>
+      <span class="path-item future">05 Governance</span>
+      <span class="path-item future">06 Security</span>
+    </div>
+  </div>
+  <div class="info-card">
+    <h3>Credit Estimate</h3>
+    <p style="font-size:11px;color:var(--text-muted);line-height:1.6;margin:0;">This lab is <strong style="color:var(--accent3);">free</strong>. Entra ID user creation and RBAC role assignment cost nothing. Conditional Access requires a P2 trial licence - free to activate.</p>
+  </div>
+  <div class="az500-tag">
+    <strong>AZ-500 FOUNDATION</strong>
+    Identity is the primary AZ-500 domain. Entra ID, RBAC, Conditional Access, MFA, and Zero Trust are all exam topics in AZ-500 Security Technologies. Everything in this lab maps directly to what you will configure in AZ-500.
+  </div>
+  <div class="info-card" style="grid-column:span 2;">
+    <h3>Key Terms</h3>
+    <div class="term-list">
+      <span class="term-pill"><code>Entra ID</code> - Azure's cloud identity service (formerly Azure AD)</span>
+      <span class="term-pill"><code>Tenant</code> - your organisation's dedicated Entra ID instance</span>
+      <span class="term-pill"><code>RBAC</code> - Role-Based Access Control</span>
+      <span class="term-pill"><code>Conditional Access</code> - policy-based access control</span>
+      <span class="term-pill"><code>MFA</code> - Multi-Factor Authentication</span>
+      <span class="term-pill"><code>Zero Trust</code> - never trust, always verify</span>
+      <span class="term-pill"><code>Least Privilege</code> - grant only the minimum access needed</span>
+      <span class="term-pill"><code>SSO</code> - Single Sign-On</span>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECTIVES -->
+<div class="obj-panel">
+  <div class="obj-panel-header" onclick="toggleObjPanel()">
+    <span class="obj-panel-title">Lab Objectives <span id="obj-complete-badge" style="display:none;font-size:10px;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-left:8px;">ALL DONE</span></span>
+    <span class="obj-panel-toggle" id="obj-toggle-icon">click to expand</span>
+  </div>
+  <div class="obj-panel-body collapsed" id="obj-panel-body">
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Navigate Microsoft Entra ID and explore the tenant overview</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Create a new user in Entra ID</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Assign an RBAC role at the Resource Group scope</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Explore Conditional Access policies</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Explain the Zero Trust model and how it applies to Azure</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Explain the difference between authentication and authorisation</span></li>
+  </div>
+</div>
+
+<!-- WHAT YOU NEED -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">i</div><div class="section-title">What You Will Need</div></div>
+  <div class="section-body">
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:18px;flex-shrink:0;">1</div>
+        <div><div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px;">Labs 1-3 completed</div><div style="font-size:12px;color:var(--text-muted);">Your <code>rg-contoso-labs</code> resource group must exist. You will assign an RBAC role to it in this lab.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:18px;flex-shrink:0;">2</div>
+        <div><div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px;">A second email address (optional but recommended)</div><div style="font-size:12px;color:var(--text-muted);">To test user creation and sign-in you ideally have a second email you can use. A spare Outlook or Gmail address works.</div></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:18px;flex-shrink:0;">3</div>
+        <div><div style="font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px;">Entra ID P2 trial (for Conditional Access tasks)</div><div style="font-size:12px;color:var(--text-muted);">Conditional Access requires Entra ID P2. You can activate a free 30-day trial from within the portal - Part 3 walks you through this. It costs nothing.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">i</div><div class="section-title">Lab Overview</div></div>
+  <div class="section-body">
+    <p>Identity is the new security perimeter in cloud computing. In traditional networks, a firewall protected the boundary. In cloud environments, the identity of the user or service is the boundary. Microsoft Entra ID is Azure's cloud identity service - it handles authentication (who are you?) and authorisation (what can you do?) for every resource in your subscription.</p>
+    <p>This lab covers the four core identity pillars tested in AZ-900: Entra ID users, RBAC role assignments, Conditional Access policies, and the Zero Trust model. All four feed directly into AZ-500.</p>
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span>This lab is entirely free - no compute resources are deployed. Entra ID user management and RBAC assignment are included in every Azure subscription at no extra cost.</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO -->
+<div class="scenario">
+  <div class="scenario-label">Your Scenario</div>
+  <p>Contoso Ltd is onboarding a new junior administrator. You need to create their account in Entra ID, give them read-only access to the lab resource group, and ensure the account is protected by requiring MFA. You also need to review the company's Conditional Access policies to understand what access controls are in place.</p>
+</div>
+
+<!-- AUTH VS AUTHZ EXPLAINER -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">1</div><div class="section-title">Authentication vs Authorisation</div></div>
+  <div class="section-body">
+    <p>Before diving into the portal, understand the core distinction that underpins all of identity and access management.</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <table class="rbac-table">
+        <thead><tr><th>Concept</th><th>Question it answers</th><th>Azure service</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:var(--text);">Authentication (AuthN)</strong></td><td>Who are you?</td><td>Microsoft Entra ID</td><td>Username + password + MFA</td></tr>
+          <tr><td><strong style="color:var(--text);">Authorisation (AuthZ)</strong></td><td>What can you do?</td><td>Azure RBAC</td><td>Reader role on a resource group</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span>Authentication always happens before authorisation. You must prove who you are before Azure decides what you are allowed to do. This distinction appears in every AZ-900 and AZ-500 exam.</span>
+    </div>
+  </div>
+</div>
+
+<!-- PART 1 - ENTRA ID -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">2</div><div class="section-title">Part 1 - Microsoft Entra ID & Users</div></div>
+  <div class="section-body">
+    <p>Microsoft Entra ID (formerly Azure Active Directory) is the identity and access management service for Azure. Every Azure subscription is backed by an Entra ID tenant - your organisation's dedicated identity store in the cloud.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.1</span><span class="task-title">Explore your Entra ID tenant</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In the Azure portal, search for <code>Microsoft Entra ID</code> and click the result</li>
+          <li>On the Overview page, note your <strong>Tenant ID</strong> and <strong>Primary domain</strong> (e.g. yourdomain.onmicrosoft.com) - write these down</li>
+          <li>In the left menu under <strong>Manage</strong>, click <strong>Users</strong> - you will see your own account listed</li>
+          <li>Click <strong>Groups</strong> - explore any groups that exist (your free account will have few or none)</li>
+          <li>Click <strong>Licenses</strong> - note what Entra ID licence tier you currently have (Free by default)</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Microsoft Entra ID Overview</div>
+          <img src="https://learn.microsoft.com/en-us/entra/fundamentals/media/whatis-azure-ad/azure-active-directory-overview.png" alt="Microsoft Entra ID overview page showing tenant information, users and groups" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Entra ID overview - your Tenant ID and primary domain are shown here. Note the left menu for navigating users, groups, and licences. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span>Your <strong>Tenant ID</strong> is a globally unique identifier for your organisation's Entra ID instance. You will use it when configuring app registrations and service principals in AZ-500.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.2</span><span class="task-title">Create a new user</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In Entra ID, click <strong>Users</strong> then <strong>+ New user</strong> then <strong>Create new user</strong></li>
+          <li>Set <strong>User principal name</strong> to <code>jadmin</code> (it will append your tenant domain automatically)</li>
+          <li>Set <strong>Display name</strong> to <code>Junior Admin</code></li>
+          <li>Under <strong>Password</strong>, note the auto-generated password or set your own - write it down</li>
+          <li>Click <strong>Next: Properties</strong> - optionally add a job title of <code>Junior Administrator</code> and department <code>IT</code></li>
+          <li>Click <strong>Review + create</strong> then <strong>Create</strong></li>
+          <li>Once created, click on the user and note the <strong>Object ID</strong> - this uniquely identifies the user in Entra ID</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Create New User Form</div>
+          <img src="https://learn.microsoft.com/en-us/entra/fundamentals/media/add-users-azure-active-directory/add-user-form.png" alt="Entra ID create new user form showing user principal name, display name and password fields" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Create new user form - set the UPN prefix to jadmin and note the auto-generated password before clicking Create. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">!</span>
+          <span>Write down the auto-generated password immediately - you will not be able to retrieve it after leaving this page. The user will be prompted to change it on first sign-in.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 2 - RBAC -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">3</div><div class="section-title">Part 2 - Azure RBAC Role Assignments</div></div>
+  <div class="section-body">
+    <p>Azure RBAC controls who can do what to which Azure resources. It works by assigning a <strong>role</strong> to a <strong>security principal</strong> (user, group, or service) at a particular <strong>scope</strong> (management group, subscription, resource group, or resource).</p>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px;">
+      <table class="rbac-table">
+        <thead><tr><th>Role</th><th>What it can do</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:var(--text);">Owner</strong></td><td>Full access including managing access</td><td>Subscription owners, admins</td></tr>
+          <tr><td><strong style="color:var(--text);">Contributor</strong></td><td>Create and manage resources, cannot manage access</td><td>Developers, engineers</td></tr>
+          <tr><td><strong style="color:var(--text);">Reader</strong></td><td>View resources only, no changes</td><td>Auditors, junior staff</td></tr>
+          <tr><td><strong style="color:var(--text);">User Access Administrator</strong></td><td>Manage user access only</td><td>IT admins without full owner rights</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span><strong>Key exam concept:</strong> Role assignments are <em>additive</em> - a user with Reader on a subscription and Contributor on a specific resource group gets both. There is no deny role in standard RBAC (only deny assignments which are rare).</span>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.1</span><span class="task-title">Assign the Reader role to your new user</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Navigate to your <code>rg-contoso-labs</code> resource group</li>
+          <li>In the left menu, click <strong>Access control (IAM)</strong></li>
+          <li>Click the <strong>Role assignments</strong> tab - review any existing assignments</li>
+          <li>Click <strong>+ Add</strong> then <strong>Add role assignment</strong></li>
+          <li>On the <strong>Role</strong> tab, search for <code>Reader</code> and select it, then click <strong>Next</strong></li>
+          <li>On the <strong>Members</strong> tab, click <strong>+ Select members</strong></li>
+          <li>Search for <code>Junior Admin</code> and select the user, click <strong>Select</strong></li>
+          <li>Click <strong>Review + assign</strong> twice to confirm</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Access Control (IAM) Page</div>
+          <img src="https://learn.microsoft.com/en-us/azure/role-based-access-control/media/role-assignments-portal/access-control.png" alt="Azure portal Access Control IAM page showing role assignments tab and Add role assignment button" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Access Control (IAM) page - click Role assignments tab to view existing assignments, then + Add to create a new one. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout success">
+          <span class="callout-icon">+</span>
+          <span>The Reader role is now assigned to Junior Admin at the resource group scope. They can view all resources in <code>rg-contoso-labs</code> but cannot create, modify, or delete anything.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.2</span><span class="task-title">Verify the role assignment and understand scope inheritance</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>On the IAM page, click the <strong>Role assignments</strong> tab - confirm Junior Admin now appears with the Reader role</li>
+          <li>Now navigate to your <strong>Subscription</strong> and click <strong>Access control (IAM)</strong></li>
+          <li>Click <strong>Role assignments</strong> - note that Junior Admin does NOT appear here</li>
+          <li>This confirms the assignment is scoped to the resource group only, not the whole subscription</li>
+          <li>Click <strong>Check access</strong> - search for Junior Admin and review their effective permissions</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span><strong>Scope inheritance:</strong> Permissions assigned at a parent scope (subscription) flow down to child scopes (resource groups and resources). Permissions assigned at a child scope do NOT flow upward. This is a common AZ-900 exam question.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 3 - CONDITIONAL ACCESS -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">4</div><div class="section-title">Part 3 - Conditional Access & MFA</div></div>
+  <div class="section-body">
+    <p>Conditional Access is Entra ID's policy engine. It evaluates conditions (who is signing in, from where, on what device, to what application) and enforces controls (require MFA, block access, require compliant device). It is how Zero Trust is implemented in practice.</p>
+    <div class="callout warn">
+      <span class="callout-icon">!</span>
+      <span>Conditional Access requires <strong>Entra ID P2</strong>. Your free account includes a 30-day trial - activate it now from <strong>Entra ID - Licences - All products - Try/Buy</strong>. It is free and does not require payment details.</span>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.1</span><span class="task-title">Explore Conditional Access policies</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In Entra ID, scroll down in the left menu to <strong>Protection</strong> and click <strong>Conditional Access</strong></li>
+          <li>Click <strong>+ New policy</strong> to see the policy creation form - do not save anything</li>
+          <li>Explore the <strong>Conditions</strong> section - note the signal types: Users, Cloud apps, Conditions (location, device platform, sign-in risk)</li>
+          <li>Explore the <strong>Access controls - Grant</strong> section - note the control options: require MFA, require compliant device, block access</li>
+          <li>Close without saving - you are exploring the interface only</li>
+          <li>Click <strong>What If</strong> in the top menu - this tool simulates what policies would apply to a given sign-in</li>
+          <li>Set User to your Junior Admin account and click <strong>What If</strong> - review which policies apply</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Conditional Access Policy Editor</div>
+          <img src="https://learn.microsoft.com/en-us/entra/identity/conditional-access/media/overview/conditional-access-overview-how-it-works.png" alt="Conditional Access policy showing signals, decisions and enforcement flow" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Conditional Access model - signals are evaluated, a decision is made, and access controls are enforced. This is Zero Trust in action. Source: Microsoft Learn</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.2</span><span class="task-title">Review MFA registration for your account</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Navigate to <code>aka.ms/mysecurityinfo</code> in your browser</li>
+          <li>Review your registered authentication methods - you should have at least one MFA method configured</li>
+          <li>If not configured, add a method (Microsoft Authenticator app or phone number)</li>
+          <li>Return to the portal and navigate to <strong>Entra ID - Users - Per-user MFA</strong></li>
+          <li>Note the MFA status for your accounts - this shows which users have MFA enforced</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span><strong>MFA vs Conditional Access MFA:</strong> Per-user MFA enforces MFA for every sign-in. Conditional Access MFA enforces it only when specific conditions are met (e.g. signing in from outside the office). Conditional Access is more flexible and the recommended approach.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 4 - ZERO TRUST -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">5</div><div class="section-title">Part 4 - The Zero Trust Model</div></div>
+  <div class="section-body">
+    <p>Zero Trust is a security model based on the principle "never trust, always verify". Unlike traditional perimeter-based security (trust everything inside the network), Zero Trust assumes breach and verifies every request explicitly.</p>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <table class="rbac-table">
+        <thead><tr><th>Zero Trust Principle</th><th>What it means</th><th>How Azure implements it</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:var(--text);">Verify explicitly</strong></td><td>Always authenticate and authorise based on all available data points</td><td>Entra ID, Conditional Access, MFA</td></tr>
+          <tr><td><strong style="color:var(--text);">Use least privilege access</strong></td><td>Limit user access with just-in-time and just-enough-access</td><td>Azure RBAC, Privileged Identity Management</td></tr>
+          <tr><td><strong style="color:var(--text);">Assume breach</strong></td><td>Minimise blast radius, segment access, encrypt end to end</td><td>NSGs, Private Endpoints, Defender for Cloud</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 4.1</span><span class="task-title">Map Zero Trust to what you have built</span></div>
+      <div class="task-body">
+        <p style="font-size:13px;">Review each Zero Trust principle against the labs completed so far and write your answers in your notes.</p>
+        <ol class="step-list">
+          <li><strong>Verify explicitly</strong> - which controls in this lab enforce explicit verification? (MFA, Conditional Access)</li>
+          <li><strong>Least privilege</strong> - why did we assign Reader rather than Contributor to the Junior Admin? What is the risk of over-permissioning?</li>
+          <li><strong>Assume breach</strong> - how did the NSG in Lab 2 contribute to Zero Trust? What does "minimise blast radius" mean in practice?</li>
+          <li>Navigate to <strong>Entra ID - Security - Identity Secure Score</strong> and review your tenant's score and improvement recommendations</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span>The <strong>Identity Secure Score</strong> gives you a percentage score for how well your tenant follows identity security best practices. Each recommendation links directly to AZ-500 concepts.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO CHALLENGE -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">!</div><div class="section-title">Part 5 - Scenario Challenge</div></div>
+  <div class="section-body">
+    <div class="scenario">
+      <div class="scenario-label">Challenge Brief</div>
+      <p>A senior developer at Contoso needs temporary access to deploy resources into <code>rg-contoso-labs</code> for a two-week project. They should be able to create and manage resources but should NOT be able to assign roles to others or delete the resource group itself. Design the correct RBAC assignment. Which role would you assign and at which scope? Write your answer in your notes, then implement it in the portal. Once the project is complete, how would you remove the access?</p>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span>Hint: Review the RBAC roles table in Part 2. Consider whether Contributor, Owner, or a custom role best fits the requirement. Also consider whether to assign at subscription or resource group scope.</span>
+    </div>
+  </div>
+</div>
+
+<!-- REFLECTION -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">?</div><div class="section-title">Reflection Questions</div></div>
+  <div class="section-body">
+    <ul class="reflection-list">
+      <li>What is the difference between authentication and authorisation? Give an Azure-specific example of each.</li>
+      <li>A user is assigned the Reader role at the subscription level and the Contributor role on one resource group. What is their effective permission on that resource group?</li>
+      <li>Why is Conditional Access more flexible than per-user MFA enforcement?</li>
+      <li>Explain the principle of least privilege and why it is important in a Zero Trust model.</li>
+      <li>What is the difference between Entra ID (authentication) and Azure RBAC (authorisation)? Why are they separate systems?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- KNOWLEDGE CHECK -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">KC</div><div class="section-title">Knowledge Check - AZ-900 Exam Style</div></div>
+  <div class="section-body">
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;margin-bottom:14px;">
+      <span style="font-size:12px;color:var(--text-muted);">Click an answer to check it. One attempt per question.</span>
+      <span id="kc-score" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);">0 / 5</span>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">1. A company wants to ensure users must use MFA only when signing in from outside the corporate network. Which Azure feature should they configure?</div>
+      <ul class="kc-opts" data-correct="2">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Per-user MFA enforcement</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Azure RBAC</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Conditional Access policy</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Entra ID Identity Protection</li>
+      </ul>
+      <div class="answer-reveal" id="explain-0" style="display:none;"><span>i</span> Conditional Access policies evaluate signals (including location/network) and apply controls like MFA only when the conditions are met. Per-user MFA forces MFA for every sign-in regardless of location.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">2. A junior analyst needs to view resources in a resource group but must not be able to make changes. Which RBAC role should be assigned?</div>
+      <ul class="kc-opts" data-correct="1">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Contributor</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Reader</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Owner</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. User Access Administrator</li>
+      </ul>
+      <div class="answer-reveal" id="explain-1" style="display:none;"><span>i</span> Reader provides view-only access with no ability to create, modify, or delete resources. This follows the principle of least privilege - granting only the minimum access needed.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">3. Which Zero Trust principle is implemented by assigning the minimum RBAC role required for a task?</div>
+      <ul class="kc-opts" data-correct="0">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Use least privilege access</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Verify explicitly</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Assume breach</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Defence in depth</li>
+      </ul>
+      <div class="answer-reveal" id="explain-2" style="display:none;"><span>i</span> Least privilege access limits what a user can do, reducing the damage if their account is compromised. Verify explicitly relates to authentication. Assume breach relates to segmentation and minimising blast radius.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">4. What is the correct relationship between Entra ID and Azure RBAC?</div>
+      <ul class="kc-opts" data-correct="3">
+        <li data-idx="0" onclick="checkAnswer(this)">A. They are the same service with different names</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Azure RBAC handles authentication; Entra ID handles authorisation</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Entra ID handles both authentication and authorisation for Azure resources</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Entra ID handles authentication; Azure RBAC handles authorisation for Azure resources</li>
+      </ul>
+      <div class="answer-reveal" id="explain-3" style="display:none;"><span>i</span> Entra ID verifies identity (authentication). Azure RBAC then determines what that identity is allowed to do with Azure resources (authorisation). They are separate but complementary systems.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">5. A user is assigned the Contributor role at the subscription scope. What is their access to a specific resource group within that subscription?</div>
+      <ul class="kc-opts" data-correct="1">
+        <li data-idx="0" onclick="checkAnswer(this)">A. No access - subscription roles do not apply to resource groups</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Contributor access - permissions inherit downward from parent scopes</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Reader access only - resource groups are protected by default</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Owner access - subscription contributors get elevated access on child resources</li>
+      </ul>
+      <div class="answer-reveal" id="explain-4" style="display:none;"><span>i</span> RBAC permissions flow downward through the hierarchy. Contributor at subscription scope means Contributor access on all resource groups and resources within that subscription.</div>
+    </div>
+
+    <div id="kc-result" style="display:none;margin-top:14px;border-radius:7px;padding:14px 16px;text-align:center;font-size:13.5px;line-height:1.6;"></div>
+
+    <script>
+      var kcCorrect=0,kcAnswered=0,kcTotal=5;
+      function checkAnswer(el){
+        var item=el.closest('.kc-item');
+        if(item.dataset.answered==='true')return;
+        item.dataset.answered='true';
+        var opts=el.closest('.kc-opts');
+        var correctIdx=parseInt(opts.dataset.correct);
+        var clickedIdx=parseInt(el.dataset.idx);
+        var qIdx=Array.from(document.querySelectorAll('.kc-item')).indexOf(item);
+        opts.querySelectorAll('li').forEach(function(li){li.style.pointerEvents='none';li.style.cursor='default';});
+        opts.querySelector('[data-idx="'+correctIdx+'"]').classList.add('answered-correct');
+        if(clickedIdx===correctIdx){el.classList.add('answered-correct');kcCorrect++;}
+        else{el.classList.add('answered-wrong');}
+        document.getElementById('explain-'+qIdx).style.display='flex';
+        kcAnswered++;
+        document.getElementById('kc-score').textContent=kcCorrect+' / '+kcTotal;
+        if(kcAnswered===kcTotal){
+          var res=document.getElementById('kc-result');
+          res.style.display='block';
+          if(kcCorrect===5){res.style.cssText+='background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;';res.innerHTML='Perfect - all 5 correct. Identity concepts solid. On to Lab 5!';}
+          else if(kcCorrect>=4){res.style.cssText+='background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;';res.innerHTML=kcCorrect+' out of 5 - solid. Review the missed question before Lab 5.';}
+          else if(kcCorrect>=3){res.style.cssText+='background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);color:#fcd34d;';res.innerHTML=kcCorrect+' out of 5 - revisit RBAC scope inheritance and Zero Trust principles.';}
+          else{res.style.cssText+='background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;';res.innerHTML=kcCorrect+' out of 5 - go back through Parts 1 to 4 before continuing.';}
+        }
+      }
+    </script>
+  </div>
+</div>
+
+<!-- HOUSEKEEPING -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-red">!</div><div class="section-title">Lab Housekeeping</div></div>
+  <div class="section-body">
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span>No compute resources were deployed in this lab. However you should clean up the test user and role assignment to keep your tenant tidy.</span>
+    </div>
+    <ol class="step-list" style="margin-top:4px;">
+      <li>Navigate to <strong>Entra ID - Users</strong>, select <strong>Junior Admin</strong> and click <strong>Delete</strong></li>
+      <li>Navigate to <code>rg-contoso-labs</code> - <strong>Access control (IAM)</strong> and remove any role assignments you created in this lab</li>
+      <li>If you added any additional role assignments for the scenario challenge, remove those too</li>
+    </ol>
+    <div class="callout warn" style="margin-top:8px;">
+      <span class="callout-icon">!</span>
+      <span>If you activated an Entra ID P2 trial, it will expire automatically after 30 days. No action needed - you will not be charged.</span>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-brand"><span>My Cloud Academy</span> - AZ-900 Azure Fundamentals</div>
+  <div class="next-lab">Next: <strong>Lab 05 - Governance & Cost Management</strong></div>
+</footer>
+
+<script>
+  function toggleObj(el){el.classList.toggle('obj-done');updateObjProgress();}
+  function updateObjProgress(){
+    var all=document.querySelectorAll('.obj-check');
+    var done=document.querySelectorAll('.obj-check.obj-done').length;
+    document.getElementById('obj-bar').style.width=Math.round((done/all.length)*100)+'%';
+    document.getElementById('obj-count').textContent=done+' / '+all.length;
+    var badge=document.getElementById('obj-complete-badge');
+    if(badge)badge.style.display=done===all.length?'inline':'none';
+  }
+  var objOpen=false;
+  function toggleObjPanel(){
+    objOpen=!objOpen;
+    document.getElementById('obj-panel-body').classList.toggle('collapsed',!objOpen);
+    document.getElementById('obj-toggle-icon').textContent=objOpen?'click to collapse':'click to expand';
+  }
+</script>
+
+</body>
+</html>
