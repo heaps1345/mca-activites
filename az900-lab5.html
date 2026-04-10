@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Lab 5 - Governance & Cost Management | My Cloud Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#09090f;--surface:#0f0f1a;--surface2:#141426;--border:#1e1e35;--accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--warn:#f59e0b;--danger:#ef4444;--text:#e2e8f0;--text-muted:#64748b;--text-dim:#94a3b8;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.7;max-width:800px;margin:0 auto;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(124,58,237,0.06));pointer-events:none;}
+  .header-inner{padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#fff;flex-shrink:0;}
+  .brand-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;}
+  .brand-sub{font-size:10px;color:var(--text-muted);}
+  .cert-badge{display:inline-block;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:.06em;margin-bottom:3px;}
+  .pathway{font-size:10px;color:var(--text-muted);}
+  .pathway span{color:var(--accent3);}
+  .hero{background:linear-gradient(90deg,rgba(16,185,129,0.06),rgba(0,212,255,0.06));border-bottom:1px solid var(--border);padding:24px 24px 20px;}
+  .lab-number{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+  h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px;}
+  .hero-desc{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+  .meta-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .meta-pill{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--text-dim);}
+  .meta-pill .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .dot-blue{background:var(--accent);}.dot-green{background:var(--accent3);}.dot-amber{background:var(--warn);}.dot-purple{background:var(--accent2);}
+  .sticky-progress{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:12px;}
+  .sticky-progress-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;}
+  .sticky-progress-bar{flex:1;background:var(--border);border-radius:99px;height:5px;overflow:hidden;}
+  .sticky-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent3),var(--accent));border-radius:99px;transition:width 0.4s ease;}
+  .sticky-progress-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent3);white-space:nowrap;}
+  main{padding:20px 24px 60px;display:flex;flex-direction:column;gap:20px;}
+  .info-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .info-card h3{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+  .az500-tag{background:rgba(124,58,237,0.10);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:12px 14px;font-size:11.5px;color:#a78bfa;line-height:1.5;grid-column:span 2;}
+  .az500-tag strong{display:inline;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:#c4b5fd;margin-right:6px;}
+  .pathway-strip{display:flex;gap:6px;flex-wrap:wrap;}
+  .path-item{font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+  .path-item.done{color:var(--accent3);border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.05);}
+  .path-item.active{color:var(--accent);border-color:rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);}
+  .path-item.future{opacity:.4;}
+  .term-list{display:flex;flex-wrap:wrap;gap:6px;}
+  .term-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;color:var(--text-dim);}
+  .term-pill code{background:none;border:none;padding:0;font-size:11px;color:var(--accent);}
+  .obj-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .obj-panel-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .obj-panel-header:hover{background:rgba(16,185,129,0.03);}
+  .obj-panel-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;}
+  .obj-panel-toggle{font-size:11px;color:var(--text-muted);}
+  .obj-panel-body{padding:12px 16px 14px;display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);}
+  .obj-panel-body.collapsed{display:none;}
+  .obj-check{display:flex;align-items:flex-start;gap:8px;cursor:pointer;padding:6px;border-radius:5px;border:1px solid transparent;transition:background 0.15s;user-select:none;}
+  .obj-check:hover{background:rgba(16,185,129,0.04);border-color:rgba(16,185,129,0.1);}
+  .obj-box{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--text-muted);display:flex;align-items:center;justify-content:center;font-size:9px;color:transparent;flex-shrink:0;margin-top:2px;transition:all 0.15s;}
+  .obj-text{font-size:12px;color:var(--text-muted);line-height:1.4;transition:color 0.15s;}
+  .obj-check.obj-done .obj-box{background:var(--accent3);border-color:var(--accent3);color:#fff;}
+  .obj-check.obj-done .obj-text{color:var(--accent3);text-decoration:line-through;text-decoration-color:rgba(16,185,129,0.4);}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .section-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .section-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+  .icon-blue{background:rgba(0,212,255,0.1);color:var(--accent);}
+  .icon-purple{background:rgba(124,58,237,0.12);color:#a78bfa;}
+  .icon-green{background:rgba(16,185,129,0.1);color:var(--accent3);}
+  .icon-amber{background:rgba(245,158,11,0.1);color:var(--warn);}
+  .icon-red{background:rgba(239,68,68,0.1);color:var(--danger);}
+  .section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}
+  .section-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+  p{color:var(--text-dim);font-size:13.5px;}
+  .task{background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:2px;}
+  .task-header{padding:10px 14px;background:rgba(16,185,129,0.04);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  .task-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent3);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:4px;padding:2px 7px;flex-shrink:0;}
+  .task-title{font-weight:500;font-size:13px;color:var(--text);}
+  .task-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+  .step-list{list-style:none;counter-reset:steps;display:flex;flex-direction:column;gap:8px;}
+  .step-list li{counter-increment:steps;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-dim);line-height:1.6;}
+  .step-list li::before{content:counter(steps);font-family:'JetBrains Mono',monospace;font-size:9px;min-width:20px;height:20px;background:var(--surface);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent3);flex-shrink:0;margin-top:3px;}
+  .callout{border-radius:7px;padding:11px 14px;font-size:12.5px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+  .callout-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+  .callout.info{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);color:#7dd3fc;}
+  .callout.warn{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);color:#fcd34d;}
+  .callout.success{background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;}
+  .callout.danger{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;}
+  code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.12);color:var(--accent);padding:1px 5px;border-radius:3px;}
+  .scenario{background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(0,212,255,0.05));border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:16px 18px;}
+  .scenario-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--accent3);text-transform:uppercase;margin-bottom:8px;}
+  .scenario p{color:#a7f3d0;font-size:13px;font-style:italic;line-height:1.7;}
+  .reflection-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .reflection-list li{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--text-dim);}
+  .reflection-list li::before{content:'?';font-family:'Syne',sans-serif;font-weight:800;font-size:11px;color:var(--accent3);background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .kc-item{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px 14px;margin-bottom:10px;}
+  .kc-q{font-size:13px;color:var(--text);font-weight:500;margin-bottom:8px;}
+  .kc-opts{list-style:none;display:flex;flex-direction:column;gap:5px;}
+  .kc-opts li{font-size:12.5px;color:var(--text-muted);padding:8px 12px;border-left:2px solid var(--border);border-radius:0 5px 5px 0;cursor:pointer;transition:all 0.15s;user-select:none;}
+  .kc-opts li:hover{background:rgba(16,185,129,0.05);border-left-color:var(--accent3);color:var(--text);}
+  .kc-opts li.answered-correct{background:rgba(16,185,129,0.1);border-left-color:var(--accent3);color:#6ee7b7;font-weight:500;}
+  .kc-opts li.answered-wrong{background:rgba(239,68,68,0.08);border-left-color:var(--danger);color:#fca5a5;}
+  .answer-reveal{margin-top:10px;font-size:12px;color:#94a3b8;font-style:italic;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.1);border-radius:5px;padding:8px 12px;display:flex;gap:7px;align-items:flex-start;line-height:1.6;}
+  .screenshot-block{border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-top:4px;}
+  .screenshot-label{background:rgba(16,185,129,0.05);border-bottom:1px solid var(--border);padding:6px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.06em;}
+  .screenshot-block img{width:100%;display:block;border:none;background:#1a1a2e;}
+  .screenshot-caption{padding:6px 12px;font-size:11px;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);background:var(--surface2);}
+  .gov-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .gov-table th{background:rgba(16,185,129,0.06);color:var(--accent3);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);}
+  .gov-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;}
+  .gov-table tr:last-child td{border-bottom:none;}
+  .budget-vis{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;}
+  .budget-bar-wrap{background:var(--border);border-radius:99px;height:14px;overflow:hidden;margin:10px 0;}
+  .budget-bar-fill{height:100%;border-radius:99px;transition:width 1s ease;}
+  .budget-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+  footer{background:var(--surface);border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .footer-brand{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+  .footer-brand span{color:var(--accent);}
+  .next-lab{font-size:11px;color:var(--text-muted);}
+  .next-lab strong{color:var(--text-dim);}
+  .cleanup-confirm{background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.4);border-radius:12px;padding:24px;margin-top:16px;text-align:center;display:none;}
+  .cleanup-title{font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:10px;font-family:'Syne',sans-serif;}
+  .cleanup-ts{background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:7px;padding:12px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6ee7b7;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">MCA</div>
+      <div>
+        <div class="brand-name">My Cloud Academy</div>
+        <div class="brand-sub">Professional Cybersecurity Training</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div class="cert-badge">AZ-900 - Microsoft Azure Fundamentals</div>
+      <div class="pathway">Pathway: AZ-900 - SC-900 - <span>AZ-500</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="lab-number">Lab 05 of 06</div>
+  <h1>Governance &<br>Cost Management</h1>
+  <p class="hero-desc">Configure Azure Policy, apply resource locks, set up cost budgets and alerts, use the Pricing Calculator, and explore Advisor recommendations.</p>
+  <div class="meta-row">
+    <div class="meta-pill"><span class="dot dot-blue"></span> ~50-60 minutes</div>
+    <div class="meta-pill"><span class="dot dot-green"></span> Zero credit spend</div>
+    <div class="meta-pill"><span class="dot dot-purple"></span> Governance & compliance domain</div>
+    <div class="meta-pill"><span class="dot dot-amber"></span> AZ-500 compliance controls</div>
+  </div>
+</div>
+
+<div class="sticky-progress">
+  <span class="sticky-progress-label">Lab 05 Progress</span>
+  <div class="sticky-progress-bar"><div class="sticky-progress-fill" id="obj-bar"></div></div>
+  <span class="sticky-progress-count" id="obj-count">0 / 6</span>
+</div>
+
+<main>
+
+<!-- INFO STRIP -->
+<div class="info-strip">
+  <div class="info-card">
+    <h3>Lab Pathway</h3>
+    <div class="pathway-strip">
+      <span class="path-item done">01 Portal</span>
+      <span class="path-item done">02 Compute</span>
+      <span class="path-item done">03 Storage</span>
+      <span class="path-item done">04 Identity</span>
+      <span class="path-item active">05 Governance</span>
+      <span class="path-item future">06 Security</span>
+    </div>
+  </div>
+  <div class="info-card">
+    <h3>Credit Estimate</h3>
+    <p style="font-size:11px;color:var(--text-muted);line-height:1.6;margin:0;">This lab is <strong style="color:var(--accent3);">free</strong>. Azure Policy, resource locks, budgets and Cost Management are all free features. The Pricing Calculator is a public tool - no account needed.</p>
+  </div>
+  <div class="az500-tag">
+    <strong>AZ-500 FOUNDATION</strong>
+    Governance is a core AZ-500 topic. Azure Policy, resource locks, compliance dashboards, and cost controls map directly to AZ-500 Section 4: Manage Security Operations. Understanding how to enforce compliance at scale through policy is essential for the AZ-500 exam.
+  </div>
+  <div class="info-card" style="grid-column:span 2;">
+    <h3>Key Terms</h3>
+    <div class="term-list">
+      <span class="term-pill"><code>Azure Policy</code> - enforces rules across resources at scale</span>
+      <span class="term-pill"><code>Policy Initiative</code> - group of related policies</span>
+      <span class="term-pill"><code>Resource Lock</code> - prevents deletion or modification</span>
+      <span class="term-pill"><code>CanNotDelete</code> - can modify but not delete</span>
+      <span class="term-pill"><code>ReadOnly</code> - no modifications or deletions</span>
+      <span class="term-pill"><code>Cost Management</code> - monitor and control Azure spend</span>
+      <span class="term-pill"><code>Budget</code> - spending limit with alerts</span>
+      <span class="term-pill"><code>Azure Advisor</code> - personalised best-practice recommendations</span>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECTIVES -->
+<div class="obj-panel">
+  <div class="obj-panel-header" onclick="toggleObjPanel()">
+    <span class="obj-panel-title">Lab Objectives <span id="obj-complete-badge" style="display:none;font-size:10px;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-left:8px;">ALL DONE</span></span>
+    <span class="obj-panel-toggle" id="obj-toggle-icon">click to expand</span>
+  </div>
+  <div class="obj-panel-body collapsed" id="obj-panel-body">
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Explore Azure Policy and assign a built-in policy</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Apply a resource lock to the lab resource group</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Configure a cost budget with email alerts in Cost Management</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Use the Azure Pricing Calculator to estimate costs</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Review Azure Advisor recommendations for your subscription</span></li>
+    <li class="obj-check" onclick="toggleObj(this)"><span class="obj-box">v</span><span class="obj-text">Explain the difference between CanNotDelete and ReadOnly locks</span></li>
+  </div>
+</div>
+
+<!-- LAB OVERVIEW -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">i</div><div class="section-title">Lab Overview</div></div>
+  <div class="section-body">
+    <p>Governance is the set of mechanisms that ensure Azure resources are deployed, configured, and used in accordance with organisational policy. Without governance, teams can deploy unsecured resources, incur unexpected costs, or violate compliance requirements. This lab covers the four main governance tools in Azure.</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <table class="gov-table">
+        <thead><tr><th>Tool</th><th>What it does</th><th>Exam relevance</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:var(--text);">Azure Policy</strong></td><td>Enforces rules - e.g. all VMs must use approved sizes, all resources must have tags</td><td>AZ-900 + AZ-500</td></tr>
+          <tr><td><strong style="color:var(--text);">Resource Locks</strong></td><td>Prevents accidental deletion or modification of critical resources</td><td>AZ-900 + AZ-500</td></tr>
+          <tr><td><strong style="color:var(--text);">Cost Management + Budgets</strong></td><td>Monitors spend and triggers alerts when thresholds are reached</td><td>AZ-900</td></tr>
+          <tr><td><strong style="color:var(--text);">Azure Advisor</strong></td><td>Personalised recommendations across reliability, security, performance, cost</td><td>AZ-900</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">i</span>
+      <span>All features in this lab are free. Azure Policy, resource locks, and Cost Management are included with every Azure subscription at no additional cost.</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO -->
+<div class="scenario">
+  <div class="scenario-label">Your Scenario</div>
+  <p>Contoso Ltd's finance team has flagged unexpected Azure spend last month. Your manager wants you to implement governance controls: enforce a tagging policy so every resource is tagged with a cost centre, lock the production resource group to prevent accidental deletion, and set up a budget alert at 80% of the monthly limit. You also need to review Azure Advisor to see if any quick wins exist to reduce cost and improve security.</p>
+</div>
+
+<!-- PART 1 - AZURE POLICY -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-blue">1</div><div class="section-title">Part 1 - Azure Policy</div></div>
+  <div class="section-body">
+    <p>Azure Policy evaluates resources against defined rules and can either audit (report non-compliance) or enforce (deny the deployment). Policies can be applied at management group, subscription, or resource group scope and inherit downward.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.1</span><span class="task-title">Explore the Policy service</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In the Azure portal, search for <code>Policy</code> and click the result</li>
+          <li>On the <strong>Overview</strong> page, review the compliance summary - with a free account and minimal resources you will likely see high compliance</li>
+          <li>Click <strong>Definitions</strong> in the left menu - browse the built-in policy library</li>
+          <li>In the search box, type <code>tag</code> - review the tag-related built-in policies</li>
+          <li>Click on <strong>Require a tag on resources</strong> to read the policy definition - note the JSON structure</li>
+          <li>Click <strong>Initiatives</strong> - note the difference between a single policy and an initiative (group of policies)</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Azure Policy Overview</div>
+          <img src="https://learn.microsoft.com/en-us/azure/governance/policy/media/overview/policy-overview.png" alt="Azure Policy overview page showing compliance summary and policy definitions" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">Azure Policy overview - the compliance dashboard shows how many resources comply with assigned policies. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span><strong>Policy vs Initiative:</strong> A policy is a single rule. An initiative is a collection of related policies assigned together - for example, the ISO 27001 initiative contains dozens of individual policies covering security controls.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.2</span><span class="task-title">Assign a tagging policy to your resource group</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In Azure Policy, click <strong>Assignments</strong> in the left menu then <strong>+ Assign policy</strong></li>
+          <li>Under <strong>Scope</strong>, click the three dots and select your subscription then <code>rg-contoso-labs</code></li>
+          <li>Under <strong>Policy definition</strong>, click the three dots and search for <code>Require a tag on resources</code> - select it</li>
+          <li>Click <strong>Next</strong> to reach <strong>Parameters</strong> - set the tag name to <code>CostCentre</code></li>
+          <li>Click <strong>Next</strong> then <strong>Review + create</strong> then <strong>Create</strong></li>
+          <li>Return to <strong>Policy - Assignments</strong> and confirm the new assignment appears</li>
+        </ol>
+        <div class="callout warn">
+          <span class="callout-icon">!</span>
+          <span>Policy evaluation is not immediate - it can take up to 30 minutes for new assignments to evaluate existing resources. For this lab you are configuring the assignment and verifying it appears correctly, not waiting for the full evaluation cycle.</span>
+        </div>
+        <div class="callout success">
+          <span class="callout-icon">+</span>
+          <span>This policy will now <strong>audit</strong> new resources created in <code>rg-contoso-labs</code> to check they have a <code>CostCentre</code> tag. The effect is Audit by default - it reports but does not block. To enforce (deny untagged resources) the effect would be set to Deny.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 1.3</span><span class="task-title">Explore compliance and remediation</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Navigate to <strong>Policy - Compliance</strong></li>
+          <li>Find your tagging policy assignment - note the compliance state</li>
+          <li>Click into the policy to see which resources are non-compliant</li>
+          <li>Click <strong>Remediation</strong> in the left menu - explore how remediation tasks work for policies that support it</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span><strong>AZ-500 link:</strong> In AZ-500 you will use policy initiatives like Azure Security Benchmark and regulatory compliance frameworks (ISO 27001, SOC 2, PCI DSS). These work exactly the same way - same interface, larger scope.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 2 - RESOURCE LOCKS -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">2</div><div class="section-title">Part 2 - Resource Locks</div></div>
+  <div class="section-body">
+    <p>Resource locks prevent users from accidentally deleting or modifying critical resources - even if they have Owner-level RBAC permissions. Locks override RBAC for the specific operations they restrict.</p>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px;">
+      <table class="gov-table">
+        <thead><tr><th>Lock type</th><th>Can read?</th><th>Can modify?</th><th>Can delete?</th><th>Use case</th></tr></thead>
+        <tbody>
+          <tr><td><strong style="color:var(--text);">CanNotDelete</strong></td><td>Yes</td><td>Yes</td><td style="color:#fca5a5;">No</td><td>Production resources that might need config changes but must not be deleted</td></tr>
+          <tr><td><strong style="color:var(--text);">ReadOnly</strong></td><td>Yes</td><td style="color:#fca5a5;">No</td><td style="color:#fca5a5;">No</td><td>Critical config resources - treat as read-only infrastructure</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">!</span>
+      <span><strong>Locks override RBAC.</strong> An Owner cannot delete a locked resource unless they first remove the lock. This is intentional - it protects against both accidental and malicious deletion.</span>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.1</span><span class="task-title">Apply a CanNotDelete lock to your resource group</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Navigate to <code>rg-contoso-labs</code></li>
+          <li>In the left menu, click <strong>Locks</strong></li>
+          <li>Click <strong>+ Add</strong></li>
+          <li>Set <strong>Lock name</strong> to <code>rg-contoso-labs-lock</code></li>
+          <li>Set <strong>Lock type</strong> to <code>CanNotDelete</code></li>
+          <li>Add a note: <code>Production lab resource group - do not delete</code></li>
+          <li>Click <strong>OK</strong></li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Resource Locks Blade</div>
+          <img src="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/media/lock-resources/lock-add.png" alt="Azure portal resource locks blade showing add lock form with lock name, type and notes" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">The Add lock form - set Lock type to CanNotDelete to prevent deletion while still allowing modifications. Source: Microsoft Learn</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 2.2</span><span class="task-title">Test the lock - attempt to delete the resource group</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>From the <code>rg-contoso-labs</code> overview, click <strong>Delete resource group</strong> in the command bar</li>
+          <li>Type the resource group name to confirm and click <strong>Delete</strong></li>
+          <li>Azure will return an error - the lock is preventing deletion</li>
+          <li>Return to <strong>Locks</strong> and verify the lock is still in place - do NOT remove it yet</li>
+        </ol>
+        <div class="callout success">
+          <span class="callout-icon">+</span>
+          <span>The error you saw confirms the lock is working correctly. Even with Owner permissions, the resource group cannot be deleted while the lock exists. This is a key governance control for production environments.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 3 - COST MANAGEMENT -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">3</div><div class="section-title">Part 3 - Cost Management & Budgets</div></div>
+  <div class="section-body">
+    <p>Azure Cost Management lets you monitor spend, analyse cost trends, and set budgets with automated alerts. It is free to use and works across all subscriptions.</p>
+
+    <div class="budget-vis">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;">Example Budget Visualisation</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">Monthly budget: $50 | Spend to date: $12 | Alert at: 80%</div>
+      <div class="budget-bar-wrap">
+        <div class="budget-bar-fill" id="budget-bar" style="width:0%;background:linear-gradient(90deg,var(--accent3),var(--warn));"></div>
+      </div>
+      <div class="budget-label">
+        <span>$0</span><span id="budget-pct">24% used</span><span style="color:var(--warn);">Alert at 80%</span><span>$50</span>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.1</span><span class="task-title">Explore Cost Analysis</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Search for <code>Cost Management</code> in the portal and click the result</li>
+          <li>Click <strong>Cost analysis</strong> in the left menu</li>
+          <li>Review the default view - it shows your subscription spend over the current billing period</li>
+          <li>Use the <strong>Group by</strong> dropdown to switch between grouping by Service, Resource group, and Tag</li>
+          <li>Change the date range to <strong>Last 3 months</strong> to see spending trends</li>
+          <li>Click <strong>View</strong> to explore saved views - try the <strong>Cost by resource</strong> view</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span>The <strong>Group by Tag</strong> view is why tags matter for cost management. If you applied the <code>CostCentre</code> tag in Lab 1, you can now filter costs by cost centre here. This is how organisations do chargeback to departments.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.2</span><span class="task-title">Create a cost budget with alert</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>In Cost Management, click <strong>Budgets</strong> then <strong>+ Add</strong></li>
+          <li>Set <strong>Name</strong> to <code>AZ900-Lab-Budget</code></li>
+          <li>Set <strong>Reset period</strong> to <code>Monthly</code></li>
+          <li>Set <strong>Amount</strong> to <code>50</code> (this is your monthly budget in dollars)</li>
+          <li>Click <strong>Next: Alerts</strong></li>
+          <li>Click <strong>+ Add alert condition</strong> - set type to <code>Actual</code>, threshold to <code>80</code> percent</li>
+          <li>Enter your email address in the <strong>Alert recipients</strong> field</li>
+          <li>Click <strong>Create</strong></li>
+        </ol>
+        <div class="callout success">
+          <span class="callout-icon">+</span>
+          <span>You will now receive an email alert if your subscription spend reaches 80% of your $50 budget in any calendar month. This is the minimum governance control every Azure user should have active.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 3.3</span><span class="task-title">Use the Azure Pricing Calculator</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Open a new browser tab and navigate to <a href="https://azure.microsoft.com/en-us/pricing/calculator/" target="_blank" style="color:var(--accent);">azure.microsoft.com/pricing/calculator</a></li>
+          <li>Click <strong>Virtual Machines</strong> to add a VM to the estimate</li>
+          <li>Set region to <strong>UK South</strong>, OS to <strong>Windows</strong>, tier to <strong>Basic</strong>, size to <strong>B1s</strong></li>
+          <li>Note the monthly cost estimate - this is the same VM type used in Lab 2</li>
+          <li>Add a <strong>Storage Account</strong> to the estimate and configure it with LRS redundancy</li>
+          <li>Review the total monthly estimate at the bottom of the page</li>
+          <li>Click <strong>Export</strong> to download the estimate as an Excel file for your records</li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span>The Pricing Calculator is a public tool - no Azure account required. Use it before any deployment to estimate costs. The <strong>Total Cost of Ownership (TCO) Calculator</strong> (separate tool) compares on-premises vs Azure costs.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 4 - ADVISOR -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">4</div><div class="section-title">Part 4 - Azure Advisor</div></div>
+  <div class="section-body">
+    <p>Azure Advisor analyses your subscription configuration and usage, then provides personalised recommendations across five categories: Cost, Security, Reliability, Operational Excellence, and Performance. It is free and requires no configuration.</p>
+
+    <div class="task">
+      <div class="task-header"><span class="task-num">TASK 4.1</span><span class="task-title">Review Advisor recommendations</span></div>
+      <div class="task-body">
+        <ol class="step-list">
+          <li>Search for <code>Advisor</code> in the portal and click the result</li>
+          <li>Review the <strong>Overview</strong> - note your score across all five categories</li>
+          <li>Click <strong>Security</strong> - review any security recommendations for your subscription</li>
+          <li>Click <strong>Cost</strong> - note any cost optimisation opportunities (may be limited with a free account)</li>
+          <li>Click <strong>Reliability</strong> - review high availability recommendations</li>
+          <li>For any recommendation, click through to read the detail - note the estimated impact and how to remediate</li>
+        </ol>
+        <div class="screenshot-block">
+          <div class="screenshot-label">REFERENCE - Azure Advisor Overview</div>
+          <img src="https://learn.microsoft.com/en-us/azure/advisor/media/advisor-overview/advisor-dashboard.png" alt="Azure Advisor dashboard showing five recommendation categories with scores and recommendation counts" loading="lazy" onerror="this.parentElement.style.display='none'" />
+          <div class="screenshot-caption">Azure Advisor dashboard - five categories with scores and recommendations. Security recommendations link directly to Defender for Cloud. Source: Microsoft Learn</div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">i</span>
+          <span><strong>Advisor and Defender for Cloud:</strong> Security recommendations in Advisor come from Microsoft Defender for Cloud. You will explore Defender for Cloud directly in Lab 6. Think of Advisor as the summary view and Defender for Cloud as the detailed security posture manager.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO CHALLENGE -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-amber">!</div><div class="section-title">Part 5 - Scenario Challenge</div></div>
+  <div class="section-body">
+    <div class="scenario">
+      <div class="scenario-label">Challenge Brief</div>
+      <p>Contoso Ltd has a new compliance requirement: all resources must have both an <code>Environment</code> tag and an <code>Owner</code> tag, and no resource group may be deleted without first removing a mandatory lock. Design the Azure Policy and lock configuration needed to enforce this. Which policies would you assign? At which scope? What lock type is most appropriate, and why? Write your design in your notes, then implement as much as you can in the portal. Bonus: use the Pricing Calculator to estimate the monthly cost of running all six lab resources simultaneously.</p>
+    </div>
+  </div>
+</div>
+
+<!-- REFLECTION -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-green">?</div><div class="section-title">Reflection Questions</div></div>
+  <div class="section-body">
+    <ul class="reflection-list">
+      <li>What is the difference between a CanNotDelete lock and a ReadOnly lock? Give a real-world example of when you would use each.</li>
+      <li>A developer complains that they cannot create resources without adding tags. What Azure Policy effect has been configured, and how would you change it to warn rather than block?</li>
+      <li>You receive a budget alert at 80%. What immediate actions would you take? What longer-term governance controls might prevent the situation recurring?</li>
+      <li>How does Azure Advisor differ from Azure Policy? What would each one tell you about an untagged resource?</li>
+      <li>A policy is assigned at the subscription scope. A different policy with a conflicting rule is assigned at the resource group scope. Which takes precedence?</li>
+    </ul>
+  </div>
+</div>
+
+<!-- KNOWLEDGE CHECK -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-purple">KC</div><div class="section-title">Knowledge Check - AZ-900 Exam Style</div></div>
+  <div class="section-body">
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;margin-bottom:14px;">
+      <span style="font-size:12px;color:var(--text-muted);">Click an answer to check it. One attempt per question.</span>
+      <span id="kc-score" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent3);">0 / 5</span>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">1. A company wants to prevent anyone from deleting a critical storage account, even administrators. Which Azure feature should they use?</div>
+      <ul class="kc-opts" data-correct="2">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Azure Policy with Deny effect</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. RBAC Reader role on the storage account</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Resource lock with CanNotDelete type</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Resource lock with ReadOnly type</li>
+      </ul>
+      <div class="answer-reveal" id="explain-0" style="display:none;"><span>i</span> CanNotDelete locks prevent deletion while still allowing reads and modifications. ReadOnly prevents all changes including modifications. Azure Policy controls what can be deployed but does not protect existing resources from deletion.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">2. Which Azure Policy effect should be used to prevent resources being created without a required tag?</div>
+      <ul class="kc-opts" data-correct="1">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Audit</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Deny</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Append</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Disabled</li>
+      </ul>
+      <div class="answer-reveal" id="explain-1" style="display:none;"><span>i</span> Deny blocks non-compliant resource creation. Audit only logs and reports non-compliance without blocking. Append adds properties to resources. Disabled turns the policy off.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">3. Which tool would you use to estimate the monthly cost of a new Azure deployment before building it?</div>
+      <ul class="kc-opts" data-correct="0">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Azure Pricing Calculator</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Azure Cost Management</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Azure Advisor</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Azure Monitor</li>
+      </ul>
+      <div class="answer-reveal" id="explain-2" style="display:none;"><span>i</span> The Pricing Calculator estimates future costs for planned deployments. Cost Management tracks actual spend on existing resources. Advisor gives recommendations on deployed resources. Monitor tracks performance and metrics.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">4. Azure Advisor provides recommendations across five categories. Which of these is NOT one of them?</div>
+      <ul class="kc-opts" data-correct="3">
+        <li data-idx="0" onclick="checkAnswer(this)">A. Cost</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. Security</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. Reliability</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. Compliance</li>
+      </ul>
+      <div class="answer-reveal" id="explain-3" style="display:none;"><span>i</span> Azure Advisor's five categories are: Cost, Security, Reliability, Operational Excellence, and Performance. Compliance is managed through Azure Policy and Defender for Cloud, not Advisor directly.</div>
+    </div>
+
+    <div class="kc-item" data-answered="false">
+      <div class="kc-q">5. A ReadOnly lock is applied to a resource group. What happens when a user with Owner RBAC permissions tries to add a new resource to that group?</div>
+      <ul class="kc-opts" data-correct="1">
+        <li data-idx="0" onclick="checkAnswer(this)">A. The resource is created - Owner permissions override locks</li>
+        <li data-idx="1" onclick="checkAnswer(this)">B. The operation is blocked - locks override RBAC permissions</li>
+        <li data-idx="2" onclick="checkAnswer(this)">C. The resource is created with a warning logged to Activity Log</li>
+        <li data-idx="3" onclick="checkAnswer(this)">D. The user must request lock removal approval before proceeding</li>
+      </ul>
+      <div class="answer-reveal" id="explain-4" style="display:none;"><span>i</span> Resource locks override RBAC permissions for the operations they restrict. A ReadOnly lock prevents all write operations including adding new resources, regardless of the user's role. The lock must be removed first.</div>
+    </div>
+
+    <div id="kc-result" style="display:none;margin-top:14px;border-radius:7px;padding:14px 16px;text-align:center;font-size:13.5px;line-height:1.6;"></div>
+
+    <script>
+      var kcCorrect=0,kcAnswered=0,kcTotal=5;
+      function checkAnswer(el){
+        var item=el.closest('.kc-item');
+        if(item.dataset.answered==='true')return;
+        item.dataset.answered='true';
+        var opts=el.closest('.kc-opts');
+        var correctIdx=parseInt(opts.dataset.correct);
+        var clickedIdx=parseInt(el.dataset.idx);
+        var qIdx=Array.from(document.querySelectorAll('.kc-item')).indexOf(item);
+        opts.querySelectorAll('li').forEach(function(li){li.style.pointerEvents='none';li.style.cursor='default';});
+        opts.querySelector('[data-idx="'+correctIdx+'"]').classList.add('answered-correct');
+        if(clickedIdx===correctIdx){el.classList.add('answered-correct');kcCorrect++;}
+        else{el.classList.add('answered-wrong');}
+        document.getElementById('explain-'+qIdx).style.display='flex';
+        kcAnswered++;
+        document.getElementById('kc-score').textContent=kcCorrect+' / '+kcTotal;
+        if(kcAnswered===kcTotal){
+          var res=document.getElementById('kc-result');
+          res.style.display='block';
+          if(kcCorrect===5){res.style.cssText+='background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);color:#6ee7b7;';res.innerHTML='Perfect - all 5 correct. On to the final lab!';}
+          else if(kcCorrect>=4){res.style.cssText+='background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);color:#6ee7b7;';res.innerHTML=kcCorrect+' out of 5 - solid. Review the missed question before Lab 6.';}
+          else if(kcCorrect>=3){res.style.cssText+='background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);color:#fcd34d;';res.innerHTML=kcCorrect+' out of 5 - revisit the policy effects and lock types before continuing.';}
+          else{res.style.cssText+='background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;';res.innerHTML=kcCorrect+' out of 5 - go back through the lab content before moving to Lab 6.';}
+        }
+      }
+    </script>
+  </div>
+</div>
+
+<!-- HOUSEKEEPING -->
+<div class="section">
+  <div class="section-header"><div class="section-icon icon-red">!</div><div class="section-title">Lab Housekeeping - Clean Up</div></div>
+  <div class="section-body">
+    <div class="callout danger">
+      <span class="callout-icon">!</span>
+      <span>Before deleting anything - you must remove the resource lock first. Attempting to delete a locked resource group will fail with an error.</span>
+    </div>
+    <ol class="step-list" style="margin-top:8px;">
+      <li>Navigate to <code>rg-contoso-labs</code> - <strong>Locks</strong> - select <code>rg-contoso-labs-lock</code> and click <strong>Delete</strong></li>
+      <li>Navigate to <strong>Policy - Assignments</strong> - select your tagging policy assignment and click <strong>Delete assignment</strong></li>
+      <li>Navigate to <strong>Cost Management - Budgets</strong> - select <code>AZ900-Lab-Budget</code> and delete it</li>
+      <li><strong>Keep</strong> <code>rg-contoso-labs</code> - it is needed for Lab 6</li>
+    </ol>
+
+    <p style="margin-top:8px;font-size:13px;">Type <strong>YES</strong> below to confirm you have completed housekeeping:</p>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+      <input id="cleanup-input" type="text" maxlength="10" placeholder="Type YES here..." autocomplete="off" oninput="checkCleanup()" style="background:#0f0f1a;border:2px solid rgba(239,68,68,0.4);border-radius:6px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;padding:8px 12px;width:160px;outline:none;letter-spacing:0.1em;transition:border-color 0.2s;" onfocus="this.style.borderColor='rgba(239,68,68,0.8)'" onblur="this.style.borderColor='rgba(239,68,68,0.4)'" />
+      <span style="font-size:12px;color:var(--text-muted);">Confirm lock removed, policy deleted, budget removed</span>
+    </div>
+
+    <div class="cleanup-confirm" id="cleanup-modal">
+      <div class="cleanup-title">Clean-Up Confirmed - My Cloud Academy AZ-900 Lab 05</div>
+      <div class="cleanup-ts" id="cleanup-ts"></div>
+      <p style="font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:12px;">No data collected or transmitted. Screenshot for your records if required.</p>
+      <button onclick="closeCleanupModal()" style="background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:7px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;cursor:pointer;">Continue to Lab 6</button>
+    </div>
+
+    <script>
+      function checkCleanup(){
+        if(document.getElementById('cleanup-input').value.toUpperCase()==='YES'){
+          var ts=new Date().toLocaleString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+          document.getElementById('cleanup-ts').textContent='Confirmed: '+ts;
+          document.getElementById('cleanup-modal').style.display='block';
+        }
+      }
+      function closeCleanupModal(){document.getElementById('cleanup-modal').style.display='none';}
+    </script>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <div class="footer-brand"><span>My Cloud Academy</span> - AZ-900 Azure Fundamentals</div>
+  <div class="next-lab">Final: <strong>Lab 06 - Security & Monitoring</strong></div>
+</footer>
+
+<script>
+  function toggleObj(el){el.classList.toggle('obj-done');updateObjProgress();}
+  function updateObjProgress(){
+    var all=document.querySelectorAll('.obj-check');
+    var done=document.querySelectorAll('.obj-check.obj-done').length;
+    document.getElementById('obj-bar').style.width=Math.round((done/all.length)*100)+'%';
+    document.getElementById('obj-count').textContent=done+' / '+all.length;
+    var badge=document.getElementById('obj-complete-badge');
+    if(badge)badge.style.display=done===all.length?'inline':'none';
+  }
+  var objOpen=false;
+  function toggleObjPanel(){
+    objOpen=!objOpen;
+    document.getElementById('obj-panel-body').classList.toggle('collapsed',!objOpen);
+    document.getElementById('obj-toggle-icon').textContent=objOpen?'click to collapse':'click to expand';
+  }
+  setTimeout(function(){
+    var bar=document.getElementById('budget-bar');
+    if(bar)bar.style.width='24%';
+  },600);
+</script>
+
+</body>
+</html>
