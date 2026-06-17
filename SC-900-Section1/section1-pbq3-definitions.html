@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 1 PBQ 3 | MCA Cyber Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1A2E;font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem;color:#F0F0F0;}
+.wrap{max-width:900px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-bar{width:4px;height:32px;background:#E05C00;border-radius:2px;}
+.logo-sub{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;}
+.logo-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-top:2px;}
+.badge{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.3);color:#E05C00;}
+.scenario{background:#0F3460;border:1px solid rgba(224,92,0,0.3);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;}
+.scenario-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#E05C00;margin-bottom:0.5rem;}
+.scenario p{font-size:14px;line-height:1.7;color:#C0C8D8;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;margin-bottom:0.75rem;}
+.terms-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;padding:0.75rem;background:#16213E;border:1px dashed rgba(255,255,255,0.1);border-radius:10px;margin-bottom:1.5rem;}
+.term-chip{background:#0F3460;border:1px solid rgba(224,92,0,0.35);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:#E8EAF0;cursor:grab;user-select:none;transition:opacity 0.15s,transform 0.15s;white-space:nowrap;}
+.term-chip:active{cursor:grabbing;transform:scale(1.04);}
+.term-chip.dragging{opacity:0.35;}
+.definitions{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem;}
+.def-row{background:#16213E;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1rem 1.25rem;display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;}
+.def-text{font-size:14px;line-height:1.65;color:#C0C8D8;}
+.drop-slot{min-width:160px;min-height:42px;border:1.5px dashed rgba(224,92,0,0.3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#4A5568;transition:border-color 0.15s,background 0.15s;padding:6px 10px;text-align:center;}
+.drop-slot.over{border-color:#E05C00;background:rgba(224,92,0,0.07);}
+.drop-slot.filled{border-style:solid;border-color:rgba(224,92,0,0.4);background:rgba(224,92,0,0.1);}
+.slot-chip{font-size:13px;font-weight:600;color:#F0F0F0;display:flex;align-items:center;gap:8px;width:100%;justify-content:space-between;}
+.slot-remove{font-size:18px;color:#E05C00;cursor:pointer;line-height:1;flex-shrink:0;}
+.def-row.correct-case .drop-slot{border-color:#1D9E75;background:rgba(29,158,117,0.1);}
+.def-row.wrong-case .drop-slot{border-color:#E24B4A;background:rgba(232,75,74,0.08);}
+.verdict{font-size:12px;margin-top:0.5rem;display:none;grid-column:1/-1;}
+.def-row.correct-case .verdict{display:block;color:#5DCAA5;}
+.def-row.wrong-case .verdict{display:block;color:#F09595;}
+.controls{display:flex;gap:10px;margin-bottom:1rem;}
+.btn{border-radius:8px;padding:10px 24px;font-size:14px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#C0C8D8;transition:background 0.15s;}
+.btn:hover{background:rgba(255,255,255,0.1);}
+.btn-check{background:#E05C00;border-color:#E05C00;color:#fff;}
+.btn-check:hover{background:#F06A10;}
+.final{display:none;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;font-size:14px;}
+.final.show{display:block;}
+.final.pass{background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.35);color:#5DCAA5;}
+.final.fail{background:rgba(232,75,74,0.1);border:1px solid rgba(232,75,74,0.3);color:#F09595;}
+.final strong{display:block;font-size:17px;margin-bottom:0.25rem;}
+.score-bar-track{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:0.75rem 0;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.exam-tip{background:rgba(224,92,0,0.08);border:1px solid rgba(224,92,0,0.25);border-radius:10px;padding:0.875rem 1rem;margin-top:1rem;font-size:13px;color:#C0C8D8;line-height:1.6;}
+.exam-tip strong{color:#E05C00;}
+.footer{margin-top:2rem;text-align:center;font-size:11px;color:#2E3A52;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy · SC-900</div>
+        <div class="logo-title">Section 1 — PBQ 3: Match the Definition</div>
+      </div>
+    </div>
+    <span class="badge">Drag & Drop · 10 Terms</span>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">Instructions</div>
+    <p>Your security manager has produced a glossary for the new SOC team. Several terms have been mixed up. Drag each term on the left to the correct definition below. Every term is used exactly once.</p>
+  </div>
+
+  <div class="section-label">Terms — drag each to the correct definition</div>
+  <div class="terms-pool" id="pool"></div>
+
+  <div class="section-label">Definitions</div>
+  <div class="definitions" id="definitions"></div>
+
+  <div class="controls">
+    <button class="btn btn-check" onclick="checkAnswers()">Check answers</button>
+    <button class="btn" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="final" id="final"></div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+
+<script>
+const terms=[
+  {id:"threat",      label:"Threat"},
+  {id:"vuln",        label:"Vulnerability"},
+  {id:"risk",        label:"Risk"},
+  {id:"exploit",     label:"Exploit"},
+  {id:"vector",      label:"Attack Vector"},
+  {id:"control",     label:"Security Control"},
+  {id:"conf",        label:"Confidentiality"},
+  {id:"integ",       label:"Integrity"},
+  {id:"avail",       label:"Availability"},
+  {id:"residual",    label:"Residual Risk"}
+];
+
+const definitions=[
+  {id:"d1", text:"The path or method an attacker uses to gain access to a system — such as a phishing email, an unpatched web application, or a compromised VPN credential.", correct:"vector", correctLabel:"Attack Vector", explanation:"The vector is how the attack is delivered. Threat is what could cause harm. These are not the same — the exam tests this distinction directly."},
+  {id:"d2", text:"A known weakness in a system, application, or process that could be exploited by a threat actor to cause harm.", correct:"vuln", correctLabel:"Vulnerability", explanation:"A vulnerability is the weakness itself — an unpatched CVE, a misconfiguration, or a weak password policy. The threat actor exploits it. The risk is the likelihood and impact combined."},
+  {id:"d3", text:"A person, group, event, or circumstance with the potential to cause harm to an organisation's systems, data, or operations.", correct:"threat", correctLabel:"Threat", explanation:"A threat is the source of potential harm — a ransomware group, a disgruntled employee, or a natural disaster. It is not the same as a vulnerability (the weakness) or a vector (the delivery method)."},
+  {id:"d4", text:"The combination of the likelihood that a threat will exploit a vulnerability and the impact that exploitation would have on the organisation.", correct:"risk", correctLabel:"Risk", explanation:"Risk = Likelihood × Impact. You cannot eliminate risk entirely — only reduce it through controls. What remains after controls are applied is residual risk."},
+  {id:"d5", text:"A specific piece of code, technique, or tool used by an attacker to take advantage of a vulnerability in a system.", correct:"exploit", correctLabel:"Exploit", explanation:"An exploit is the weapon — the specific technique or code that takes advantage of the vulnerability. A vulnerability exists; an exploit weaponises it."},
+  {id:"d6", text:"A safeguard or countermeasure — technical, administrative, or physical — put in place to reduce the likelihood or impact of a security incident.", correct:"control", correctLabel:"Security Control", explanation:"Controls are what you implement to manage risk — MFA, firewalls, encryption, security training. They reduce likelihood or impact but rarely eliminate risk entirely."},
+  {id:"d7", text:"The assurance that data is only accessible by those who are authorised to see it — protected through encryption, access controls, and classification.", correct:"conf", correctLabel:"Confidentiality", explanation:"Confidentiality = who can see the data. Encryption and access controls protect it. Data theft and unauthorised access violate it. This is the C in CIA."},
+  {id:"d8", text:"The assurance that data is accurate, complete, and has not been tampered with or altered by unauthorised parties.", correct:"integ", correctLabel:"Integrity", explanation:"Integrity = the trustworthiness of data. Hashing, digital signatures, and checksums protect integrity. File tampering and man-in-the-middle attacks violate it. This is the I in CIA."},
+  {id:"d9", text:"The assurance that systems, services, and data are accessible and operational when needed by authorised users.", correct:"avail", correctLabel:"Availability", explanation:"Availability = uptime and accessibility. Redundancy, backups, and DDoS protection support availability. DDoS attacks and ransomware are the most common availability threats. This is the A in CIA."},
+  {id:"d10", text:"The level of risk that remains after all security controls have been implemented — the exposure that cannot be fully eliminated.", correct:"residual", correctLabel:"Residual Risk", explanation:"No set of controls eliminates risk entirely. Residual risk is what remains. Organisations must decide whether to accept, transfer, or further mitigate it — this decision is part of risk management."}
+];
+
+let placements={},dragId=null,checked=false;
+
+function buildPool(){
+  const pool=document.getElementById('pool');pool.innerHTML='';
+  terms.forEach(term=>{
+    if(Object.values(placements).includes(term.id))return;
+    const el=document.createElement('div');
+    el.className='term-chip';el.id='term-'+term.id;el.draggable=true;el.textContent=term.label;
+    el.addEventListener('dragstart',()=>{dragId=term.id;el.classList.add('dragging');});
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    pool.appendChild(el);
+  });
+}
+
+function buildDefs(){
+  const container=document.getElementById('definitions');container.innerHTML='';
+  definitions.forEach(def=>{
+    const row=document.createElement('div');
+    row.className='def-row';row.id='def-'+def.id;
+    const placed=placements[def.id];
+    const termObj=placed?terms.find(t=>t.id===placed):null;
+    let slotContent=termObj
+      ?`<div class="slot-chip">${termObj.label}<span class="slot-remove" data-def="${def.id}" title="Remove">&#215;</span></div>`
+      :`<span>Drop term here</span>`;
+    row.innerHTML=`
+      <div>
+        <div class="def-text">${def.text}</div>
+        <div class="verdict" id="verdict-${def.id}"></div>
+      </div>
+      <div class="drop-slot ${placed?'filled':''}" id="slot-${def.id}">${slotContent}</div>`;
+    const slot=row.querySelector('.drop-slot');
+    slot.addEventListener('dragover',e=>{e.preventDefault();slot.classList.add('over');});
+    slot.addEventListener('dragleave',()=>slot.classList.remove('over'));
+    slot.addEventListener('drop',e=>{
+      e.preventDefault();slot.classList.remove('over');
+      if(!dragId||checked)return;
+      const prev=Object.entries(placements).find(([,v])=>v===dragId);
+      if(prev)delete placements[prev[0]];
+      placements[def.id]=dragId;dragId=null;
+      document.getElementById('final').className='final';
+      buildPool();buildDefs();
+    });
+    container.appendChild(row);
+  });
+  document.querySelectorAll('.slot-remove').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(checked)return;
+      delete placements[btn.dataset.def];
+      document.getElementById('final').className='final';
+      buildPool();buildDefs();
+    });
+  });
+}
+
+function checkAnswers(){
+  const placed=Object.keys(placements).length;
+  if(placed<definitions.length){
+    const fin=document.getElementById('final');
+    fin.className='final fail show';
+    fin.innerHTML=`<strong>&#9888; ${definitions.length-placed} definition(s) still empty</strong>Place a term in every definition before checking.`;
+    return;
+  }
+  checked=true;
+  let correct=0;
+  definitions.forEach(def=>{
+    const row=document.getElementById('def-'+def.id);
+    const verdict=document.getElementById('verdict-'+def.id);
+    const isCorrect=placements[def.id]===def.correct;
+    if(isCorrect){correct++;row.classList.add('correct-case');verdict.textContent='✓ Correct';}
+    else{row.classList.add('wrong-case');verdict.textContent=`✗ Incorrect — correct answer: ${def.correctLabel}. ${def.explanation}`;}
+  });
+  const pct=Math.round(correct/definitions.length*100);
+  const pass=pct>=80;
+  const bar=pass?'#1D9E75':'#E24B4A';
+  const fin=document.getElementById('final');
+  fin.className='final show '+(pass?'pass':'fail');
+  fin.innerHTML=`<strong>${pass?'✓ Passed — ':'✗ Not quite — '}${correct} / ${definitions.length} correct (${pct}%)</strong>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${bar};"></div></div>
+    <div class="exam-tip"><strong>Exam tip:</strong> The SC-900 exam loves testing Threat vs Vulnerability vs Risk vs Vector — all four in the same question. Burn the definitions: Threat = source of harm. Vulnerability = the weakness. Vector = the delivery path. Risk = likelihood × impact. Exploit = the weapon used. These five terms are non-negotiable.</div>`;
+}
+
+function resetAll(){
+  placements={};checked=false;
+  document.getElementById('final').className='final';
+  buildPool();buildDefs();
+}
+
+buildPool();buildDefs();
+</script>
+</body>
+</html>

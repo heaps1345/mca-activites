@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 1 Flash Cards | MCA Cyber Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1A1A2E; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .wrap { width: 100%; max-width: 680px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-bar { width: 4px; height: 32px; background: #E05C00; border-radius: 2px; }
+  .logo-sub { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7A99; }
+  .logo-title { font-size: 16px; font-weight: 600; color: #F0F0F0; margin-top: 2px; }
+  .counter { font-size: 13px; color: #6B7A99; font-family: monospace; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 1.75rem; }
+  .progress-fill { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.35s ease; }
+  .module-info { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+  .module-pill { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 20px; background: rgba(224,92,0,0.15); border: 1px solid rgba(224,92,0,0.3); color: #E05C00; letter-spacing: 0.04em; }
+  .module-name { font-size: 13px; color: #6B7A99; }
+  .scene { perspective: 1200px; cursor: pointer; margin-bottom: 0.875rem; }
+  .card { position: relative; width: 100%; height: 240px; transform-style: preserve-3d; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 2.5rem; text-align: center; }
+  .front { background: #16213E; border: 1px solid rgba(224,92,0,0.2); }
+  .back { background: #0F3460; border: 1px solid rgba(224,92,0,0.45); transform: rotateY(180deg); }
+  .face-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #E05C00; margin-bottom: 1rem; }
+  .face-q { font-size: 17px; font-weight: 500; line-height: 1.55; color: #F0F0F0; }
+  .face-a { font-size: 14px; font-weight: 400; line-height: 1.65; color: #E8EAF0; }
+  .hint { text-align: center; font-size: 12px; color: #4A5568; margin-bottom: 1.25rem; }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #C0C8D8; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+  .btn:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn-flip { background: #E05C00; border-color: #E05C00; color: #fff; flex: 1; justify-content: center; font-weight: 500; }
+  .btn-flip:hover { background: #F06A10; border-color: #F06A10; }
+  .shuffle-row { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .btn-shuffle { background: transparent; border: none; color: #4A5568; font-size: 12px; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 4px 0; }
+  .btn-shuffle:hover { color: #6B7A99; }
+  .footer { margin-top: 2rem; text-align: center; font-size: 11px; color: #2E3A52; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy</div>
+        <div class="logo-title">SC-900 Flash Cards</div>
+      </div>
+    </div>
+    <div class="counter" id="counter">1 / 15</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <div class="module-info">
+    <span class="module-pill">Section 1</span>
+    <span class="module-name">Security, Compliance &amp; Identity Concepts</span>
+  </div>
+  <div class="scene" id="scene" onclick="flipCard()" role="button" aria-label="Flip card" tabindex="0">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="face-label">Question</div>
+        <p class="face-q" id="face-q"></p>
+      </div>
+      <div class="face back">
+        <div class="face-label">Answer</div>
+        <p class="face-a" id="face-a"></p>
+      </div>
+    </div>
+  </div>
+  <p class="hint">Click card to reveal · Arrow keys to navigate · Space to flip</p>
+  <div class="controls">
+    <button class="btn" id="btn-prev" onclick="changeCard(-1)">&#8592; Prev</button>
+    <button class="btn btn-flip" onclick="flipCard()">&#8635; Flip</button>
+    <button class="btn" id="btn-next" onclick="changeCard(1)">Next &#8594;</button>
+  </div>
+  <div class="shuffle-row">
+    <button class="btn-shuffle" onclick="shuffleDeck()">&#8769; Shuffle deck</button>
+  </div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+<script>
+const allCards = [
+  { q: "What is the Shared Responsibility Model?", a: "A framework defining which security tasks belong to the cloud provider and which belong to the customer. The split varies by service type — IaaS, PaaS, and SaaS each have different boundaries. Data and identity are always the customer's responsibility." },
+  { q: "What is Zero Trust?", a: "A security model that assumes no user or device is trusted by default. Every access request must be verified regardless of where it originates — inside or outside the network." },
+  { q: "What are the three Zero Trust principles?", a: "Verify Explicitly — authenticate using all available signals. Use Least Privilege Access — grant only what's needed, for only as long as needed. Assume Breach — design controls as though attackers are already inside." },
+  { q: "What are the six pillars of Zero Trust?", a: "Identities, Devices, Applications, Data, Infrastructure, and Networks. Controls are applied across all six to enforce Zero Trust end to end." },
+  { q: "What is Defence in Depth?", a: "A layered security strategy using multiple controls across physical, network, compute/host, application, and data layers. If one layer fails, others continue to protect the asset." },
+  { q: "What is the difference between Authentication and Authorisation?", a: "Authentication (AuthN) verifies who you are. Authorisation (AuthZ) determines what you are allowed to do. AuthN always comes first." },
+  { q: "What does CIA stand for, and what does each part mean?", a: "Confidentiality — only authorised users can access data. Integrity — data is accurate and unaltered. Availability — systems and data are accessible when needed." },
+  { q: "Which CIA pillar does a DDoS attack target?", a: "Availability. A DDoS attack floods a system with traffic so legitimate users cannot access it — no data is read or altered, so Confidentiality and Integrity are unaffected." },
+  { q: "What is the difference between encryption and hashing?", a: "Encryption is reversible — data can be decrypted with the correct key, protecting Confidentiality. Hashing is one-way and cannot be reversed — it produces a fixed-length digest used to verify Integrity." },
+  { q: "What is the difference between symmetric and asymmetric encryption?", a: "Symmetric encryption uses one shared key — fast, used for bulk data (AES-256). Asymmetric encryption uses a public/private key pair — slower, used for TLS handshakes and digital signatures (RSA)." },
+  { q: "What is GRC?", a: "Governance, Risk, and Compliance — a structured approach to aligning IT operations with business goals while managing risk and meeting regulatory requirements like GDPR and ISO 27001." },
+  { q: "What is the principle of Least Privilege?", a: "Users and systems should only have the minimum access rights needed to perform their role — nothing more, and only for as long as needed. Reduces the impact if credentials are compromised." },
+  { q: "What is a threat, a vulnerability, and a risk — and how do they relate?", a: "A threat is something that could cause harm. A vulnerability is a weakness that could be exploited. Risk = the likelihood and impact of a threat successfully exploiting a vulnerability." },
+  { q: "What is the difference between Data Residency and Data Sovereignty?", a: "Data Residency is about WHERE data is physically stored. Data Sovereignty is about WHICH country's LAWS apply to that data based on where it's collected or stored." },
+  { q: "What is an attack vector, and how is it different from a threat?", a: "An attack vector is the path or method used to deliver an attack — email, web, network, or insider. The threat is the harm itself, such as ransomware or phishing. Vector = delivery method; threat = the harm." }
+];
+
+let deck = [...allCards];
+let current = 0;
+let flipped = false;
+
+function render() {
+  document.getElementById('face-q').textContent = deck[current].q;
+  document.getElementById('face-a').textContent = deck[current].a;
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + deck.length;
+  document.getElementById('prog').style.width = ((current + 1) / deck.length * 100) + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === deck.length - 1;
+}
+
+function flipCard() {
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function changeCard(dir) {
+  const n = current + dir;
+  if (n < 0 || n >= deck.length) return;
+  flipped = false;
+  document.getElementById('card').classList.remove('flipped');
+  current = n;
+  setTimeout(render, 50);
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  flipped = false;
+  current = 0;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+document.getElementById('scene').addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') changeCard(1);
+  if (e.key === 'ArrowLeft') changeCard(-1);
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 1 PBQ 2 | MCA Cyber Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1A2E;font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem;color:#F0F0F0;}
+.wrap{max-width:820px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-bar{width:4px;height:32px;background:#E05C00;border-radius:2px;}
+.logo-sub{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;}
+.logo-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-top:2px;}
+.badge{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.3);color:#E05C00;}
+.nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
+.nav-label{font-size:12px;color:#6B7A99;}
+.progress-track{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-bottom:1.75rem;}
+.progress-fill{height:100%;background:#E05C00;border-radius:2px;transition:width 0.35s;}
+.scenario-card{background:#0F3460;border:1px solid rgba(224,92,0,0.3);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;}
+.sc-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#E05C00;margin-bottom:0.5rem;}
+.sc-body{font-size:14px;line-height:1.75;color:#C0C8D8;}
+.sc-body strong{color:#F0F0F0;}
+.question-wrap{background:#16213E;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.5rem;margin-bottom:1rem;}
+.q-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#6B7A99;margin-bottom:0.5rem;}
+.q-text{font-size:16px;font-weight:500;line-height:1.55;color:#F0F0F0;margin-bottom:1.25rem;}
+.options{display:flex;flex-direction:column;gap:8px;}
+.opt{background:#0F3460;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 16px;font-size:14px;color:#C0C8D8;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:background 0.15s,border-color 0.15s;line-height:1.5;}
+.opt:hover{background:rgba(224,92,0,0.1);border-color:rgba(224,92,0,0.35);}
+.opt.selected{background:rgba(224,92,0,0.15);border-color:#E05C00;color:#F0F0F0;}
+.opt.correct{background:rgba(29,158,117,0.18);border-color:#1D9E75;color:#5DCAA5;}
+.opt.wrong{background:rgba(232,75,74,0.12);border-color:#E24B4A;color:#F09595;}
+.opt.reveal{background:rgba(29,158,117,0.08);border-color:rgba(29,158,117,0.3);color:#5DCAA5;}
+.opt-letter{font-weight:600;font-size:13px;min-width:18px;margin-top:1px;flex-shrink:0;}
+.feedback{font-size:13px;margin-top:0.75rem;padding:0.75rem 1rem;border-radius:8px;line-height:1.6;display:none;}
+.feedback.show{display:block;}
+.feedback.pass{background:rgba(29,158,117,0.1);border:1px solid rgba(29,158,117,0.3);color:#5DCAA5;}
+.feedback.fail{background:rgba(232,75,74,0.08);border:1px solid rgba(232,75,74,0.25);color:#F09595;}
+.nav{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+.btn{border-radius:8px;padding:10px 22px;font-size:14px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#C0C8D8;transition:background 0.15s;}
+.btn:hover{background:rgba(255,255,255,0.1);}
+.btn:disabled{opacity:0.28;cursor:not-allowed;}
+.btn-primary{background:#E05C00;border-color:#E05C00;color:#fff;}
+.btn-primary:hover{background:#F06A10;}
+.dots{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);cursor:pointer;}
+.dot.answered{background:#E05C00;border-color:#E05C00;}
+.dot.correct-dot{background:#1D9E75;border-color:#1D9E75;}
+.dot.wrong-dot{background:#E24B4A;border-color:#E24B4A;}
+.dot.active{box-shadow:0 0 0 2px #E05C00;}
+.results{display:none;background:#16213E;border-radius:12px;padding:1.75rem;margin-bottom:1rem;}
+.results.show{display:block;}
+.results.pass{border:1px solid rgba(29,158,117,0.4);}
+.results.fail{border:1px solid rgba(232,75,74,0.35);}
+.results-title{font-size:20px;font-weight:600;margin-bottom:0.25rem;}
+.results.pass .results-title{color:#5DCAA5;}
+.results.fail .results-title{color:#F09595;}
+.results-sub{font-size:14px;color:#6B7A99;margin-bottom:1.25rem;}
+.score-bar-track{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;margin:1rem 0;}
+.score-bar-fill{height:100%;border-radius:4px;transition:width 0.6s ease;}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:1.25rem;}
+.stat{background:#0F3460;border-radius:10px;padding:0.875rem;text-align:center;}
+.stat-val{font-size:22px;font-weight:600;color:#F0F0F0;}
+.stat-lbl{font-size:11px;color:#6B7A99;margin-top:2px;}
+.exam-tip{background:rgba(224,92,0,0.08);border:1px solid rgba(224,92,0,0.25);border-radius:10px;padding:0.875rem 1rem;margin-top:1.25rem;font-size:13px;color:#C0C8D8;line-height:1.6;}
+.exam-tip strong{color:#E05C00;}
+.footer{margin-top:2rem;text-align:center;font-size:11px;color:#2E3A52;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy · SC-900</div>
+        <div class="logo-title">Section 1 — PBQ 2: Click to Classify</div>
+      </div>
+    </div>
+    <span class="badge">8 Scenarios</span>
+  </div>
+  <div class="nav-row">
+    <span class="nav-label" id="nav-label">Scenario 1 of 8</span>
+    <span class="nav-label" id="score-label">0 / 8 answered</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog" style="width:12.5%"></div></div>
+  <div id="scenario-card" class="scenario-card" style="display:none;">
+    <div class="sc-label">Scenario</div>
+    <div class="sc-body" id="sc-body"></div>
+  </div>
+  <div class="question-wrap">
+    <div class="q-label">Question</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <div class="nav">
+    <button class="btn" id="btn-prev" onclick="goTo(cur-1)">&#8592; Prev</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn btn-primary" id="btn-next" onclick="nextOrSubmit()">Next &#8594;</button>
+  </div>
+  <div class="results" id="results"></div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+<script>
+const Qs=[
+  {
+    scenario:"A hospital's patient record system becomes completely inaccessible after an attacker floods the network with traffic. Clinical staff cannot access patient data during the attack.",
+    text:"Which element of the CIA Triad has been violated, and what type of attack caused it?",
+    o:["Confidentiality — the attacker read patient records during the flood","Integrity — the flood corrupted the patient data stored on the servers","Availability — a DDoS attack prevented legitimate users from accessing the system","Confidentiality and Integrity — both are affected when systems go offline"],
+    c:2,
+    e:"A DDoS (Distributed Denial of Service) attack targets Availability — the system is still intact but cannot be reached by legitimate users. No data was read (Confidentiality) and no data was altered (Integrity)."
+  },
+  {
+    scenario:"An employee receives an email appearing to come from the CEO asking them to urgently transfer £50,000 to a new supplier account. The email domain is 'c0mpany.co.uk' rather than 'company.co.uk'.",
+    text:"What type of attack is this, and which security principle would most directly have prevented it?",
+    o:["Ransomware — prevented by endpoint detection and response software","Spear phishing / BEC — prevented by email authentication controls and user awareness training","SQL injection — prevented by input validation on the finance system","Insider threat — prevented by privileged access management and monitoring"],
+    c:1,
+    e:"This is Business Email Compromise (BEC) via spear phishing — a targeted attack impersonating an executive. Email authentication (DMARC/SPF/DKIM) can detect spoofed domains, and trained users spot the typo in the domain. Ransomware involves encryption of files. SQL injection targets databases."
+  },
+  {
+    scenario:"A developer commits code to GitHub that includes a hardcoded database password. An attacker finds it and uses it to access the production database and export all customer records.",
+    text:"Which CIA pillar was primarily violated in the resulting breach, and what security principle should have prevented the password being exposed in the first place?",
+    o:["Availability violated — Least Privilege would have prevented the export","Integrity violated — Defence in Depth would have detected the commit","Confidentiality violated — Least Privilege for secrets management would have prevented hardcoding credentials","Confidentiality violated — Zero Trust Assume Breach would have stopped the attacker at the database"],
+    c:2,
+    e:"The breach exposed customer records — a Confidentiality violation. Hardcoding credentials violates the principle of secrets management under Least Privilege — credentials should be stored in a secrets vault (e.g. Azure Key Vault), not source code. Assume Breach is a design principle, not a preventive control for credential exposure."
+  },
+  {
+    scenario:"A security team discovers that a file downloaded from the internet has been modified after the vendor published the official checksum. The file contents have been altered.",
+    text:"Which CIA principle was violated, and which cryptographic mechanism is used to detect this type of tampering?",
+    o:["Confidentiality — encryption would have prevented the file from being accessed","Integrity — hashing produces a fixed-length digest that changes if the file is altered","Availability — digital certificates prevent files from being modified in transit","Integrity — asymmetric encryption signs the file and prevents any modification"],
+    c:1,
+    e:"File tampering is an Integrity violation — the data is no longer accurate or trustworthy. Hashing (e.g. SHA-256) produces a digest that changes if even one byte of the file is altered. Comparing the published hash against a locally computed hash detects tampering. Encryption protects Confidentiality, not Integrity."
+  },
+  {
+    scenario:"An organisation stores all EU customer data in US-based datacentres. A regulatory audit finds this violates requirements that personal data must remain within EU borders.",
+    text:"Which data governance concept has been breached?",
+    o:["Data Privacy — the organisation failed to obtain consent from EU customers","Data Sovereignty — US law now governs EU customer data","Data Residency — EU customer data must be physically stored within the EU","Data Compliance — the organisation failed to register with the relevant regulatory body"],
+    c:2,
+    e:"Data Residency refers to the physical location where data is stored. EU regulations such as GDPR require that personal data about EU residents be stored within EU borders. Data Sovereignty refers to which country's laws apply to data — a related but distinct concept. Data Privacy relates to individual rights over personal data."
+  },
+  {
+    scenario:"A company operates on a traditional perimeter security model — a firewall at the network edge and VPN for remote users. An attacker compromises a VPN credential and moves freely across internal systems for three weeks undetected.",
+    text:"Which security model, if adopted, would most directly have addressed this failure — and which of its principles is most relevant?",
+    o:["Defence in Depth — adding more firewall rules at the perimeter would have blocked lateral movement","Zero Trust — Assume Breach means designing controls to limit lateral movement even after initial compromise","Shared Responsibility — the cloud provider should have detected the lateral movement","Zero Trust — Verify Explicitly means re-authenticating the attacker at the firewall on re-entry"],
+    c:1,
+    e:"Zero Trust's Assume Breach principle means designing for resilience — segmenting networks, encrypting everything, monitoring continuously, and limiting blast radius so that a compromised credential doesn't hand an attacker free movement across the environment. Verify Explicitly is about authentication, not post-compromise containment."
+  },
+  {
+    scenario:"A new junior analyst joins the SOC team and is given access to the SIEM, the HR system, the finance platform, the engineering GitHub repository, and the executive SharePoint site — because the IT team provisioned them from a default 'new employee' template.",
+    text:"Which security principle has been violated, and what is the correct approach?",
+    o:["Assume Breach — the analyst's account should be treated as compromised from day one","Defence in Depth — multiple approval layers should gate access to each system individually","Least Privilege — the analyst should receive only the access their role requires, nothing more","Zero Trust Verify Explicitly — the analyst should re-authenticate to each system separately"],
+    c:2,
+    e:"Over-provisioning violates Least Privilege — users should receive only the access they need to perform their role. Default templates that grant broad access to everything are a classic violation. This increases blast radius significantly if the account is phished or misused."
+  },
+  {
+    scenario:"An organisation assesses a vulnerability in its web application. The development team estimates there is a 70% chance it will be exploited within the next 12 months, and the estimated business impact of a successful exploit is £2 million.",
+    text:"In risk management terms, which statement correctly describes the components of this assessment?",
+    o:["The vulnerability is the risk, the exploit is the threat, and £2 million is the impact","The web application is the threat, the vulnerability is the vector, and 70% is the residual risk","The vulnerability is the weakness, the exploit attempt is the threat, and risk is the combination of likelihood and impact","The 70% is the control effectiveness, the £2 million is the risk appetite, and the vulnerability is the vector"],
+    c:2,
+    e:"In risk management: Vulnerability = the weakness in the web app. Threat = the actor or event that could exploit it. Risk = likelihood × impact (70% chance of exploitation, £2M impact). These definitions are foundational to SC-900 and appear in scenario questions throughout the exam."
+  }
+];
+
+let cur=0,answers=new Array(Qs.length).fill(null),submitted=false;
+
+function render(){
+  const q=Qs[cur];
+  document.getElementById('nav-label').textContent=`Scenario ${cur+1} of ${Qs.length}`;
+  document.getElementById('prog').style.width=((cur+1)/Qs.length*100)+'%';
+  const sc=document.getElementById('scenario-card');
+  sc.style.display='';
+  document.getElementById('sc-body').innerHTML=q.scenario;
+  document.getElementById('q-text').textContent=q.text;
+  const letters=['A','B','C','D'],opts=document.getElementById('options');opts.innerHTML='';
+  q.o.forEach((opt,oi)=>{
+    const el=document.createElement('div');el.className='opt';
+    if(answers[cur]===oi){if(submitted)el.classList.add(oi===q.c?'correct':'wrong');else el.classList.add('selected');}
+    if(submitted&&oi===q.c&&answers[cur]!==oi)el.classList.add('reveal');
+    el.innerHTML=`<span class="opt-letter">${letters[oi]}</span><span>${opt}</span>`;
+    if(!submitted)el.onclick=()=>pick(oi);
+    opts.appendChild(el);
+  });
+  const fb=document.getElementById('feedback');
+  if(submitted&&answers[cur]!==null){fb.className='feedback show '+(answers[cur]===q.c?'pass':'fail');fb.textContent=(answers[cur]===q.c?'✓ Correct — ':'✗ Incorrect — ')+q.e;}
+  else{fb.className='feedback';}
+  buildDots();
+  document.getElementById('btn-prev').disabled=cur===0;
+  const answered=answers.filter(a=>a!==null).length;
+  document.getElementById('score-label').textContent=submitted?`${answers.filter((a,i)=>a===Qs[i].c).length} / ${Qs.length} correct`:`${answered} / ${Qs.length} answered`;
+  document.getElementById('btn-next').textContent=submitted?(cur===Qs.length-1?'Done':'Next →'):(cur===Qs.length-1?'Submit ✓':'Next →');
+}
+
+function pick(oi){if(submitted)return;answers[cur]=oi;render();}
+
+function buildDots(){
+  const row=document.getElementById('dots');row.innerHTML='';
+  Qs.forEach((q,i)=>{
+    const d=document.createElement('div');d.className='dot';
+    if(i===cur)d.classList.add('active');
+    if(submitted){if(answers[i]===q.c)d.classList.add('correct-dot');else if(answers[i]!==null)d.classList.add('wrong-dot');}
+    else if(answers[i]!==null)d.classList.add('answered');
+    d.onclick=()=>goTo(i);row.appendChild(d);
+  });
+}
+
+function goTo(i){if(i<0||i>=Qs.length)return;cur=i;render();}
+
+function nextOrSubmit(){
+  if(submitted){if(cur<Qs.length-1)goTo(cur+1);return;}
+  if(cur<Qs.length-1){goTo(cur+1);}
+  else{
+    const un=answers.filter(a=>a===null).length;
+    if(un>0&&!confirm(`${un} unanswered. Submit anyway?`))return;
+    submitAll();
+  }
+}
+
+function submitAll(){
+  submitted=true;
+  const correct=answers.filter((a,i)=>a===Qs[i].c).length;
+  const pct=Math.round(correct/Qs.length*100);
+  const pass=pct>=80;
+  const bar=pass?'#1D9E75':'#E24B4A';
+  const el=document.getElementById('results');
+  el.className='results show '+(pass?'pass':'fail');
+  el.innerHTML=`<div class="results-title">${pass?'✓ Passed':'✗ Not quite'}</div>
+    <div class="results-sub">Section 1 · PBQ 2 — Click to Classify</div>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${bar};"></div></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">${correct}/${Qs.length}</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat"><div class="stat-val">${pct}%</div><div class="stat-lbl">Score</div></div>
+    </div>
+    <div class="exam-tip"><strong>Exam tip:</strong> Section 1 scenario questions always give you two plausible options that are both real concepts. The question is whether you can map the scenario to the correct one. CIA pillar questions, Zero Trust principle questions, and risk terminology questions all follow this pattern.</div>`;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

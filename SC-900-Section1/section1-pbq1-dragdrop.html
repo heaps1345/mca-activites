@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Module A PBQ | MCA Cyber Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1A2E;font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem;color:#F0F0F0;}
+.wrap{max-width:860px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-bar{width:4px;height:32px;background:#E05C00;border-radius:2px;}
+.logo-sub{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;}
+.logo-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-top:2px;}
+.badge{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.3);color:#E05C00;letter-spacing:0.04em;}
+.scenario{background:#16213E;border:1px solid rgba(224,92,0,0.2);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;}
+.scenario-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#E05C00;margin-bottom:0.5rem;}
+.scenario p{font-size:14px;line-height:1.7;color:#C0C8D8;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;margin-bottom:0.75rem;}
+.items-pool{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;padding:0.75rem;background:#16213E;border:1px dashed rgba(255,255,255,0.1);border-radius:10px;margin-bottom:1.5rem;}
+.drag-item{background:#0F3460;border:1px solid rgba(224,92,0,0.3);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500;color:#E8EAF0;cursor:grab;user-select:none;transition:opacity 0.15s,transform 0.15s;white-space:nowrap;}
+.drag-item:active{cursor:grabbing;transform:scale(1.04);}
+.drag-item.dragging{opacity:0.4;}
+.drag-item.placed{opacity:0.35;pointer-events:none;}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+.zone{background:#16213E;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;padding:1rem;min-height:120px;transition:border-color 0.15s,background 0.15s;}
+.zone.over{border-color:#E05C00;background:rgba(224,92,0,0.06);}
+.zone-title{font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#E05C00;margin-bottom:0.75rem;}
+.zone-items{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;}
+.zone-item{background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.4);border-radius:8px;padding:6px 12px;font-size:13px;color:#F0F0F0;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.zone-item:hover{background:rgba(224,92,0,0.25);}
+.zone-item .remove{font-size:16px;color:#E05C00;line-height:1;}
+.controls{display:flex;gap:10px;margin-bottom:1rem;}
+.btn{border-radius:8px;padding:10px 24px;font-size:14px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#C0C8D8;transition:background 0.15s;}
+.btn:hover{background:rgba(255,255,255,0.1);}
+.btn-check{background:#E05C00;border-color:#E05C00;color:#fff;}
+.btn-check:hover{background:#F06A10;border-color:#F06A10;}
+.result{display:none;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;font-size:14px;line-height:1.7;}
+.result.show{display:block;}
+.result.pass{background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.35);color:#5DCAA5;}
+.result.fail{background:rgba(232,75,74,0.1);border:1px solid rgba(232,75,74,0.3);color:#F09595;}
+.result strong{display:block;font-size:16px;margin-bottom:0.4rem;}
+.result .detail{font-size:13px;margin-top:0.5rem;color:#A0A8B8;}
+.score-bar-track{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:0.75rem 0 0.25rem;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.footer{margin-top:2rem;text-align:center;font-size:11px;color:#2E3A52;letter-spacing:0.04em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy</div>
+        <div class="logo-title">SC-900 — Module A PBQ</div>
+      </div>
+    </div>
+    <span class="badge">Drag &amp; Drop</span>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">Scenario</div>
+    <p>You are a junior security analyst at a financial services firm. Your manager has asked you to categorise a list of security terms and controls into the correct framework areas. Drag each item into the correct category below.</p>
+  </div>
+
+  <div class="section-label">Available items — drag each into the correct category</div>
+  <div class="items-pool" id="pool"></div>
+
+  <div class="zones" id="zones"></div>
+
+  <div class="controls">
+    <button class="btn btn-check" onclick="checkAnswers()">Check answers</button>
+    <button class="btn" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="result" id="result"></div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+
+<script>
+const categories = [
+  { id: "cia", title: "CIA Triad" },
+  { id: "zt",  title: "Zero Trust Principles" },
+  { id: "did", title: "Defence in Depth Layers" },
+  { id: "sec", title: "Security Concepts" }
+];
+
+const items = [
+  { id: "conf",   label: "Confidentiality",           correct: "cia" },
+  { id: "integ",  label: "Integrity",                 correct: "cia" },
+  { id: "avail",  label: "Availability",              correct: "cia" },
+  { id: "verify", label: "Verify explicitly",         correct: "zt"  },
+  { id: "leastpriv", label: "Least privilege access", correct: "zt"  },
+  { id: "breach", label: "Assume breach",             correct: "zt"  },
+  { id: "net",    label: "Network layer",             correct: "did" },
+  { id: "app",    label: "Application layer",         correct: "did" },
+  { id: "data",   label: "Data layer",                correct: "did" },
+  { id: "grc",    label: "GRC",                       correct: "sec" },
+  { id: "enc",    label: "Encryption at rest",        correct: "sec" },
+  { id: "mfa",    label: "Multi-factor authentication", correct: "sec" }
+];
+
+let placements = {};
+let dragId = null;
+
+function buildPool() {
+  const pool = document.getElementById('pool');
+  pool.innerHTML = '';
+  items.forEach(item => {
+    if (placements[item.id]) return;
+    const el = document.createElement('div');
+    el.className = 'drag-item';
+    el.id = 'item-' + item.id;
+    el.draggable = true;
+    el.textContent = item.label;
+    el.addEventListener('dragstart', () => { dragId = item.id; el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    pool.appendChild(el);
+  });
+}
+
+function buildZones() {
+  const zc = document.getElementById('zones');
+  zc.innerHTML = '';
+  categories.forEach(cat => {
+    const zone = document.createElement('div');
+    zone.className = 'zone';
+    zone.dataset.id = cat.id;
+    zone.innerHTML = `<div class="zone-title">${cat.title}</div><div class="zone-items" id="zone-${cat.id}"></div>`;
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('over');
+      if (!dragId) return;
+      placements[dragId] = cat.id;
+      dragId = null;
+      render();
+    });
+    zc.appendChild(zone);
+  });
+}
+
+function render() {
+  buildPool();
+  categories.forEach(cat => {
+    const zoneEl = document.getElementById('zone-' + cat.id);
+    zoneEl.innerHTML = '';
+    items.filter(i => placements[i.id] === cat.id).forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'zone-item';
+      el.innerHTML = `${item.label} <span class="remove" title="Remove">&#215;</span>`;
+      el.querySelector('.remove').addEventListener('click', () => {
+        delete placements[item.id];
+        document.getElementById('result').className = 'result';
+        render();
+      });
+      zoneEl.appendChild(el);
+    });
+  });
+}
+
+function checkAnswers() {
+  const placed = Object.keys(placements).length;
+  if (placed < items.length) {
+    const res = document.getElementById('result');
+    res.className = 'result fail show';
+    res.innerHTML = `<strong>Not quite done yet</strong>You have ${items.length - placed} item(s) still in the pool. Place all items before checking.`;
+    return;
+  }
+  let correct = 0;
+  let wrongList = [];
+  items.forEach(item => {
+    if (placements[item.id] === item.correct) {
+      correct++;
+    } else {
+      const catName = categories.find(c => c.id === item.correct).title;
+      wrongList.push(`<b>${item.label}</b> → belongs in <b>${catName}</b>`);
+    }
+  });
+  const pct = Math.round(correct / items.length * 100);
+  const pass = pct >= 80;
+  const res = document.getElementById('result');
+  res.className = 'result show ' + (pass ? 'pass' : 'fail');
+  const barColour = pass ? '#1D9E75' : '#E24B4A';
+  res.innerHTML = `<strong>${pass ? '✓ Well done — ' : '✗ Not quite — '}${correct} / ${items.length} correct (${pct}%)</strong>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${barColour};"></div></div>
+    ${wrongList.length ? '<div class="detail">Review these:<br>' + wrongList.join('<br>') + '</div>' : '<div class="detail">All items placed correctly — you\'re exam ready on this topic.</div>'}`;
+}
+
+function resetAll() {
+  placements = {};
+  document.getElementById('result').className = 'result';
+  render();
+}
+
+buildZones();
+render();
+</script>
+</body>
+</html>
