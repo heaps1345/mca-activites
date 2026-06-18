@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 2 Flash Cards | MCA Cyber Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1A1A2E; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .wrap { width: 100%; max-width: 680px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-bar { width: 4px; height: 32px; background: #E05C00; border-radius: 2px; }
+  .logo-sub { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7A99; }
+  .logo-title { font-size: 16px; font-weight: 600; color: #F0F0F0; margin-top: 2px; }
+  .counter { font-size: 13px; color: #6B7A99; font-family: monospace; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 1.75rem; }
+  .progress-fill { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.35s ease; }
+  .module-info { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+  .module-pill { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 20px; background: rgba(224,92,0,0.15); border: 1px solid rgba(224,92,0,0.3); color: #E05C00; letter-spacing: 0.04em; }
+  .module-name { font-size: 13px; color: #6B7A99; }
+  .scene { perspective: 1200px; cursor: pointer; margin-bottom: 0.875rem; }
+  .card { position: relative; width: 100%; height: 240px; transform-style: preserve-3d; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 2.5rem; text-align: center; }
+  .front { background: #16213E; border: 1px solid rgba(224,92,0,0.2); }
+  .back { background: #0F3460; border: 1px solid rgba(224,92,0,0.45); transform: rotateY(180deg); }
+  .face-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #E05C00; margin-bottom: 1rem; }
+  .face-q { font-size: 17px; font-weight: 500; line-height: 1.55; color: #F0F0F0; }
+  .face-a { font-size: 14px; font-weight: 400; line-height: 1.65; color: #E8EAF0; }
+  .hint { text-align: center; font-size: 12px; color: #4A5568; margin-bottom: 1.25rem; }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #C0C8D8; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+  .btn:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn-flip { background: #E05C00; border-color: #E05C00; color: #fff; flex: 1; justify-content: center; font-weight: 500; }
+  .btn-flip:hover { background: #F06A10; border-color: #F06A10; }
+  .shuffle-row { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .btn-shuffle { background: transparent; border: none; color: #4A5568; font-size: 12px; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 4px 0; }
+  .btn-shuffle:hover { color: #6B7A99; }
+  .footer { margin-top: 2rem; text-align: center; font-size: 11px; color: #2E3A52; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy</div>
+        <div class="logo-title">SC-900 Flash Cards</div>
+      </div>
+    </div>
+    <div class="counter" id="counter">1 / 15</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <div class="module-info">
+    <span class="module-pill">Section 2</span>
+    <span class="module-name">Microsoft Entra &amp; Identity Management</span>
+  </div>
+  <div class="scene" id="scene" onclick="flipCard()" role="button" aria-label="Flip card" tabindex="0">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="face-label">Question</div>
+        <p class="face-q" id="face-q"></p>
+      </div>
+      <div class="face back">
+        <div class="face-label">Answer</div>
+        <p class="face-a" id="face-a"></p>
+      </div>
+    </div>
+  </div>
+  <p class="hint">Click card to reveal · Arrow keys to navigate · Space to flip</p>
+  <div class="controls">
+    <button class="btn" id="btn-prev" onclick="changeCard(-1)">&#8592; Prev</button>
+    <button class="btn btn-flip" onclick="flipCard()">&#8635; Flip</button>
+    <button class="btn" id="btn-next" onclick="changeCard(1)">Next &#8594;</button>
+  </div>
+  <div class="shuffle-row">
+    <button class="btn-shuffle" onclick="shuffleDeck()">&#8769; Shuffle deck</button>
+  </div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+<script>
+const allCards = [
+  { q: "What was Azure Active Directory renamed to in 2023?", a: "Microsoft Entra ID. Same product, new name. Azure AD Connect became Entra Connect. All existing features and licences transferred automatically. The exam may use either name." },
+  { q: "What does 'Identity is the new perimeter' mean?", a: "With users working from anywhere and apps living in the cloud, identity is the only consistent control point left — replacing the old firewall-at-the-network-edge model." },
+  { q: "What is a Microsoft Entra tenant?", a: "A dedicated instance of Entra ID representing one organisation. It contains all users, groups, applications, devices, and policies for that organisation." },
+  { q: "What is the difference between a Cloud-only user and a Hybrid user?", a: "Cloud-only users are created and exist only in Entra ID, with no on-premises AD account. Hybrid users are synced from on-premises AD via Entra Connect — their identity originates on-premises." },
+  { q: "Can a Microsoft 365 Group have Conditional Access policies applied?", a: "No. Only Security Groups can have Conditional Access policies applied. M365 Groups are for collaboration — shared mailbox, SharePoint, Teams, calendar." },
+  { q: "What licence is required for Dynamic Group membership?", a: "Entra ID P1. Dynamic groups auto-populate members based on attribute rules (e.g. Department = Sales) and update automatically when attributes change." },
+  { q: "What does Entra ID P1 unlock that Free does not?", a: "Conditional Access, SSPR (hybrid), Dynamic Groups, and Group-based Licensing. This is one of the most frequently tested distinctions in the entire SC-900 exam." },
+  { q: "What does Entra ID P2 unlock that P1 does not?", a: "Identity Protection (risk detections), Privileged Identity Management (PIM), and Access Reviews." },
+  { q: "What are the six signals Conditional Access evaluates?", a: "User & Group Membership, Device Compliance, Location, Application, Sign-In Risk Level, and Client App Type." },
+  { q: "Why can't legacy authentication protocols like SMTP, IMAP, and POP3 satisfy an MFA requirement?", a: "Legacy protocols cannot perform modern multi-factor authentication. Blocking legacy auth is a mandatory companion control whenever MFA is enforced organisation-wide." },
+  { q: "What is the difference between Eligible and Active role assignments in PIM?", a: "Eligible means the user can request activation but doesn't hold the role yet — the recommended default. Active means the user currently holds the role and can use it right now — reserved for break-glass accounts only." },
+  { q: "What licence is required for Privileged Identity Management (PIM)?", a: "Entra ID P2. PIM provides just-in-time, time-limited, audited access to privileged roles instead of permanent assignment." },
+  { q: "What is the key difference between B2B Collaboration and B2C Customer Identity?", a: "B2B invites partners, contractors, or auditors as guest users into your EXISTING tenant. B2C requires a SEPARATE External ID tenant for public-facing customer applications." },
+  { q: "What does SSPR Writeback require, and what happens without it?", a: "Writeback requires Entra Connect and Entra ID P1. Without it, a password reset in the cloud does not update on-premises AD, leaving hybrid users with two different, out-of-sync passwords." },
+  { q: "What is Permission Creep, and which Entra product addresses it?", a: "Permission Creep is the gradual accumulation of unused, excessive permissions over time. Entra Permissions Management (CIEM) identifies over-privileged identities and automatically remediates toward least privilege." }
+];
+
+let deck = [...allCards];
+let current = 0;
+let flipped = false;
+
+function render() {
+  document.getElementById('face-q').textContent = deck[current].q;
+  document.getElementById('face-a').textContent = deck[current].a;
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + deck.length;
+  document.getElementById('prog').style.width = ((current + 1) / deck.length * 100) + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === deck.length - 1;
+}
+
+function flipCard() {
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function changeCard(dir) {
+  const n = current + dir;
+  if (n < 0 || n >= deck.length) return;
+  flipped = false;
+  document.getElementById('card').classList.remove('flipped');
+  current = n;
+  setTimeout(render, 50);
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  flipped = false;
+  current = 0;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+document.getElementById('scene').addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') changeCard(1);
+  if (e.key === 'ArrowLeft') changeCard(-1);
+});
+
+render();
+</script>
+</body>
+</html>
