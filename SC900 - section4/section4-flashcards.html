@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 4 Flash Cards | MCA Cyber Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1A1A2E; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .wrap { width: 100%; max-width: 680px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-bar { width: 4px; height: 32px; background: #E05C00; border-radius: 2px; }
+  .logo-sub { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7A99; }
+  .logo-title { font-size: 16px; font-weight: 600; color: #F0F0F0; margin-top: 2px; }
+  .counter { font-size: 13px; color: #6B7A99; font-family: monospace; }
+  .progress-track { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 1.75rem; }
+  .progress-fill { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.35s ease; }
+  .module-info { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+  .module-pill { font-size: 11px; font-weight: 500; padding: 4px 12px; border-radius: 20px; background: rgba(224,92,0,0.15); border: 1px solid rgba(224,92,0,0.3); color: #E05C00; letter-spacing: 0.04em; }
+  .module-name { font-size: 13px; color: #6B7A99; }
+  .scene { perspective: 1200px; cursor: pointer; margin-bottom: 0.875rem; }
+  .card { position: relative; width: 100%; height: 240px; transform-style: preserve-3d; transition: transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 2.5rem; text-align: center; }
+  .front { background: #16213E; border: 1px solid rgba(224,92,0,0.2); }
+  .back { background: #0F3460; border: 1px solid rgba(224,92,0,0.45); transform: rotateY(180deg); }
+  .face-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #E05C00; margin-bottom: 1rem; }
+  .face-q { font-size: 17px; font-weight: 500; line-height: 1.55; color: #F0F0F0; }
+  .face-a { font-size: 14px; font-weight: 400; line-height: 1.65; color: #E8EAF0; }
+  .hint { text-align: center; font-size: 12px; color: #4A5568; margin-bottom: 1.25rem; }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #C0C8D8; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer; transition: background 0.15s, border-color 0.15s; display: flex; align-items: center; gap: 6px; }
+  .btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+  .btn:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn-flip { background: #E05C00; border-color: #E05C00; color: #fff; flex: 1; justify-content: center; font-weight: 500; }
+  .btn-flip:hover { background: #F06A10; border-color: #F06A10; }
+  .shuffle-row { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .btn-shuffle { background: transparent; border: none; color: #4A5568; font-size: 12px; font-family: 'Inter', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 4px 0; }
+  .btn-shuffle:hover { color: #6B7A99; }
+  .footer { margin-top: 2rem; text-align: center; font-size: 11px; color: #2E3A52; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy</div>
+        <div class="logo-title">SC-900 Flash Cards</div>
+      </div>
+    </div>
+    <div class="counter" id="counter">1 / 15</div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog"></div></div>
+  <div class="module-info">
+    <span class="module-pill">Section 4</span>
+    <span class="module-name">Microsoft Compliance Solutions</span>
+  </div>
+  <div class="scene" id="scene" onclick="flipCard()" role="button" aria-label="Flip card" tabindex="0">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="face-label">Question</div>
+        <p class="face-q" id="face-q"></p>
+      </div>
+      <div class="face back">
+        <div class="face-label">Answer</div>
+        <p class="face-a" id="face-a"></p>
+      </div>
+    </div>
+  </div>
+  <p class="hint">Click card to reveal · Arrow keys to navigate · Space to flip</p>
+  <div class="controls">
+    <button class="btn" id="btn-prev" onclick="changeCard(-1)">&#8592; Prev</button>
+    <button class="btn btn-flip" onclick="flipCard()">&#8635; Flip</button>
+    <button class="btn" id="btn-next" onclick="changeCard(1)">Next &#8594;</button>
+  </div>
+  <div class="shuffle-row">
+    <button class="btn-shuffle" onclick="shuffleDeck()">&#8769; Shuffle deck</button>
+  </div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+<script>
+const allCards = [
+  { q: "What is the key difference between a Sensitivity Label and a Retention Label?", a: "A Sensitivity Label protects the file right now — encryption, visual markings, sharing control. A Retention Label manages how long the file lives — retain, delete, or trigger a disposition review. Both can be applied to the same document simultaneously." },
+  { q: "What are the five Sensitivity Label tiers, from lowest to highest sensitivity?", a: "Personal, Public, General, Confidential, Highly Confidential." },
+  { q: "What three actions does a Sensitivity Label apply?", a: "Apply Encryption (restrict who can open the file), Add Visual Markings (header, footer, watermark), and Control Sharing (restrict forwarding, printing, or copying)." },
+  { q: "What licence is required for auto-labelling using Sensitive Information Types (SITs)?", a: "Microsoft 365 E3 or E5. SITs are used by both DLP policies AND auto-labelling — they serve both purposes." },
+  { q: "What are the four components of a DLP policy?", a: "What to protect (sensitive information types), Where to look (locations like Exchange, SharePoint, Teams), Conditions (e.g. 10+ credit card numbers), and Actions (block, alert, policy tip)." },
+  { q: "What is a DLP Policy Tip?", a: "A real-time pop-up notification shown to a user at the moment they're about to violate a DLP policy — for example, a warning in Outlook before sending an email containing sensitive data. The user may be able to override with business justification." },
+  { q: "What does Microsoft Priva help organisations do?", a: "Identify and remediate privacy risks proactively, and automate GDPR Data Subject Access Request (DSAR) workflows within the 30-day legal deadline." },
+  { q: "What are the three Privacy Risk types in Microsoft Priva?", a: "Data Overexposure (data accessible to far more users than necessary), Data Transfers (data moving across borders or to external parties), and Data Minimisation (data retained and unused for extended periods)." },
+  { q: "What does a Legal Hold do, and which product manages it?", a: "Legal Hold preserves content indefinitely even if a user tries to delete it. It overrides retention/deletion policies and creates an immutable copy with a full audit trail. Managed through eDiscovery." },
+  { q: "What's the difference between eDiscovery Standard and Premium?", a: "Standard (E3) includes Content Search, Export, and Legal Hold. Premium (E5) adds Custodian Management, Review Sets with tagging, and Predictive Coding (machine learning)." },
+  { q: "How long is audit log data retained in Audit Standard vs Audit Premium?", a: "Audit Standard (E3): 90 days. Audit Premium (E5): 1 year, extendable to 10 years with an add-on licence — important for regulated industries." },
+  { q: "What does Compliance Manager measure, and what is the Compliance Score?", a: "Compliance Manager maps your organisation's controls to compliance frameworks like GDPR, ISO 27001, and NIST CSF. The Compliance Score is a percentage showing how well your controls are implemented against those frameworks." },
+  { q: "Are Microsoft Secure Score, Identity Secure Score, and Compliance Score the same thing?", a: "No — they are three separate scores in three separate products. Microsoft Secure Score lives in the Defender portal. Identity Secure Score lives in Entra ID. Compliance Score lives in Compliance Manager." },
+  { q: "What is the difference between Retention Policies and Retention Labels?", a: "Retention Policies apply broadly to an entire location (e.g. all of SharePoint) with no user interaction required. Retention Labels apply at the item level, can be applied manually or automatically, and can declare an item as a regulatory record." },
+  { q: "If a customer wants to see Microsoft's own SOC 2 report or ISO 27001 certificate, where do they go — and how is that different from Compliance Manager?", a: "Service Trust Portal (servicetrust.microsoft.com) — this shows what MICROSOFT has done. Compliance Manager (compliance.microsoft.com) shows what YOUR ORGANISATION needs to do. They are not interchangeable." }
+];
+
+let deck = [...allCards];
+let current = 0;
+let flipped = false;
+
+function render() {
+  document.getElementById('face-q').textContent = deck[current].q;
+  document.getElementById('face-a').textContent = deck[current].a;
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + deck.length;
+  document.getElementById('prog').style.width = ((current + 1) / deck.length * 100) + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === deck.length - 1;
+}
+
+function flipCard() {
+  flipped = !flipped;
+  document.getElementById('card').classList.toggle('flipped', flipped);
+}
+
+function changeCard(dir) {
+  const n = current + dir;
+  if (n < 0 || n >= deck.length) return;
+  flipped = false;
+  document.getElementById('card').classList.remove('flipped');
+  current = n;
+  setTimeout(render, 50);
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  flipped = false;
+  current = 0;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+document.getElementById('scene').addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+  if (e.key === 'ArrowRight') changeCard(1);
+  if (e.key === 'ArrowLeft') changeCard(-1);
+});
+
+render();
+</script>
+</body>
+</html>

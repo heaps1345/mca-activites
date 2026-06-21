@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 4 Exam-Style Practice 5 | MCA Cyber Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1A2E;font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem;color:#F0F0F0;}
+.wrap{max-width:760px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-bar{width:4px;height:32px;background:#E05C00;border-radius:2px;}
+.logo-sub{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;}
+.logo-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-top:2px;}
+.badge{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.3);color:#E05C00;}
+.scenario{background:#16213E;border:1px solid rgba(224,92,0,0.2);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;}
+.scenario-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#E05C00;margin-bottom:0.5rem;}
+.scenario p{font-size:14px;line-height:1.7;color:#C0C8D8;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;margin-bottom:0.75rem;}
+.sequence{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem;}
+.seq-item{background:#16213E;border:1px solid rgba(224,92,0,0.3);border-radius:10px;padding:12px 16px;font-size:14px;color:#E8EAF0;cursor:grab;user-select:none;display:flex;align-items:center;gap:12px;transition:opacity 0.15s,transform 0.15s,border-color 0.2s,background 0.2s;}
+.seq-item:active{cursor:grabbing;}
+.seq-item.dragging{opacity:0.4;}
+.seq-num{font-size:13px;font-weight:700;color:#E05C00;min-width:24px;flex-shrink:0;}
+.seq-item.correct{border-color:#1D9E75;background:rgba(29,158,117,0.1);}
+.seq-item.wrong{border-color:#E24B4A;background:rgba(232,75,74,0.08);}
+.controls{display:flex;gap:10px;margin-bottom:1rem;}
+.btn{border-radius:8px;padding:10px 24px;font-size:14px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#C0C8D8;transition:background 0.15s;}
+.btn:hover{background:rgba(255,255,255,0.1);}
+.btn-check{background:#E05C00;border-color:#E05C00;color:#fff;}
+.btn-check:hover{background:#F06A10;}
+.result{display:none;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;font-size:14px;line-height:1.7;}
+.result.show{display:block;}
+.result.pass{background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.35);color:#5DCAA5;}
+.result.fail{background:rgba(232,75,74,0.1);border:1px solid rgba(232,75,74,0.3);color:#F09595;}
+.result strong{display:block;font-size:16px;margin-bottom:0.4rem;}
+.result .detail{font-size:13px;margin-top:0.5rem;color:#A0A8B8;}
+.score-bar-track{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:0.75rem 0 0.25rem;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.footer{margin-top:2rem;text-align:center;font-size:11px;color:#2E3A52;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy · SC-900</div>
+        <div class="logo-title">Section 4 — Exam-Style Practice 5: DSAR Workflow Order</div>
+      </div>
+    </div>
+    <span class="badge">Drag to Reorder</span>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">Scenario</div>
+    <p>An individual submits a GDPR Data Subject Access Request (DSAR), and your organisation uses Microsoft Priva to manage it. The steps below are in the wrong order. Drag them to put the Priva DSAR workflow in the correct sequence, from first to last.</p>
+  </div>
+
+  <div class="section-label">Drag items up or down to reorder</div>
+  <div class="sequence" id="sequence"></div>
+
+  <div class="controls">
+    <button class="btn btn-check" onclick="checkAnswers()">Check order</button>
+    <button class="btn" onclick="resetAll()">Shuffle &amp; Reset</button>
+  </div>
+  <div class="result" id="result"></div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+
+<script>
+const correctOrder = [
+  { id: "step1", label: "The individual submits a request for all personal data the organisation holds about them" },
+  { id: "step2", label: "Priva searches across Microsoft 365 for content related to that individual" },
+  { id: "step3", label: "Priva packages the discovered results for review" },
+  { id: "step4", label: "A reviewer manages the review workflow before the response is finalised" },
+  { id: "step5", label: "Priva tracks the 30-day legal deadline throughout the process until the response is delivered" }
+];
+
+let current = [...correctOrder];
+let dragIndex = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function render() {
+  current = shuffle(current);
+  buildList();
+}
+
+function buildList() {
+  const seq = document.getElementById('sequence');
+  seq.innerHTML = '';
+  current.forEach((item, idx) => {
+    const el = document.createElement('div');
+    el.className = 'seq-item';
+    el.draggable = true;
+    el.dataset.id = item.id;
+    el.innerHTML = `<span class="seq-num">${idx + 1}</span><span>${item.label}</span>`;
+    el.addEventListener('dragstart', () => { dragIndex = idx; el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('dragover', e => e.preventDefault());
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragIndex === null || dragIndex === idx) return;
+      const moved = current.splice(dragIndex, 1)[0];
+      current.splice(idx, 0, moved);
+      dragIndex = null;
+      buildList();
+    });
+    seq.appendChild(el);
+  });
+}
+
+function checkAnswers() {
+  let correctCount = 0;
+  current.forEach((item, idx) => {
+    const el = document.querySelectorAll('.seq-item')[idx];
+    if (item.id === correctOrder[idx].id) {
+      correctCount++;
+      el.classList.add('correct');
+      el.classList.remove('wrong');
+    } else {
+      el.classList.add('wrong');
+      el.classList.remove('correct');
+    }
+  });
+  const pct = Math.round(correctCount / correctOrder.length * 100);
+  const pass = pct === 100;
+  const bar = pass ? '#1D9E75' : '#E24B4A';
+  const res = document.getElementById('result');
+  res.className = 'result show ' + (pass ? 'pass' : 'fail');
+  res.innerHTML = `<strong>${pass ? '✓ Perfect sequence — ' : '✗ Not quite right — '}${correctCount} / ${correctOrder.length} in the correct position (${pct}%)</strong>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${bar};"></div></div>
+    <div class="detail">${pass ? 'You\'ve nailed the DSAR lifecycle: request → search → package → review → deadline tracking. Priva automates the heavy lifting, but a human reviewer is still involved before the response goes out.' : 'Drag the items marked in red into their correct position and check again. Remember: the individual\'s request always comes first, and the 30-day deadline tracking runs throughout the entire process, not just at the end.'}</div>`;
+}
+
+function resetAll() {
+  current = [...correctOrder];
+  document.getElementById('result').className = 'result';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
