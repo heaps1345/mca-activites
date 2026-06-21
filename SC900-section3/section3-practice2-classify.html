@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Section 3 Exam-Style Practice 2 | MCA Cyber Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1A2E;font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem;color:#F0F0F0;}
+.wrap{max-width:920px;margin:0 auto;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-bar{width:4px;height:32px;background:#E05C00;border-radius:2px;}
+.logo-sub{font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#6B7A99;}
+.logo-title{font-size:16px;font-weight:600;color:#F0F0F0;margin-top:2px;}
+.badge{font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;background:rgba(224,92,0,0.15);border:1px solid rgba(224,92,0,0.3);color:#E05C00;}
+.scenario{background:#16213E;border:1px solid rgba(224,92,0,0.2);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;}
+.scenario-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#E05C00;margin-bottom:0.5rem;}
+.scenario p{font-size:14px;line-height:1.7;color:#C0C8D8;}
+.grid-wrap{overflow-x:auto;margin-bottom:1.5rem;-webkit-overflow-scrolling:touch;}
+.grid-table{width:100%;border-collapse:collapse;min-width:560px;}
+.grid-table th{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#E05C00;border-bottom:2px solid rgba(224,92,0,0.25);}
+.grid-table th.row-label-header{text-align:left;color:#6B7A99;font-size:10px;}
+.grid-table td{padding:0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.row-label{padding:12px 10px;font-size:13px;color:#E8EAF0;line-height:1.4;max-width:320px;}
+.cell{height:100%;display:flex;align-items:center;justify-content:center;padding:10px 4px;}
+.cell-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.15);background:#0F3460;cursor:pointer;transition:all 0.15s;position:relative;}
+.cell-btn:hover{border-color:rgba(224,92,0,0.5);background:rgba(224,92,0,0.15);}
+.cell-btn.selected{background:#E05C00;border-color:#E05C00;}
+.cell-btn.selected::after{content:'';position:absolute;top:8px;left:8px;width:8px;height:8px;background:#fff;border-radius:50%;}
+.cell-btn.correct{background:#1D9E75;border-color:#1D9E75;}
+.cell-btn.correct::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.cell-btn.wrong{background:#E24B4A;border-color:#E24B4A;}
+.cell-btn.wrong::after{content:'✗';position:absolute;inset:0;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.cell-btn.missed{border-color:#1D9E75;border-style:dashed;background:transparent;}
+.cell-btn:disabled{cursor:not-allowed;}
+.row-even{background:rgba(255,255,255,0.015);}
+.controls{display:flex;gap:10px;margin-bottom:1rem;}
+.btn{border-radius:8px;padding:10px 24px;font-size:14px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#C0C8D8;transition:background 0.15s;}
+.btn:hover{background:rgba(255,255,255,0.1);}
+.btn-check{background:#E05C00;border-color:#E05C00;color:#fff;}
+.btn-check:hover{background:#F06A10;}
+.result{display:none;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;font-size:14px;line-height:1.7;}
+.result.show{display:block;}
+.result.pass{background:rgba(29,158,117,0.12);border:1px solid rgba(29,158,117,0.35);color:#5DCAA5;}
+.result.fail{background:rgba(232,75,74,0.1);border:1px solid rgba(232,75,74,0.3);color:#F09595;}
+.result strong{display:block;font-size:16px;margin-bottom:0.4rem;}
+.result .detail{font-size:13px;margin-top:0.5rem;color:#A0A8B8;}
+.score-bar-track{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin:0.75rem 0 0.25rem;}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.hint{font-size:12px;color:#4A5568;margin-bottom:1rem;}
+.footer{margin-top:2rem;text-align:center;font-size:11px;color:#2E3A52;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-bar"></div>
+      <div>
+        <div class="logo-sub">MCA Cyber Academy · SC-900</div>
+        <div class="logo-title">Section 3 — Exam-Style Practice 2: Click to Classify</div>
+      </div>
+    </div>
+    <span class="badge">Classification Grid</span>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-label">Instructions</div>
+    <p>For each device management capability listed on the left, click the column showing whether it applies to MDM, MAM, or Both. Each row has exactly one correct column.</p>
+  </div>
+
+  <p class="hint">Click a circle in the row to select your answer for that capability. You can change your selection until you check answers.</p>
+
+  <div class="grid-wrap">
+    <table class="grid-table">
+      <thead>
+        <tr>
+          <th class="row-label-header">Capability</th>
+          <th>MDM Only</th>
+          <th>MAM Only</th>
+          <th>Both</th>
+        </tr>
+      </thead>
+      <tbody id="grid-body"></tbody>
+    </table>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-check" onclick="checkAnswers()">Check answers</button>
+    <button class="btn" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="result" id="result"></div>
+  <div class="footer">mycyberacademy.co.uk &nbsp;·&nbsp; Microsoft Threat Detection Engineer Academy</div>
+</div>
+
+<script>
+const columns = ["mdmonly", "mamonly", "both"];
+const columnLabels = { mdmonly: "MDM Only", mamonly: "MAM Only", both: "Both" };
+
+const rows = [
+  { id: "r1",  label: "Requires full device enrolment into Intune", correct: "mdmonly" },
+  { id: "r2",  label: "Manages only the application and its data, not the device", correct: "mamonly" },
+  { id: "r3",  label: "Can perform a full device wipe", correct: "mdmonly" },
+  { id: "r4",  label: "Suitable for BYOD personal devices", correct: "mamonly" },
+  { id: "r5",  label: "Can perform a selective wipe of corporate app data only", correct: "both" },
+  { id: "r6",  label: "Enforces BitLocker encryption on the entire device", correct: "mdmonly" },
+  { id: "r7",  label: "Best suited for corporate-owned devices", correct: "mdmonly" },
+  { id: "r8",  label: "Restricts copy-paste between corporate and personal apps", correct: "mamonly" },
+  { id: "r9",  label: "Managed through Microsoft Intune", correct: "both" },
+  { id: "r10", label: "Requires no device enrolment at all", correct: "mamonly" },
+  { id: "r11", label: "Sets a device-wide screen lock timeout policy", correct: "mdmonly" },
+  { id: "r12", label: "Protects corporate email on a personal phone without touching personal photos", correct: "mamonly" }
+];
+
+let answers = {};
+let checked = false;
+
+function buildGrid() {
+  const body = document.getElementById('grid-body');
+  body.innerHTML = '';
+  rows.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    if (ri % 2 === 1) tr.className = 'row-even';
+    let cellsHtml = `<td><div class="row-label">${row.label}</div></td>`;
+    columns.forEach(col => {
+      cellsHtml += `<td><div class="cell"><button class="cell-btn" id="cell-${row.id}-${col}" onclick="selectCell('${row.id}','${col}')" aria-label="${columnLabels[col]}"></button></div></td>`;
+    });
+    tr.innerHTML = cellsHtml;
+    body.appendChild(tr);
+  });
+}
+
+function selectCell(rowId, col) {
+  if (checked) return;
+  answers[rowId] = col;
+  columns.forEach(c => {
+    document.getElementById(`cell-${rowId}-${c}`).classList.toggle('selected', c === col);
+  });
+}
+
+function checkAnswers() {
+  const answered = Object.keys(answers).length;
+  if (answered < rows.length) {
+    const res = document.getElementById('result');
+    res.className = 'result fail show';
+    res.innerHTML = `<strong>Not quite done yet</strong>You have ${rows.length - answered} row(s) unanswered. Classify every row before checking.`;
+    return;
+  }
+  checked = true;
+  let correct = 0;
+  rows.forEach(row => {
+    const userAnswer = answers[row.id];
+    columns.forEach(col => {
+      const btn = document.getElementById(`cell-${row.id}-${col}`);
+      btn.disabled = true;
+      btn.classList.remove('selected');
+      if (col === row.correct && col === userAnswer) {
+        btn.classList.add('correct');
+      } else if (col === userAnswer && col !== row.correct) {
+        btn.classList.add('wrong');
+      } else if (col === row.correct && col !== userAnswer) {
+        btn.classList.add('missed');
+      }
+    });
+    if (userAnswer === row.correct) correct++;
+  });
+  const pct = Math.round(correct / rows.length * 100);
+  const pass = pct >= 80;
+  const bar = pass ? '#1D9E75' : '#E24B4A';
+  const res = document.getElementById('result');
+  res.className = 'result show ' + (pass ? 'pass' : 'fail');
+  res.innerHTML = `<strong>${pass ? '✓ Well done — ' : '✗ Not quite — '}${correct} / ${rows.length} correct (${pct}%)</strong>
+    <div class="score-bar-track"><div class="score-bar-fill" style="width:${pct}%;background:${bar};"></div></div>
+    <div class="detail">Green ticks are correct. Red crosses show where you went wrong. A dashed green outline shows the correct column where you didn't select it. Remember: MDM manages the whole device — enrolment, full wipe, device-wide policy. MAM manages only the app — no enrolment, selective wipe. Both are managed through Intune.</div>`;
+}
+
+function resetAll() {
+  answers = {};
+  checked = false;
+  buildGrid();
+  document.getElementById('result').className = 'result';
+}
+
+buildGrid();
+</script>
+</body>
+</html>
