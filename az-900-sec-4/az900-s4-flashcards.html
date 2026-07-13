@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Section 4 — Security, Identity & Compliance Flash Cards</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
+  h1 { font-size: 1.6rem; margin-bottom: 5px; text-align: center; }
+  .subtitle { color: #9CA3AF; font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
+  .counter { color: #E05C00; font-size: 1rem; font-weight: 700; margin-bottom: 15px; }
+  .card-container { perspective: 1000px; width: 100%; max-width: 600px; height: 320px; cursor: pointer; margin-bottom: 20px; }
+  .card { width: 100%; height: 100%; position: relative; transition: transform 0.5s; transform-style: preserve-3d; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px 35px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, #16213E, #1A1A2E); border: 2px solid #E05C00; }
+  .card-front .label { color: #E05C00; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+  .card-front .question { font-size: 1.2rem; line-height: 1.5; font-weight: 500; }
+  .card-back { background: #E05C00; transform: rotateY(180deg); }
+  .card-back .label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; opacity: 0.8; }
+  .card-back .answer { font-size: 1.05rem; line-height: 1.5; font-weight: 500; }
+  .hint { color: #6B7280; font-size: 0.8rem; margin-bottom: 20px; }
+  .nav { display: flex; gap: 15px; }
+  .nav button { background: none; border: 2px solid #E05C00; color: #E05C00; padding: 10px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .nav button:hover { background: #E05C00; color: #fff; }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .nav button:disabled:hover { background: none; color: #E05C00; }
+  .progress { width: 100%; max-width: 600px; height: 4px; background: #16213E; border-radius: 2px; margin-top: 20px; }
+  .progress-bar { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.3s; }
+</style>
+</head>
+<body>
+<h1>Security, Identity & Compliance — Flash Cards</h1>
+<p class="subtitle">AZ-900 Section 4 · Click a card to flip it</p>
+<div class="counter" id="counter">1 / 15</div>
+<div class="card-container" id="cardContainer">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="label">Question</div>
+      <div class="question" id="question"></div>
+    </div>
+    <div class="card-face card-back">
+      <div class="label">Answer</div>
+      <div class="answer" id="answer"></div>
+    </div>
+  </div>
+</div>
+<p class="hint">Click the card to reveal the answer</p>
+<div class="nav">
+  <button id="prevBtn" onclick="prev()">← Previous</button>
+  <button id="nextBtn" onclick="next()">Next →</button>
+</div>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<script>
+const cards = [
+  { q: "What is Microsoft Entra ID (formerly Azure AD)?", a: "Microsoft's cloud-based identity and access management service. It handles authentication and authorisation for Azure, Microsoft 365, and thousands of third-party applications. It is NOT the same as on-premises Active Directory." },
+  { q: "What is Multi-Factor Authentication (MFA)?", a: "An authentication method that requires two or more verification factors: something you know (password), something you have (phone/token), or something you are (biometrics). Dramatically reduces the risk of compromised credentials." },
+  { q: "What is Conditional Access?", a: "A feature in Entra ID that enforces access policies based on signals — user identity, device, location, application, and risk level. For example: require MFA when signing in from outside the corporate network." },
+  { q: "What is Role-Based Access Control (RBAC)?", a: "A system for managing who has access to Azure resources, what they can do, and at what scope. Built on three elements: security principal (who), role definition (what they can do), and scope (where it applies)." },
+  { q: "What is the principle of least privilege?", a: "Users should only be given the minimum level of access they need to perform their job — nothing more. This limits the blast radius if an account is compromised." },
+  { q: "What is Azure Firewall?", a: "A managed, cloud-based network security service that protects Azure Virtual Network resources. It provides stateful packet inspection, application-level filtering, threat intelligence-based filtering, and centralised logging." },
+  { q: "What is Azure DDoS Protection?", a: "A service that defends Azure resources against Distributed Denial of Service attacks. The Basic tier is free and automatic. The Standard tier adds adaptive tuning, attack analytics, and cost protection guarantees." },
+  { q: "What is Microsoft Defender for Cloud?", a: "A unified security management platform that provides threat protection across Azure, hybrid, and multi-cloud workloads. It assesses your security posture, provides recommendations, and detects threats." },
+  { q: "What is Azure Policy?", a: "A service for creating, assigning, and managing policies that enforce rules on your Azure resources. For example: require all resources to have a specific tag, or restrict deployments to certain regions." },
+  { q: "What is an Azure Policy Initiative?", a: "A collection of related Azure Policy definitions grouped together as a single unit. Makes it easier to assign and manage multiple policies at once. For example, a 'CIS Benchmark' initiative bundles dozens of security policies." },
+  { q: "What are Azure Blueprints?", a: "A way to define a repeatable set of Azure resources, policies, and RBAC assignments that can be deployed together. Used for environment setup that must comply with organisational standards. Think of it as a template for governance." },
+  { q: "What is Microsoft Purview?", a: "A suite of data governance and compliance tools. Includes data cataloguing, data classification, data loss prevention (DLP), information protection, and compliance management for regulatory requirements." },
+  { q: "What are Azure Resource Locks?", a: "A mechanism to prevent accidental deletion or modification of critical Azure resources. Two types: CanNotDelete (prevents deletion but allows modification) and ReadOnly (prevents both modification and deletion)." },
+  { q: "What is the Microsoft Trust Center?", a: "A website providing detailed information about how Microsoft implements security, privacy, compliance, and transparency across its cloud services. It's the go-to reference for understanding Microsoft's compliance certifications." },
+  { q: "What are the three pillars of Zero Trust?", a: "Verify explicitly (always authenticate and authorise), use least privilege access (limit permissions to minimum required), and assume breach (minimise blast radius, segment access, verify end-to-end encryption)." },
+];
+let current = 0;
+const card = document.getElementById('card'), question = document.getElementById('question'), answer = document.getElementById('answer'), counter = document.getElementById('counter'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), progressBar = document.getElementById('progressBar');
+function render() { card.classList.remove('flipped'); setTimeout(() => { question.textContent = cards[current].q; answer.textContent = cards[current].a; }, 150); counter.textContent = `${current+1} / ${cards.length}`; prevBtn.disabled = current === 0; nextBtn.disabled = current === cards.length-1; progressBar.style.width = `${((current+1)/cards.length)*100}%`; }
+document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
+function next() { if (current < cards.length-1) { current++; render(); } }
+function prev() { if (current > 0) { current--; render(); } }
+document.addEventListener('keydown', e => { if (e.key==='ArrowRight') next(); if (e.key==='ArrowLeft') prev(); if (e.key===' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
+render();
+</script>
+</body>
+</html>
