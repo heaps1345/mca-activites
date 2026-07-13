@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PBQ — Support Plan Order</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #E5E7EB; min-height: 100vh; padding: 30px 20px; }
+  .container { max-width: 750px; margin: 0 auto; }
+  h1 { color: #fff; font-size: 1.5rem; text-align: center; margin-bottom: 5px; }
+  .subtitle { color: #9CA3AF; font-size: 0.85rem; text-align: center; margin-bottom: 30px; }
+  .exercise { background: #16213E; border-radius: 12px; padding: 25px 28px; margin-bottom: 24px; border-left: 4px solid #E05C00; }
+  .exercise h2 { color: #E05C00; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+  .exercise h3 { color: #fff; font-size: 1.15rem; margin-bottom: 15px; font-weight: 600; }
+  .exercise p { margin-bottom: 12px; line-height: 1.5; color: #D1D5DB; font-size: 0.95rem; }
+  .drag-bank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .drag-item { background: #E05C00; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: grab; font-size: 0.85rem; font-weight: 600; user-select: none; transition: opacity 0.2s; }
+  .drag-item:active { cursor: grabbing; }
+  .drag-item.placed { opacity: 0.3; }
+  .drop-zone { min-width: 160px; min-height: 38px; border: 2px dashed #374151; border-radius: 6px; display: flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: #9CA3AF; transition: all 0.2s; }
+  .drop-zone.filled { border-color: #E05C00; color: #fff; background: rgba(224,92,0,0.15); }
+  .classify-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+  .classify-col { background: #0F3460; border-radius: 8px; padding: 12px; min-height: 120px; }
+  .classify-col h4 { color: #E05C00; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: center; }
+  .classify-col .drop-area { min-height: 80px; border: 2px dashed #374151; border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .classify-item { background: #E05C00; color: #fff; padding: 5px 12px; border-radius: 4px; cursor: grab; font-size: 0.8rem; font-weight: 600; user-select: none; }
+  .classify-item.correct-item { background: #22C55E; }
+  .classify-item.incorrect-item { background: #EF4444; }
+  .match-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .match-term { width: 200px; font-weight: 600; color: #fff; font-size: 0.9rem; }
+  .match-select { background: #0F3460; color: #E5E7EB; border: 2px solid #374151; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; min-width: 300px; cursor: pointer; }
+  .match-select.correct-select { border-color: #22C55E; background: rgba(34,197,94,0.1); }
+  .match-select.incorrect-select { border-color: #EF4444; background: rgba(239,68,68,0.1); }
+  .scenario-box { background: #0F3460; border-radius: 8px; padding: 18px; margin-bottom: 15px; font-style: italic; color: #D1D5DB; line-height: 1.6; }
+  .scenario-options { display: flex; flex-direction: column; gap: 8px; }
+  .scenario-opt { background: #16213E; border: 2px solid #374151; border-radius: 8px; padding: 12px 16px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+  .scenario-opt:hover { border-color: #E05C00; }
+  .scenario-opt.selected { border-color: #E05C00; background: rgba(224,92,0,0.1); }
+  .scenario-opt.correct-opt { border-color: #22C55E; background: rgba(34,197,94,0.1); color: #22C55E; }
+  .scenario-opt.wrong-opt { border-color: #EF4444; background: rgba(239,68,68,0.1); color: #EF4444; }
+  .seq-list { list-style: none; margin-bottom: 15px; }
+  .seq-item { background: #0F3460; border: 2px solid #374151; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; cursor: grab; display: flex; align-items: center; gap: 12px; font-size: 0.9rem; transition: all 0.2s; user-select: none; }
+  .seq-item:active { cursor: grabbing; border-color: #E05C00; }
+  .seq-num { background: #E05C00; color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+  .seq-item.correct-seq { border-color: #22C55E; }
+  .seq-item.correct-seq .seq-num { background: #22C55E; }
+  .seq-item.incorrect-seq { border-color: #EF4444; }
+  .seq-item.incorrect-seq .seq-num { background: #EF4444; }
+  .btn { background: #E05C00; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+  .btn:hover { background: #c44e00; }
+  .btn-reset { background: none; border: 2px solid #374151; color: #9CA3AF; margin-left: 10px; }
+  .btn-reset:hover { border-color: #E05C00; color: #E05C00; background: none; }
+  .feedback { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; display: none; }
+  .feedback.show { display: block; }
+  .feedback.pass { background: rgba(34,197,94,0.1); border: 1px solid #22C55E; color: #22C55E; }
+  .feedback.fail { background: rgba(239,68,68,0.1); border: 1px solid #EF4444; color: #EF4444; }
+  @media (max-width: 600px) { .classify-grid { grid-template-columns: 1fr; } .match-row { flex-direction: column; align-items: flex-start; } .match-select { min-width: 100%; } }
+</style>
+</head><body><div class="container">
+<h1>Arrange: Support Plans by Level</h1>
+<p class="subtitle">AZ-900 Section 6 · Sequence</p>
+<div class="exercise">
+  <p>Put the Azure support plans in order from <strong>lowest tier</strong> (top) to <strong>highest tier</strong> (bottom).</p>
+  <ul class="seq-list" id="seqList">
+    <li class="seq-item" draggable="true" data-order="3"><span class="seq-num">1</span><span>Standard</span></li>
+    <li class="seq-item" draggable="true" data-order="1"><span class="seq-num">2</span><span>Basic</span></li>
+    <li class="seq-item" draggable="true" data-order="4"><span class="seq-num">3</span><span>Professional Direct</span></li>
+    <li class="seq-item" draggable="true" data-order="2"><span class="seq-num">4</span><span>Developer</span></li>
+  </ul>
+  <button class="btn" onclick="check()">Check Answer</button>
+  <button class="btn btn-reset" onclick="reset()">Reset</button>
+  <div class="feedback" id="fb"></div>
+</div></div>
+<script>
+const list=document.getElementById('seqList');let dragEl=null;
+list.addEventListener('dragstart',e=>{dragEl=e.target.closest('.seq-item')});
+list.addEventListener('dragover',e=>{e.preventDefault();const t=e.target.closest('.seq-item');if(t&&t!==dragEl){const r=t.getBoundingClientRect();list.insertBefore(dragEl,(e.clientY-r.top)>r.height/2?t.nextSibling:t)}});
+list.addEventListener('dragend',()=>{document.querySelectorAll('.seq-item .seq-num').forEach((n,i)=>n.textContent=i+1)});
+function check(){const items=document.querySelectorAll('#seqList .seq-item'),co=[1,2,3,4];let ok=true;items.forEach((item,i)=>{item.classList.remove('correct-seq','incorrect-seq');if(parseInt(item.dataset.order)===co[i])item.classList.add('correct-seq');else{item.classList.add('incorrect-seq');ok=false}});const fb=document.getElementById('fb');fb.className=ok?'feedback show pass':'feedback show fail';fb.textContent=ok?'✓ Correct! Basic (free) → Developer (business hours email) → Standard (24/7 phone & email) → Professional Direct (faster response + advisory). Premier/Unified sits above these for enterprise customers.':'✗ Not quite. The correct order is: Basic → Developer → Standard → Professional Direct. Basic is free and included with every account. Each tier adds faster response times and more support channels.'}
+function reset(){[...list.querySelectorAll('.seq-item')].sort(()=>Math.random()-0.5).forEach(i=>{list.appendChild(i);i.classList.remove('correct-seq','incorrect-seq')});document.querySelectorAll('.seq-item .seq-num').forEach((n,i)=>n.textContent=i+1);document.getElementById('fb').className='feedback'}
+</script></body></html>

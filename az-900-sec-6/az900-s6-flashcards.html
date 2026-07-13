@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Section 6 — Pricing, SLA & Support Flash Cards</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
+  h1 { font-size: 1.6rem; margin-bottom: 5px; text-align: center; }
+  .subtitle { color: #9CA3AF; font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
+  .counter { color: #E05C00; font-size: 1rem; font-weight: 700; margin-bottom: 15px; }
+  .card-container { perspective: 1000px; width: 100%; max-width: 600px; height: 320px; cursor: pointer; margin-bottom: 20px; }
+  .card { width: 100%; height: 100%; position: relative; transition: transform 0.5s; transform-style: preserve-3d; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px 35px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, #16213E, #1A1A2E); border: 2px solid #E05C00; }
+  .card-front .label { color: #E05C00; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+  .card-front .question { font-size: 1.2rem; line-height: 1.5; font-weight: 500; }
+  .card-back { background: #E05C00; transform: rotateY(180deg); }
+  .card-back .label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; opacity: 0.8; }
+  .card-back .answer { font-size: 1.05rem; line-height: 1.5; font-weight: 500; }
+  .hint { color: #6B7280; font-size: 0.8rem; margin-bottom: 20px; }
+  .nav { display: flex; gap: 15px; }
+  .nav button { background: none; border: 2px solid #E05C00; color: #E05C00; padding: 10px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .nav button:hover { background: #E05C00; color: #fff; }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .nav button:disabled:hover { background: none; color: #E05C00; }
+  .progress { width: 100%; max-width: 600px; height: 4px; background: #16213E; border-radius: 2px; margin-top: 20px; }
+  .progress-bar { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.3s; }
+</style>
+</head>
+<body>
+<h1>Pricing, SLA & Support — Flash Cards</h1>
+<p class="subtitle">AZ-900 Section 6 · Click a card to flip it</p>
+<div class="counter" id="counter">1 / 15</div>
+<div class="card-container" id="cardContainer">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="label">Question</div>
+      <div class="question" id="question"></div>
+    </div>
+    <div class="card-face card-back">
+      <div class="label">Answer</div>
+      <div class="answer" id="answer"></div>
+    </div>
+  </div>
+</div>
+<p class="hint">Click the card to reveal the answer</p>
+<div class="nav">
+  <button id="prevBtn" onclick="prev()">← Previous</button>
+  <button id="nextBtn" onclick="next()">Next →</button>
+</div>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<script>
+const cards = [
+  { q: "What factors affect Azure pricing?", a: "Resource type, usage (compute hours, storage GB, data transfer), region, tier/SKU selected, and licensing model. Inbound data transfer is generally free; outbound is charged." },
+  { q: "What is the Azure Pricing Calculator?", a: "A web tool that lets you estimate the cost of Azure services before you deploy them. You select services, configure options, and get a monthly cost estimate. No Azure account required to use it." },
+  { q: "What is the Total Cost of Ownership (TCO) Calculator?", a: "A tool that compares the cost of running workloads on-premises versus in Azure. You enter your current infrastructure details — servers, storage, networking, labour — and it estimates potential savings from migrating." },
+  { q: "What is the difference between the Pricing Calculator and the TCO Calculator?", a: "Pricing Calculator estimates the cost of specific Azure services. TCO Calculator compares on-premises costs against Azure costs to show potential savings from migration. Pricing = what will Azure cost? TCO = how much will I save?" },
+  { q: "What is Azure Cost Management + Billing?", a: "A built-in Azure service for monitoring, allocating, and optimising cloud spend. Provides cost analysis, budgets, alerts, and recommendations. Helps you understand where your money is going and set spending limits." },
+  { q: "What are Azure Budgets?", a: "Spending thresholds you set in Cost Management. When spending reaches a defined percentage of the budget, alerts are triggered. Budgets can notify stakeholders or trigger automated actions to control costs." },
+  { q: "What are Azure Reservations?", a: "Committing to one-year or three-year terms for specific resources (VMs, SQL Database, Cosmos DB) in exchange for significant discounts — typically 40-72% off pay-as-you-go pricing. Best for predictable, steady-state workloads." },
+  { q: "What is the Azure Free Account?", a: "An account that provides $200 credit for the first 30 days, plus 25+ always-free services and 12 months of popular free services. Designed for learning and experimentation." },
+  { q: "What is a Service Level Agreement (SLA)?", a: "A formal commitment from Microsoft defining the expected uptime and performance of an Azure service. Expressed as a percentage — for example, 99.9% uptime means no more than 8.76 hours of downtime per year." },
+  { q: "What does 99.9% uptime mean in practice?", a: "A maximum of approximately 8 hours and 46 minutes of downtime per year, or about 43 minutes per month. This is one of the most common SLA levels for Azure services." },
+  { q: "What does 99.99% uptime mean?", a: "A maximum of approximately 52 minutes of downtime per year, or about 4.3 minutes per month. Achieved by deploying across availability zones or using zone-redundant configurations." },
+  { q: "How do you calculate a composite SLA?", a: "Multiply the SLAs of each dependent service together. For example: Web App (99.95%) × SQL Database (99.99%) = 99.94% composite SLA. The composite is always lower than the weakest individual SLA." },
+  { q: "What happens if Microsoft fails to meet an SLA?", a: "You may be eligible for a service credit — a percentage discount on your bill for that billing period. You typically need to file a claim. Service credits compensate you financially but don't guarantee the service will be restored faster." },
+  { q: "What are the Azure support plans?", a: "Basic (free, included with all accounts), Developer (business hours email support), Standard (24/7 phone and email for production issues), Professional Direct (faster response times plus advisory services), and Premier/Unified (dedicated support for enterprise)." },
+  { q: "What is the Azure service lifecycle?", a: "The stages a service goes through: Private Preview (limited access), Public Preview (available to all but no SLA), General Availability (GA — fully supported with SLA). Preview services should not be used for production workloads." },
+];
+let current = 0;
+const card = document.getElementById('card'), question = document.getElementById('question'), answer = document.getElementById('answer'), counter = document.getElementById('counter'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), progressBar = document.getElementById('progressBar');
+function render() { card.classList.remove('flipped'); setTimeout(() => { question.textContent = cards[current].q; answer.textContent = cards[current].a; }, 150); counter.textContent = `${current+1} / ${cards.length}`; prevBtn.disabled = current === 0; nextBtn.disabled = current === cards.length-1; progressBar.style.width = `${((current+1)/cards.length)*100}%`; }
+document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
+function next() { if (current < cards.length-1) { current++; render(); } }
+function prev() { if (current > 0) { current--; render(); } }
+document.addEventListener('keydown', e => { if (e.key==='ArrowRight') next(); if (e.key==='ArrowLeft') prev(); if (e.key===' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
+render();
+</script>
+</body>
+</html>
