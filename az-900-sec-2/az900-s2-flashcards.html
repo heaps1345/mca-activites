@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 Section 2 — Core Azure Architecture Flash Cards</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
+  h1 { font-size: 1.6rem; margin-bottom: 5px; text-align: center; }
+  .subtitle { color: #9CA3AF; font-size: 0.9rem; margin-bottom: 25px; text-align: center; }
+  .counter { color: #E05C00; font-size: 1rem; font-weight: 700; margin-bottom: 15px; }
+  .card-container { perspective: 1000px; width: 100%; max-width: 600px; height: 320px; cursor: pointer; margin-bottom: 20px; }
+  .card { width: 100%; height: 100%; position: relative; transition: transform 0.5s; transform-style: preserve-3d; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px 35px; text-align: center; }
+  .card-front { background: linear-gradient(135deg, #16213E, #1A1A2E); border: 2px solid #E05C00; }
+  .card-front .label { color: #E05C00; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+  .card-front .question { font-size: 1.2rem; line-height: 1.5; font-weight: 500; }
+  .card-back { background: #E05C00; transform: rotateY(180deg); }
+  .card-back .label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; opacity: 0.8; }
+  .card-back .answer { font-size: 1.1rem; line-height: 1.5; font-weight: 500; }
+  .hint { color: #6B7280; font-size: 0.8rem; margin-bottom: 20px; }
+  .nav { display: flex; gap: 15px; }
+  .nav button { background: none; border: 2px solid #E05C00; color: #E05C00; padding: 10px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .nav button:hover { background: #E05C00; color: #fff; }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .nav button:disabled:hover { background: none; color: #E05C00; }
+  .progress { width: 100%; max-width: 600px; height: 4px; background: #16213E; border-radius: 2px; margin-top: 20px; }
+  .progress-bar { height: 100%; background: #E05C00; border-radius: 2px; transition: width 0.3s; }
+</style>
+</head>
+<body>
+<h1>Core Azure Architecture — Flash Cards</h1>
+<p class="subtitle">AZ-900 Section 2 · Click a card to flip it</p>
+<div class="counter" id="counter">1 / 15</div>
+<div class="card-container" id="cardContainer">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="label">Question</div>
+      <div class="question" id="question"></div>
+    </div>
+    <div class="card-face card-back">
+      <div class="label">Answer</div>
+      <div class="answer" id="answer"></div>
+    </div>
+  </div>
+</div>
+<p class="hint">Click the card to reveal the answer</p>
+<div class="nav">
+  <button id="prevBtn" onclick="prev()">← Previous</button>
+  <button id="nextBtn" onclick="next()">Next →</button>
+</div>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<script>
+const cards = [
+  { q: "What is an Azure subscription?", a: "A billing and access boundary in Azure. Every resource belongs to a subscription, and each subscription is linked to a single Azure AD (Entra ID) tenant. You can have multiple subscriptions per account." },
+  { q: "What is a management group?", a: "A container above subscriptions that lets you apply governance conditions (like Azure Policy and RBAC) across multiple subscriptions at once. They can be nested up to 6 levels deep." },
+  { q: "What is a resource group?", a: "A logical container for Azure resources. Every resource must belong to exactly one resource group. Deleting a resource group deletes all resources inside it." },
+  { q: "Can a resource belong to more than one resource group?", a: "No. Each resource can only be in one resource group at a time. However, you can move resources between resource groups." },
+  { q: "What is Azure Resource Manager (ARM)?", a: "The deployment and management layer for Azure. All requests — whether from the portal, CLI, PowerShell, or API — go through ARM. It handles authentication, authorisation, and orchestrates resource creation." },
+  { q: "What is an ARM template?", a: "A JSON file that defines the infrastructure and configuration of Azure resources. It enables Infrastructure as Code (IaC) — declarative, repeatable, and version-controlled deployments." },
+  { q: "What is an Azure region?", a: "A geographical area containing one or more data centres connected by a low-latency network. Examples: UK South, West Europe, East US. You choose a region when creating most resources." },
+  { q: "What is an availability zone?", a: "A physically separate data centre within an Azure region, with independent power, cooling, and networking. There are typically three availability zones per supported region, used for high availability." },
+  { q: "What are paired regions?", a: "Two Azure regions within the same geography (e.g. UK South and UK West) that are paired for disaster recovery. Microsoft staggers updates across paired regions and prioritises recovery of at least one region in a pair." },
+  { q: "Why would you deploy resources across availability zones?", a: "To protect against data centre-level failures. If one zone goes down, resources in the other zones continue running. This provides high availability within a single region." },
+  { q: "What is a sovereign region?", a: "An Azure region that is physically and logically isolated from the main Azure cloud to meet specific compliance requirements. Examples: Azure Government (US) and Azure China (operated by 21Vianet)." },
+  { q: "What are resource tags?", a: "Key-value pairs applied to Azure resources for organisation, cost tracking, and automation. For example: Environment:Production, Department:Finance, Owner:Jon. Tags are not inherited by child resources by default." },
+  { q: "What is the Azure hierarchy from top to bottom?", a: "Management Groups → Subscriptions → Resource Groups → Resources. Policies and RBAC applied at a higher level are inherited by everything below." },
+  { q: "What happens when you delete a resource group?", a: "All resources inside that resource group are also deleted. This is why resource groups are useful for managing the lifecycle of related resources together — deploy together, delete together." },
+  { q: "What is the difference between a region and a geography?", a: "A geography is a broader area (e.g. United Kingdom, Europe, United States) that contains two or more paired regions. It defines data residency and compliance boundaries." },
+];
+let current = 0;
+const card = document.getElementById('card');
+const question = document.getElementById('question');
+const answer = document.getElementById('answer');
+const counter = document.getElementById('counter');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progressBar = document.getElementById('progressBar');
+function render() {
+  card.classList.remove('flipped');
+  setTimeout(() => { question.textContent = cards[current].q; answer.textContent = cards[current].a; }, 150);
+  counter.textContent = `${current + 1} / ${cards.length}`;
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === cards.length - 1;
+  progressBar.style.width = `${((current + 1) / cards.length) * 100}%`;
+}
+document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
+function next() { if (current < cards.length - 1) { current++; render(); } }
+function prev() { if (current > 0) { current--; render(); } }
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); if (e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
+render();
+</script>
+</body>
+</html>
