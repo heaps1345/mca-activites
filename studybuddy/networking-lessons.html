@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking Fundamentals — MCA Threat Detection Academy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2e3f;
+  --accent:#3b82f6;--accentDim:#1e3a5f;
+  --green:#10b981;--greenDim:#064e3b;
+  --red:#ef4444;--redDim:#7f1d1d;
+  --amber:#f59e0b;--amberDim:#78350f;
+  --purple:#8b5cf6;--purpleDim:#4c1d95;
+  --cyan:#06b6d4;--cyanDim:#164e63;
+  --text:#e2e8f0;--dim:#94a3b8;--muted:#64748b;
+  --mono:'JetBrains Mono','Fira Code','Cascadia Code',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+header{padding:32px 0 0}
+h1{font-size:28px;font-weight:700;letter-spacing:-0.5px}
+.sub{font-size:14px;color:var(--dim);margin-top:6px}
+nav{display:flex;gap:4px;padding:20px 0;flex-wrap:wrap}
+nav button{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans);background:var(--surface);color:var(--dim);transition:all .15s}
+nav button.active{background:var(--accent);color:#fff}
+nav button:hover:not(.active){background:#22263a}
+.card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:16px}
+.concept{padding:16px 20px;border-radius:10px;background:var(--bg);border:1px solid var(--border);margin-bottom:12px}
+.analogy{padding:16px 20px;border-radius:10px;background:rgba(75,30,133,.25);border:1px solid rgba(139,92,246,.2);margin-bottom:16px}
+.analogy-label{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:6px}
+.tryit{padding:16px 20px;border-radius:10px;background:rgba(30,58,95,.4);border:1px solid rgba(59,130,246,.25);margin-bottom:16px}
+.tryit-label{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.highlight{border-left:3px solid;padding-left:16px;margin-bottom:16px}
+.pill{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:var(--mono);color:#fff;letter-spacing:.5px;text-transform:uppercase}
+.btn{padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans);color:#fff;transition:all .15s}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:default}
+.step-nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.step-nav button{padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:500;background:var(--surface);color:var(--muted);transition:all .15s}
+.step-nav button.active{font-weight:700;color:#fff}
+.step-nav button.done{opacity:.7}
+.step-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.step-count{font-size:12px;color:var(--muted)}
+p{font-size:14px;line-height:1.7;color:var(--dim)}
+strong{color:var(--text)}
+.mono{font-family:var(--mono)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:16px}
+.rule-row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px}
+.rule-row .label{font-family:var(--mono);font-weight:700;font-size:13px;min-width:90px}
+.octet-wrap{display:flex;justify-content:center;align-items:center;gap:8px;margin:24px 0;flex-wrap:wrap}
+.octet-box{text-align:center}
+.octet-val{width:80px;padding:12px 0;border-radius:10px;text-align:center;font-family:var(--mono);font-size:24px;font-weight:700;transition:all .2s}
+.octet-val.valid{background:var(--accentDim);border:2px solid var(--accent);color:var(--text)}
+.octet-val.invalid{background:var(--redDim);border:2px solid var(--red);color:var(--red)}
+.octet-btns{display:flex;gap:4px;margin-top:6px;justify-content:center}
+.octet-btns button{padding:4px 10px;font-size:12px}
+.octet-bin{font-size:10px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+.dot{font-size:28px;color:var(--muted);font-weight:700;margin-top:12px}
+.validity-result{padding:12px 16px;border-radius:8px;font-size:14px;font-weight:600;text-align:center;font-family:var(--mono)}
+.ip-input{padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--mono);font-size:16px;outline:none;flex:1 1 180px;min-width:0}
+.ip-input:focus{border-color:var(--accent)}
+.cidr-bar{display:flex;height:40px;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.cidr-net{background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);transition:width .2s;min-width:40px}
+.cidr-host{flex:1;background:var(--greenDim);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);color:var(--green)}
+.cidr-slider{width:100%;accent-color:var(--accent);margin:8px 0}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:16px}
+.stat-box{padding:10px 14px;border-radius:8px;background:var(--bg)}
+.stat-label{font-size:10px;color:var(--muted)}
+.stat-val{font-family:var(--mono);font-size:20px;font-weight:700}
+.side-by-side{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;text-align:center}
+.inside{padding:12px;border-radius:10px;background:var(--greenDim);border:1px solid rgba(16,185,129,.2)}
+.outside{padding:12px;border-radius:10px;background:var(--redDim);border:1px solid rgba(239,68,68,.2)}
+table{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--mono)}
+th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.5px}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.hierarchy-item{margin-bottom:8px;padding:12px 16px;border-radius:8px;background:var(--bg)}
+.port-card{cursor:pointer;transition:background .15s}
+.port-card:hover{background:rgba(255,255,255,.02)}
+.port-detail{margin-top:12px;display:none}
+.port-card.open .port-detail{display:block}
+.eval-step{padding:12px 16px;border-radius:8px;margin-bottom:8px;transition:opacity .2s}
+.warn-box{padding:12px 16px;border-radius:8px;background:var(--amberDim);font-size:13px;margin-top:8px}
+section{display:none}
+section.active{display:block}
+.content-step{display:none}
+.content-step.active{display:block}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Networking Fundamentals</h1>
+    <p class="sub">MCA Threat Detection Academy — Domain 2 Lessons</p>
+  </header>
+
+  <nav id="topNav"></nav>
+
+  <div id="content"></div>
+</div>
+
+<script>
+const SECTIONS = [
+  {id:'ipv4', label:'🔢 IPv4 Basics'},
+  {id:'rfc', label:'🔒 Public vs Private'},
+  {id:'cidr', label:'📐 CIDR & Subnets'},
+  {id:'dns', label:'🌐 DNS Resolution'},
+  {id:'ports', label:'🚪 Ports & Protocols'},
+  {id:'nsg', label:'🛡️ NSG Rules'},
+];
+
+let currentSection = 'ipv4';
+let sectionSteps = {};
+
+function init() {
+  const nav = document.getElementById('topNav');
+  SECTIONS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.textContent = s.label;
+    btn.id = 'nav-' + s.id;
+    btn.onclick = () => showSection(s.id);
+    nav.appendChild(btn);
+  });
+  buildAllSections();
+  showSection('ipv4');
+}
+
+function showSection(id) {
+  currentSection = id;
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + id).classList.add('active');
+  document.querySelectorAll('#content > section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+}
+
+function showStep(sectionId, stepIdx) {
+  sectionSteps[sectionId] = stepIdx;
+  const sec = document.getElementById('section-' + sectionId);
+  sec.querySelectorAll('.content-step').forEach((s, i) => {
+    s.classList.toggle('active', i === stepIdx);
+  });
+  sec.querySelectorAll('.step-nav button').forEach((b, i) => {
+    b.classList.toggle('active', i === stepIdx);
+    b.classList.toggle('done', i < stepIdx);
+    b.style.background = i === stepIdx ? getColor(sectionId) : (i < stepIdx ? getColor(sectionId) + '55' : '');
+    b.style.color = i === stepIdx ? '#fff' : (i < stepIdx ? getColor(sectionId) : '');
+  });
+  const total = sec.querySelectorAll('.content-step').length;
+  sec.querySelector('.step-count').textContent = (stepIdx + 1) + ' / ' + total;
+  const prevBtn = sec.querySelector('.prev-btn');
+  const nextBtn = sec.querySelector('.next-btn');
+  prevBtn.disabled = stepIdx === 0;
+  nextBtn.textContent = stepIdx < total - 1 ? 'Next →' : '✓ Ready for Quiz';
+  nextBtn.style.background = stepIdx < total - 1 ? getColor(sectionId) : 'var(--green)';
+  nextBtn.onclick = () => { if (stepIdx < total - 1) showStep(sectionId, stepIdx + 1); };
+  prevBtn.onclick = () => { if (stepIdx > 0) showStep(sectionId, stepIdx - 1); };
+}
+
+function getColor(id) {
+  const map = {ipv4:'var(--accent)',rfc:'var(--purple)',cidr:'var(--green)',dns:'var(--cyan)',ports:'var(--amber)',nsg:'var(--red)'};
+  return map[id] || 'var(--accent)';
+}
+
+function buildAllSections() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  // ===== IPv4 =====
+  content.appendChild(buildSection('ipv4', [
+    {title:'What is an IP Address?', html:`
+      <div class="analogy">
+        <div class="analogy-label">ANALOGY</div>
+        <p>Think of an IP address like a postal address. Your house has a unique address so the postman knows where to deliver letters. Every device on a network needs a unique IP address so data packets know where to go. Without it, there's no way to route traffic to the right machine.</p>
+      </div>
+      <p>IPv4 (Internet Protocol version 4) has been running the internet since 1983. Every device — your laptop, a server, your phone, an Azure VM — gets an IP address to identify it on the network.</p>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">KEY FACT</div>
+        <p>IPv4 gives us approximately <strong>4.3 billion</strong> unique addresses (2³² = 4,294,967,296). That sounds like a lot, but we've actually run out of public IPv4 addresses — which is why NAT, private addressing, and IPv6 exist.</p>
+      </div>
+    `},
+    {title:'The Four Octets', html:`
+      <p style="margin-bottom:16px">An IPv4 address is made up of <strong>four numbers separated by dots</strong>. Each number is called an <strong style="color:var(--accent)">octet</strong> because it's stored as 8 binary bits.</p>
+      <div class="octet-wrap" id="octetWrap"></div>
+      <div class="tryit">
+        <div class="tryit-label">TRY IT</div>
+        <p>Use the + and − buttons above. Try pushing an octet above 255 — see how it turns red? Each octet is 8 bits, so the maximum value is 2⁸ − 1 = <strong>255</strong>. The binary representation is shown underneath each octet.</p>
+      </div>
+      <div id="octetResult" class="validity-result"></div>
+    `},
+    {title:'Rules of Validity', html:`
+      <p style="margin-bottom:16px">For an IPv4 address to be <strong style="color:var(--green)">valid</strong>, it must follow these rules:</p>
+      ${[
+        {rule:'Exactly 4 octets', good:'192.168.1.1', bad:'192.168.1', why:'Three octets isn\'t an IP. Five isn\'t either.'},
+        {rule:'Separated by dots', good:'10.0.0.1', bad:'10,0,0,1', why:'Commas, spaces, dashes — none of them work. Dots only.'},
+        {rule:'Each octet is 0–255', good:'172.16.0.1', bad:'172.16.0.256', why:'8 bits can only represent 0 to 255. Anything higher is impossible.'},
+        {rule:'Numeric characters only', good:'8.8.8.8', bad:'8.8.8.abc', why:'Letters, symbols, spaces — none allowed in IPv4.'},
+      ].map(r => `
+        <div class="concept" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1 1 200px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px">${r.rule}</div>
+            <div style="font-size:13px;color:var(--dim)">${r.why}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <div style="padding:6px 12px;border-radius:6px;background:var(--greenDim);font-family:var(--mono);font-size:13px">✓ ${r.good}</div>
+            <div style="padding:6px 12px;border-radius:6px;background:var(--redDim);font-family:var(--mono);font-size:13px">✗ ${r.bad}</div>
+          </div>
+        </div>
+      `).join('')}
+    `},
+    {title:'Special Addresses', html:`
+      <p style="margin-bottom:16px">Some IP addresses have special meaning. Recognising them instantly saves time during incident response.</p>
+      ${[
+        {ip:'0.0.0.0', name:'Default / All interfaces', use:'Means \'everything\' or \'no specific address\'. Servers bind to 0.0.0.0 to listen on all network interfaces.'},
+        {ip:'127.0.0.1', name:'Loopback (localhost)', use:'Traffic stays on the local machine. Never hits the network. Used for testing and local services.'},
+        {ip:'169.254.x.x', name:'APIPA / Link-local', use:'Auto-assigned when DHCP fails. If you see this in logs, something is broken — the device couldn\'t get a proper IP.'},
+        {ip:'255.255.255.255', name:'Broadcast', use:'Sends to ALL devices on the local network segment. Used by DHCP discovery and some legacy protocols.'},
+      ].map(sa => `
+        <div class="concept" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--amber);min-width:120px">${sa.ip}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px">${sa.name}</div>
+            <div style="font-size:13px;color:var(--dim);line-height:1.6">${sa.use}</div>
+          </div>
+        </div>
+      `).join('')}
+    `},
+  ]));
+
+  // ===== RFC 1918 =====
+  content.appendChild(buildSection('rfc', [
+    {title:'Why Private Ranges Exist', html:`
+      <div class="analogy">
+        <div class="analogy-label">ANALOGY</div>
+        <p>Think of it like phone extensions in an office building. Inside the building, you can dial extension 4501 to reach Dave in accounting. But if you try dialling 4501 from your mobile at home, it means nothing — it's an internal number. You'd need the building's main switchboard number (the public number) first, and the switchboard routes you internally. That's exactly how NAT and private IPs work.</p>
+      </div>
+      <p>We only have 4.3 billion public IPv4 addresses, but there are far more devices. The solution: <strong>private IP ranges</strong> that can be reused inside every organisation. Your home uses 192.168.x.x. So does your neighbour's. They work because private IPs <strong style="color:var(--amber)">never appear on the public internet</strong>.</p>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px">NAT (Network Address Translation)</div>
+        <p>When your device (192.168.1.50) wants to reach google.com, your router translates the private source IP to its public IP (e.g. 85.210.47.3) before sending the packet out. The internet only sees the public IP. NAT is the switchboard operator connecting internal extensions to the outside world.</p>
+      </div>
+    `},
+    {title:'The Three Ranges', html:`
+      <p style="margin-bottom:20px">In 1996, RFC 1918 defined three blocks reserved for private use. Memorise these — you'll use them every day.</p>
+      ${[
+        {range:'10.0.0.0/8', from:'10.0.0.0', to:'10.255.255.255', count:'16,777,216', color:'var(--accent)', use:'Enterprise and cloud networks. Azure default VNET range. Huge address space.'},
+        {range:'172.16.0.0/12', from:'172.16.0.0', to:'172.31.255.255', count:'1,048,576', color:'var(--purple)', use:'The awkward middle child. Boundary at 172.31.255.255 is where exam questions live — 172.32.x.x is PUBLIC.'},
+        {range:'192.168.0.0/16', from:'192.168.0.0', to:'192.168.255.255', count:'65,536', color:'var(--green)', use:'Home networks and small offices.'},
+      ].map(r => `
+        <div class="concept" style="border-left:3px solid ${r.color}">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+            <span style="font-family:var(--mono);font-size:18px;font-weight:700;color:${r.color}">${r.range}</span>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--dim)">${r.count} addresses</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:13px;color:var(--dim);margin-bottom:8px">${r.from} → ${r.to}</div>
+          <div style="font-size:13px;color:var(--dim)">${r.use}</div>
+        </div>
+      `).join('')}
+      <div class="warn-box">⚠️ <strong>Exam trap:</strong> 172.32.x.x and 192.169.x.x look private but are PUBLIC. One number off = public internet.</div>
+    `},
+    {title:'IP Range Checker — Try It', html:`
+      <div class="tryit">
+        <div class="tryit-label">IP RANGE CHECKER</div>
+        <p style="margin-bottom:12px">Type any IPv4 address and check whether it falls in a private range.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="ip-input" id="probeIP" placeholder="e.g. 172.20.5.1" onkeydown="if(event.key==='Enter')checkProbe()">
+          <button class="btn" style="background:var(--accent)" onclick="checkProbe()">Check</button>
+        </div>
+        <div id="probeResult" style="margin-top:12px"></div>
+      </div>
+      <p style="font-size:13px;color:var(--dim)">Try: <span class="mono">172.32.0.1</span>, <span class="mono">192.169.1.1</span>, <span class="mono">10.255.255.254</span>, <span class="mono">52.168.112.64</span></p>
+    `},
+  ]));
+
+  // ===== CIDR =====
+  content.appendChild(buildSection('cidr', [
+    {title:'What is a Subnet?', html:`
+      <div class="analogy">
+        <div class="analogy-label">THE SIMPLEST EXPLANATION EVER</div>
+        <p>Imagine a massive open-plan office. Everyone can hear everyone. It's chaos. Now imagine putting up dividing walls to create separate rooms — marketing in one room, engineering in another, finance in a third. People in the same room can talk freely. To talk to someone in a different room, you have to go through the door (the <strong>router</strong>).</p>
+        <p style="margin-top:12px"><strong style="color:var(--amber)">That's subnetting.</strong> You take one big network and divide it into smaller logical segments. Devices in the same subnet communicate directly. Different subnets need a router.</p>
+      </div>
+      <div style="font-size:14px;color:var(--dim);line-height:1.7">
+        <div class="highlight" style="border-color:var(--green)"><strong style="color:var(--green)">Security</strong> — Isolate sensitive systems. Put databases in one subnet, web servers in another. NSGs control traffic between them.</div>
+        <div class="highlight" style="border-color:var(--accent)"><strong style="color:var(--accent)">Organisation</strong> — In Azure, each subnet gets its own NSGs, route tables, and service endpoints. Each becomes a security boundary.</div>
+        <div class="highlight" style="border-color:var(--amber)"><strong style="color:var(--amber)">Blast radius</strong> — Compromised web VM? Proper subnetting limits lateral movement to the database subnet. Defence in depth.</div>
+      </div>
+    `},
+    {title:'CIDR — the /Number', html:`
+      <p style="margin-bottom:16px"><span class="mono" style="color:var(--accent)">10.0.0.0/24</span> — the number after the slash tells you how many bits are the <strong>network portion</strong>. The remaining bits are for <strong>host addresses</strong>.</p>
+      <div class="concept" style="padding:20px">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">32-BIT IP ADDRESS</div>
+        <div class="cidr-bar">
+          <div class="cidr-net" id="cidrNet">Network (24b)</div>
+          <div class="cidr-host" id="cidrHost">Hosts (8b)</div>
+        </div>
+        <input type="range" min="8" max="32" value="24" class="cidr-slider" id="cidrSlider" oninput="updateCIDR(this.value)">
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)">
+          <span>/8 (huge)</span><span>/16</span><span>/24</span><span>/32</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-label">CIDR</div><div class="stat-val" style="color:var(--accent)" id="cidrVal">/24</div></div>
+          <div class="stat-box"><div class="stat-label">TOTAL ADDRESSES</div><div class="stat-val" id="cidrTotal">256</div></div>
+          <div class="stat-box"><div class="stat-label">AZURE USABLE</div><div class="stat-val" style="color:var(--green)" id="cidrUsable">251</div></div>
+        </div>
+      </div>
+      <div class="tryit">
+        <div class="tryit-label">TRY IT</div>
+        <p>Drag the slider. Watch how the network portion grows and the host portion shrinks. <strong>Bigger /number = smaller subnet = fewer hosts.</strong> This is the single most important thing to remember about CIDR.</p>
+      </div>
+    `},
+    {title:'Same Subnet = Can Talk', html:`
+      <p style="margin-bottom:16px">The subnet defines a range of IPs that can communicate directly. <strong style="color:var(--green)">Same subnet</strong> = direct. <strong style="color:var(--red)">Different subnets</strong> = need a router.</p>
+      <div class="concept" style="padding:20px">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">EXAMPLE: 10.0.1.0/24</div>
+        <div class="side-by-side">
+          <div class="inside">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">INSIDE /24</div>
+            <div class="mono" style="font-size:14px">10.0.1.1</div>
+            <div class="mono" style="font-size:14px">10.0.1.100</div>
+            <div class="mono" style="font-size:14px">10.0.1.254</div>
+            <div style="font-size:11px;color:var(--green);margin-top:4px">✓ All can talk directly</div>
+          </div>
+          <div style="font-size:24px;color:var(--muted)">│</div>
+          <div class="outside">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">OUTSIDE /24</div>
+            <div class="mono" style="font-size:14px">10.0.2.1</div>
+            <div class="mono" style="font-size:14px">10.0.3.50</div>
+            <div class="mono" style="font-size:14px">192.168.1.1</div>
+            <div style="font-size:11px;color:var(--red);margin-top:4px">✗ Needs a router</div>
+          </div>
+        </div>
+      </div>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">⚠️ AZURE GOTCHA</div>
+        <p>Azure reserves <strong>5 IP addresses</strong> per subnet: .0 (network ID), .1 (default gateway), .2 and .3 (Azure DNS), and the last address (broadcast). So a /28 (16 addresses) gives you only <strong style="color:var(--amber)">11 usable</strong> in Azure.</p>
+      </div>
+    `},
+    {title:'Common Sizes — Cheat Sheet', html:`
+      <p style="margin-bottom:16px">Memorise these and you'll cover 90% of what you see in Azure and on exams.</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>CIDR</th><th>Total</th><th>Azure Usable</th><th style="font-family:var(--sans)">Use Case</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--accent);font-weight:700;font-size:15px">/28</td><td>16</td><td style="color:var(--green)">11</td><td style="font-family:var(--sans);color:var(--dim)">Small workloads, Azure Bastion minimum</td></tr>
+            <tr><td style="color:var(--accent);font-weight:700;font-size:15px">/27</td><td>32</td><td style="color:var(--green)">27</td><td style="font-family:var(--sans);color:var(--dim)">Small VM deployments</td></tr>
+            <tr><td style="color:var(--accent);font-weight:700;font-size:15px">/26</td><td>64</td><td style="color:var(--green)">59</td><td style="font-family:var(--sans);color:var(--dim)">Medium workloads</td></tr>
+            <tr><td style="color:var(--accent);font-weight:700;font-size:15px">/24</td><td>256</td><td style="color:var(--green)">251</td><td style="font-family:var(--sans);color:var(--dim)">Default / most common subnet size</td></tr>
+            <tr><td style="color:var(--accent);font-weight:700;font-size:15px">/16</td><td>65,536</td><td style="color:var(--green)">65,531</td><td style="font-family:var(--sans);color:var(--dim)">Default Azure VNET size</td></tr>
+          </tbody>
+        </table>
+      </div>
+    `},
+  ]));
+
+  // ===== DNS =====
+  content.appendChild(buildSection('dns', [
+    {title:'What DNS Does', html:`
+      <div class="analogy">
+        <div class="analogy-label">ANALOGY</div>
+        <p>DNS is the phone book of the internet. You know the name (google.com) but your computer needs the number (142.250.180.14) to actually make the connection. DNS translates human-readable domain names into IP addresses that machines can route to.</p>
+      </div>
+      <p>Every time you visit a website, send an email, or connect to an API, a DNS lookup happens (unless the answer is already cached). In threat detection, DNS logs are gold — they tell you what every device on the network is trying to communicate with.</p>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:6px">🎯 FOR SC-200</div>
+        <p>DNS queries appear in Microsoft Defender for Endpoint logs, Sentinel analytics rules, and network flow data. Recognising suspicious DNS patterns (DGA domains, DNS tunnelling, known C2 domains) is a core threat detection skill.</p>
+      </div>
+    `},
+    {title:'The DNS Hierarchy', html:`
+      <p style="margin-bottom:20px">DNS is structured like an upside-down tree. Resolution works from the top down.</p>
+      ${[
+        {level:'Root (".")', desc:'13 root server clusters worldwide. They don\'t know specific IPs — they know where to find each TLD.', color:'var(--amber)', ml:0},
+        {level:'.com / .org / .uk', desc:'TLD (Top Level Domain) servers. They know which nameservers are authoritative for each domain within their TLD.', color:'var(--red)', ml:24},
+        {level:'contoso.com', desc:'Authoritative nameserver. This server has the actual DNS records (A, CNAME, MX, etc.) and gives the final answer.', color:'var(--green)', ml:48},
+        {level:'app.contoso.com → 52.168.112.64', desc:'The actual A record mapping a hostname to an IP address.', color:'var(--accent)', ml:72},
+      ].map(h => `
+        <div class="hierarchy-item" style="margin-left:${h.ml}px;border-left:3px solid ${h.color}">
+          <div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${h.color}">${h.level}</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:4px">${h.desc}</div>
+        </div>
+      `).join('')}
+    `},
+    {title:'Recursive vs Iterative', html:`
+      <p style="margin-bottom:16px">Two ways DNS queries get resolved. The difference is <strong>who does the work</strong>.</p>
+      <div class="grid2">
+        <div class="concept" style="border-left:3px solid var(--accent);margin:0">
+          <div style="font-weight:700;font-size:16px;color:var(--accent);margin-bottom:8px">Recursive</div>
+          <div class="analogy" style="margin-bottom:8px">
+            <p style="font-size:13px">You ask your PA: "Book me a table at that Italian place." They phone the restaurant, check availability, confirm the booking, and come back with: "You're booked for 7pm." <strong>You asked once. They did everything.</strong></p>
+          </div>
+          <p style="font-size:13px">Your device asks a recursive resolver (like 8.8.8.8). That resolver chases root → TLD → authoritative on your behalf.</p>
+          <div class="pill" style="background:var(--accent);margin-top:8px">MOST COMMON</div>
+        </div>
+        <div class="concept" style="border-left:3px solid var(--amber);margin:0">
+          <div style="font-weight:700;font-size:16px;color:var(--amber);margin-bottom:8px">Iterative</div>
+          <div class="analogy" style="margin-bottom:8px">
+            <p style="font-size:13px">You phone someone and they say "I don't know, but try calling this number." You call that number. "Not me either, try them." <strong>You do all the chasing yourself.</strong></p>
+          </div>
+          <p style="font-size:13px">Each server gives a referral. The client follows each one. This is how resolvers talk to other DNS servers internally.</p>
+          <div class="pill" style="background:var(--amber);margin-top:8px">BETWEEN SERVERS</div>
+        </div>
+      </div>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">CACHING & TTL</div>
+        <p>Once resolved, the answer is <strong>cached</strong> for a period defined by the TTL (Time To Live). TTL 3600 = 1 hour. If you see a device making thousands of unique DNS queries with no caching, that's suspicious — could be DNS tunnelling or DGA-based C2.</p>
+      </div>
+    `},
+    {title:'DNS Record Types', html:`
+      <p style="margin-bottom:16px">DNS doesn't just map names to IPs. Different record types serve different purposes.</p>
+      ${[
+        {type:'A', desc:'Maps hostname → IPv4 address', ex:'app.contoso.com → 52.168.112.64', note:'Most common record type.'},
+        {type:'AAAA', desc:'Maps hostname → IPv6 address', ex:'app.contoso.com → 2001:0db8::1', note:'Quad-A because IPv6 is 4× the bits.'},
+        {type:'CNAME', desc:'Alias — points one name to another', ex:'www.contoso.com → app.contoso.com', note:'Common in Azure. App Services and CDNs use these.'},
+        {type:'MX', desc:'Mail exchange — where to deliver email', ex:'contoso.com → mail.contoso.com (pri 10)', note:'SPF, DKIM, DMARC build on MX.'},
+        {type:'TXT', desc:'Arbitrary text data', ex:'v=spf1 include:spf.protection.outlook.com', note:'SPF, DKIM, domain verification. Check TXT during recon.'},
+        {type:'NS', desc:'Authoritative nameserver for domain', ex:'contoso.com → ns1.azure-dns.com', note:'Important for subdomain takeover checks.'},
+      ].map(r => `
+        <div class="concept" style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+          <div class="pill" style="background:var(--accent);min-width:50px;text-align:center">${r.type}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:600;font-size:14px;margin-bottom:2px">${r.desc}</div>
+            <div class="mono" style="font-size:12px;color:var(--dim)">${r.ex}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${r.note}</div>
+          </div>
+        </div>
+      `).join('')}
+    `},
+  ]));
+
+  // ===== PORTS =====
+  content.appendChild(buildSection('ports', [
+    {title:'What is a Port?', html:`
+      <div class="analogy">
+        <div class="analogy-label">ANALOGY</div>
+        <p>If an IP address is a building's street address, a <strong>port</strong> is the apartment number. The postman uses the street address to find the building (IP), then the apartment number to deliver to the right resident (service). Web server at 443, SSH at 22, email at 25 — same building, different apartments.</p>
+      </div>
+      <p style="margin-bottom:12px">Ports are numbers from <strong>0 to 65535</strong>, divided into three ranges:</p>
+      ${[
+        {range:'0–1023', name:'Well-Known Ports', desc:'Reserved for standard services (HTTP, SSH, DNS). These are the ones you need to memorise.', color:'var(--accent)'},
+        {range:'1024–49151', name:'Registered Ports', desc:'Assigned to specific applications (SQL Server 1433, MySQL 3306, RDP 3389).', color:'var(--amber)'},
+        {range:'49152–65535', name:'Dynamic / Ephemeral', desc:'Temporary ports assigned to client-side connections. You\'ll see these as source ports in logs.', color:'var(--muted)'},
+      ].map(r => `
+        <div class="concept" style="border-left:3px solid ${r.color};margin-bottom:8px">
+          <div style="display:flex;gap:12px;align-items:baseline;flex-wrap:wrap">
+            <span class="mono" style="font-weight:700;color:${r.color}">${r.range}</span>
+            <span style="font-weight:600;font-size:14px">${r.name}</span>
+          </div>
+          <div style="font-size:13px;color:var(--dim);margin-top:4px">${r.desc}</div>
+        </div>
+      `).join('')}
+    `},
+    {title:'TCP vs UDP', html:`
+      <p style="margin-bottom:16px">Ports work with two transport protocols. Understanding the difference matters for firewall rules and log analysis.</p>
+      <div class="grid2">
+        <div class="concept" style="border-left:3px solid var(--accent);margin:0">
+          <div style="font-weight:700;font-size:16px;color:var(--accent);margin-bottom:8px">TCP</div>
+          <div class="analogy" style="margin-bottom:8px">
+            <p style="font-size:13px">Like a <strong>phone call</strong>. You dial, wait for the other person to pick up (3-way handshake: SYN → SYN-ACK → ACK), then have a conversation. Word garbled? "Sorry, what was that?" (retransmission).</p>
+          </div>
+          <p style="font-size:13px">Reliable, ordered delivery. Used for HTTP, SSH, RDP, SMTP — anything where missing data causes problems.</p>
+        </div>
+        <div class="concept" style="border-left:3px solid var(--amber);margin:0">
+          <div style="font-weight:700;font-size:16px;color:var(--amber);margin-bottom:8px">UDP</div>
+          <div class="analogy" style="margin-bottom:8px">
+            <p style="font-size:13px">Like <strong>sending a letter</strong>. You write it, post it, and hope it arrives. No confirmation, no guarantee of order. But faster — no handshake overhead.</p>
+          </div>
+          <p style="font-size:13px">Fast, no connection setup. Used for DNS queries, video streaming, VoIP — where speed matters more than perfection.</p>
+        </div>
+      </div>
+      <div class="concept">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:6px">SECURITY NOTE</div>
+        <p>TCP's 3-way handshake creates log entries. SYN scans (nmap -sS) send SYN packets and watch for SYN-ACK without completing the handshake — a "half-open" scan. You'll see these patterns in NSG flow logs and Sentinel network analytics.</p>
+      </div>
+    `},
+    {title:'Critical Ports to Know', html:`
+      <p style="margin-bottom:16px">Click any port to see why it matters for threat detection.</p>
+      <div id="portCards">
+      ${[
+        {port:22, name:'SSH', proto:'TCP', color:'var(--green)', threat:'Brute force attacks, credential stuffing. Open to the internet = attacked within minutes. Use Azure Bastion or JIT access.', log:'Failed SSH logins in auth.log, ingested via Syslog → Sentinel.'},
+        {port:53, name:'DNS', proto:'TCP/UDP', color:'var(--cyan)', threat:'DNS tunnelling (data exfiltration via queries), DGA domains (algorithmically generated C2), DNS hijacking.', log:'Defender for Endpoint, Azure DNS Analytics, DNS server logs.'},
+        {port:80, name:'HTTP', proto:'TCP', color:'var(--amber)', threat:'Unencrypted — credentials visible in plaintext. MITM risk. Should redirect to 443.', log:'Web server access logs, WAF logs, Azure Front Door.'},
+        {port:443, name:'HTTPS', proto:'TCP', color:'var(--green)', threat:'Encrypted but not safe by default. Malware uses HTTPS for C2 because it blends with normal traffic.', log:'TLS/SSL logs, certificate transparency logs, Defender for Cloud Apps.'},
+        {port:445, name:'SMB', proto:'TCP', color:'var(--red)', threat:'EternalBlue (WannaCry, NotPetya). Lateral movement via file shares. Pass-the-hash. NEVER expose to internet.', log:'Windows Security 4624/4625, SMB audit logs, Defender for Identity.'},
+        {port:3389, name:'RDP', proto:'TCP', color:'var(--red)', threat:'BlueKeep (CVE-2019-0708). Brute force. Ransomware gangs scan for this. Use Bastion or VPN.', log:'Windows Security 4624/4625 type 10, NLA authentication events.'},
+        {port:88, name:'Kerberos', proto:'TCP/UDP', color:'var(--purple)', threat:'Kerberoasting (TGS ticket cracking), Golden/Silver ticket attacks, AS-REP roasting.', log:'Windows Security 4768/4769/4771, Defender for Identity alerts.'},
+        {port:389, name:'LDAP', proto:'TCP/UDP', color:'var(--purple)', threat:'LDAP enumeration (dumping AD objects), LDAP injection, credential harvesting. 636 = LDAPS (encrypted).', log:'DC diagnostic logs, Defender for Identity.'},
+      ].map(p => `
+        <div class="concept port-card" style="border-left:3px solid ${p.color};margin-bottom:8px" onclick="this.classList.toggle('open')">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span class="mono" style="font-size:20px;font-weight:700;color:${p.color};min-width:50px">${p.port}</span>
+              <span style="font-weight:600;font-size:15px">${p.name}</span>
+              <span class="pill" style="background:var(--border)">${p.proto}</span>
+            </div>
+            <span style="color:var(--muted)">▸</span>
+          </div>
+          <div class="port-detail">
+            <div class="highlight" style="border-color:var(--red);margin-top:12px">
+              <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">THREAT RELEVANCE</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">${p.threat}</div>
+            </div>
+            <div class="highlight" style="border-color:var(--accent)">
+              <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">WHERE YOU SEE IT IN LOGS</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">${p.log}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+      </div>
+    `},
+  ]));
+
+  // ===== NSG =====
+  content.appendChild(buildSection('nsg', [
+    {title:'What is an NSG?', html:`
+      <div class="analogy">
+        <div class="analogy-label">ANALOGY</div>
+        <p>An NSG is a <strong>bouncer with a clipboard</strong> standing at the door of your subnet (or NIC). Every packet gets checked against the clipboard. The bouncer reads from the top (lowest priority number) down. The moment a rule matches, the bouncer either lets the packet in or turns it away — and stops reading. Rules below the match are never checked.</p>
+      </div>
+      <p>NSGs are Azure's built-in stateful network firewall. They filter at Layer 3/4 (IP addresses, ports, protocols). Attach to a <strong>subnet</strong> (all traffic) or a <strong>NIC</strong> (single VM). If both exist, both evaluate — subnet NSG first for inbound.</p>
+    `},
+    {title:'Anatomy of a Rule', html:`
+      ${[
+        {field:'Priority', desc:'100–4096. Lower number = evaluated first. This is the order on the bouncer\'s clipboard.', color:'var(--accent)'},
+        {field:'Direction', desc:'Inbound or Outbound. Separate rule sets for each.', color:'var(--dim)'},
+        {field:'Source', desc:'Where traffic comes from. IP, CIDR, service tag (Internet, VirtualNetwork), or ASG.', color:'var(--green)'},
+        {field:'Destination', desc:'Where traffic goes. Same options as source.', color:'var(--green)'},
+        {field:'Port', desc:'Destination port. Single (443), range (1024-65535), or Any.', color:'var(--amber)'},
+        {field:'Protocol', desc:'TCP, UDP, ICMP, or Any.', color:'var(--amber)'},
+        {field:'Action', desc:'Allow or Deny. Binary decision.', color:'var(--red)'},
+      ].map(f => `
+        <div class="rule-row concept" style="margin-bottom:8px">
+          <span class="label" style="color:${f.color}">${f.field}</span>
+          <span style="font-size:13px;color:var(--dim)">${f.desc}</span>
+        </div>
+      `).join('')}
+    `},
+    {title:'Evaluation Walkthrough', html:`
+      <p style="margin-bottom:8px">Let's trace how the bouncer processes a real packet. Click through each step.</p>
+      <div class="concept" style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px">INCOMING PACKET</div>
+        <div class="stat-grid" style="margin-top:0">
+          <div class="stat-box"><div class="stat-label">Source</div><div class="mono" style="font-size:14px">85.210.47.3</div></div>
+          <div class="stat-box"><div class="stat-label">Dest</div><div class="mono" style="font-size:14px">10.0.1.10</div></div>
+          <div class="stat-box"><div class="stat-label">Port</div><div class="mono" style="font-size:14px">443</div></div>
+          <div class="stat-box"><div class="stat-label">Proto</div><div class="mono" style="font-size:14px">TCP</div></div>
+        </div>
+      </div>
+      <div id="evalSteps"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" style="background:var(--surface);border:1px solid var(--border)" onclick="resetEval()">Reset</button>
+        <button class="btn" style="background:var(--accent)" id="evalNextBtn" onclick="nextEval()">Next Rule →</button>
+      </div>
+      <div class="concept" style="margin-top:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">⚠️ CRITICAL GOTCHA — PRIORITY ORDER</div>
+        <p>Deny at priority 200 + Allow at priority 100 that's too broad? The Allow hits first and the Deny never fires. <strong>Deny rules need LOWER priority numbers than matching Allow rules.</strong></p>
+      </div>
+    `},
+    {title:'Defaults & Service Tags', html:`
+      <p style="margin-bottom:16px">Every NSG comes with default rules you can't delete.</p>
+      <div class="concept" style="border-left:3px solid var(--green);margin-bottom:8px">
+        <div style="font-weight:700;font-size:14px;color:var(--green)">Default ALLOW rules</div>
+        <p style="margin-top:6px;line-height:1.8;font-size:13px"><strong>AllowVNetInBound</strong> (65000) — VMs in same VNET can talk by default.<br><strong>AllowAzureLBInBound</strong> (65001) — Health probes always reach VMs.</p>
+      </div>
+      <div class="concept" style="border-left:3px solid var(--red);margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;color:var(--red)">Default DENY</div>
+        <p style="margin-top:6px;font-size:13px"><strong>DenyAllInBound</strong> (65500) — Everything else denied. Implicit deny = safety net.</p>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px">Service Tags</div>
+      <p style="margin-bottom:12px">Instead of maintaining IP lists, Azure provides managed service tags:</p>
+      ${[
+        {tag:'Internet', desc:'All public IPs. Does NOT include private IPs even from outside your VNET.'},
+        {tag:'VirtualNetwork', desc:'All VNET + peered + on-prem (VPN/ExpressRoute) IPs.'},
+        {tag:'AzureLoadBalancer', desc:'Azure infrastructure load balancer. Health probes.'},
+        {tag:'Storage', desc:'Azure Storage service IPs.'},
+        {tag:'AzureActiveDirectory', desc:'Entra ID (AAD) IPs. Required for authentication traffic.'},
+      ].map(t => `
+        <div class="concept" style="display:flex;gap:12px;margin-bottom:6px;align-items:baseline;flex-wrap:wrap">
+          <span class="mono" style="font-weight:700;font-size:13px;color:var(--accent);min-width:160px">${t.tag}</span>
+          <span style="font-size:13px;color:var(--dim);flex:1;min-width:200px">${t.desc}</span>
+        </div>
+      `).join('')}
+    `},
+  ]));
+
+  // Initialize interactive elements
+  initOctetBuilder();
+  initEvalWalkthrough();
+}
+
+function buildSection(id, steps) {
+  const sec = document.createElement('section');
+  sec.id = 'section-' + id;
+
+  let stepNavHTML = '<div class="step-nav">';
+  steps.forEach((s, i) => {
+    stepNavHTML += `<button onclick="showStep('${id}',${i})">${i+1}. ${s.title}</button>`;
+  });
+  stepNavHTML += '</div>';
+
+  let stepsHTML = '';
+  steps.forEach((s, i) => {
+    stepsHTML += `<div class="content-step${i===0?' active':''}">
+      <div class="card">
+        <h2 style="margin-bottom:20px;font-size:20px;font-weight:700">${s.title}</h2>
+        ${s.html}
+        <div class="step-footer">
+          <button class="btn prev-btn" style="background:var(--surface);border:1px solid var(--border)" disabled>← Previous</button>
+          <span class="step-count">1 / ${steps.length}</span>
+          <button class="btn next-btn" style="background:${getColorRaw(id)}">${steps.length > 1 ? 'Next →' : '✓ Ready for Quiz'}</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  sec.innerHTML = stepNavHTML + stepsHTML;
+  sectionSteps[id] = 0;
+  setTimeout(() => showStep(id, 0), 0);
+  return sec;
+}
+
+function getColorRaw(id) {
+  const m = {ipv4:'#3b82f6',rfc:'#8b5cf6',cidr:'#10b981',dns:'#06b6d4',ports:'#f59e0b',nsg:'#ef4444'};
+  return m[id]||'#3b82f6';
+}
+
+// ===== INTERACTIVE: OCTET BUILDER =====
+let octets = [192,168,1,1];
+function initOctetBuilder() {
+  renderOctets();
+}
+function renderOctets() {
+  const wrap = document.getElementById('octetWrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  octets.forEach((o, i) => {
+    const d = document.createElement('div');
+    d.style.display = 'flex';
+    d.style.alignItems = 'center';
+    d.style.gap = '8px';
+    const valid = o >= 0 && o <= 255;
+    d.innerHTML = `
+      <div class="octet-box">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--mono)">Octet ${i+1}</div>
+        <div class="octet-val ${valid?'valid':'invalid'}">${o}</div>
+        <div class="octet-btns">
+          <button class="btn" style="background:var(--surface);padding:4px 10px;font-size:12px" onclick="changeOctet(${i},-1)">−</button>
+          <button class="btn" style="background:var(--surface);padding:4px 10px;font-size:12px" onclick="changeOctet(${i},1)">+</button>
+        </div>
+        <div class="octet-bin">${o >= 0 ? Math.min(o,999).toString(2).padStart(8,'0') : '--------'}</div>
+      </div>
+    `;
+    if (i < 3) {
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.textContent = '.';
+      d.appendChild(dot);
+    }
+    wrap.appendChild(d);
+  });
+  const result = document.getElementById('octetResult');
+  const allValid = octets.every(o => o >= 0 && o <= 255);
+  result.style.background = allValid ? 'var(--greenDim)' : 'var(--redDim)';
+  result.style.color = allValid ? 'var(--green)' : 'var(--red)';
+  result.textContent = octets.join('.') + ' → ' + (allValid ? '✓ VALID' : '✗ INVALID — octet out of range (0-255)');
+}
+function changeOctet(i, delta) {
+  octets[i] = Math.max(0, octets[i] + delta);
+  renderOctets();
+}
+
+// ===== INTERACTIVE: RFC1918 PROBE =====
+function checkProbe() {
+  const ip = document.getElementById('probeIP').value.trim();
+  const parts = ip.split('.').map(Number);
+  const result = document.getElementById('probeResult');
+  if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
+    result.innerHTML = '<div style="padding:12px 16px;border-radius:8px;background:var(--redDim);border-left:3px solid var(--red);font-family:var(--mono);font-size:14px">⚠️ Invalid IPv4 address format</div>';
+    return;
+  }
+  let priv = false, range = '';
+  if (parts[0] === 10) { priv = true; range = '10.0.0.0/8'; }
+  else if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) { priv = true; range = '172.16.0.0/12'; }
+  else if (parts[0] === 192 && parts[1] === 168) { priv = true; range = '192.168.0.0/16'; }
+  const bg = priv ? 'var(--purpleDim)' : 'var(--cyanDim)';
+  const bc = priv ? 'var(--purple)' : 'var(--cyan)';
+  const msg = priv ? `🔒 PRIVATE — falls within ${range}` : '🌐 PUBLIC — not in any RFC 1918 range';
+  result.innerHTML = `<div style="padding:12px 16px;border-radius:8px;background:${bg};border-left:3px solid ${bc};font-family:var(--mono);font-size:14px">${msg}</div>`;
+}
+
+// ===== INTERACTIVE: CIDR SLIDER =====
+function updateCIDR(val) {
+  val = parseInt(val);
+  const total = Math.pow(2, 32 - val);
+  const usable = val >= 31 ? 0 : Math.max(0, total - 5);
+  document.getElementById('cidrNet').style.width = ((val / 32) * 100) + '%';
+  document.getElementById('cidrNet').textContent = val > 6 ? `Network (${val}b)` : val;
+  document.getElementById('cidrHost').textContent = (32 - val) > 6 ? `Hosts (${32-val}b)` : (32-val);
+  document.getElementById('cidrVal').textContent = '/' + val;
+  document.getElementById('cidrTotal').textContent = total.toLocaleString();
+  document.getElementById('cidrUsable').textContent = usable.toLocaleString();
+}
+
+// ===== INTERACTIVE: NSG EVAL WALKTHROUGH =====
+let evalIdx = 0;
+const evalData = [
+  {rule:'Priority 100: AllowHTTPS — Src: Any, Dst: 10.0.1.0/24, Port: 443/TCP, Allow', check:'Source 85.210.47.3 matches "Any" ✓ | Dest 10.0.1.10 in 10.0.1.0/24 ✓ | Port 443 TCP ✓', result:'MATCH → ALLOW', matched:true, color:'var(--green)'},
+  {rule:'Priority 200: AllowSSH — (not evaluated)', check:'', result:'SKIPPED — Rule 100 already matched', matched:false, color:'var(--muted)'},
+  {rule:'Priority 4096: DenyAll — (not evaluated)', check:'', result:'SKIPPED — Rule 100 already matched', matched:false, color:'var(--muted)'},
+];
+
+function initEvalWalkthrough() { renderEval(); }
+function renderEval() {
+  const container = document.getElementById('evalSteps');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i <= evalIdx; i++) {
+    const e = evalData[i];
+    container.innerHTML += `
+      <div class="eval-step" style="background:${e.matched?'var(--greenDim)':'var(--bg)'};border-left:3px solid ${e.color};opacity:${i===evalIdx?1:0.5}">
+        <div class="mono" style="font-size:13px;font-weight:600;margin-bottom:4px">${e.rule}</div>
+        ${e.check ? `<div style="font-size:12px;color:var(--dim);margin-bottom:4px">${e.check}</div>` : ''}
+        <div style="font-size:13px;font-weight:700;color:${e.color}">${e.result}</div>
+      </div>
+    `;
+  }
+  const btn = document.getElementById('evalNextBtn');
+  if (btn) {
+    btn.disabled = evalIdx >= evalData.length - 1;
+    btn.style.opacity = evalIdx >= evalData.length - 1 ? '0.4' : '1';
+  }
+}
+function nextEval() {
+  if (evalIdx < evalData.length - 1) { evalIdx++; renderEval(); }
+}
+function resetEval() { evalIdx = 0; renderEval(); }
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

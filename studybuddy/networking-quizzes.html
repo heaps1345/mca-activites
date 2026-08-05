@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Networking Quizzes — MCA Threat Detection Academy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2e3f;
+  --accent:#3b82f6;--accentDim:#1e3a5f;
+  --green:#10b981;--greenDim:#064e3b;
+  --red:#ef4444;--redDim:#7f1d1d;
+  --amber:#f59e0b;--amberDim:#78350f;
+  --purple:#8b5cf6;--purpleDim:#4c1d95;
+  --cyan:#06b6d4;--cyanDim:#164e63;
+  --text:#e2e8f0;--dim:#94a3b8;--muted:#64748b;
+  --mono:'JetBrains Mono','Fira Code','Cascadia Code',monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+header{padding:32px 0 0}
+h1{font-size:28px;font-weight:700;letter-spacing:-0.5px}
+.sub{font-size:14px;color:var(--dim);margin-top:6px}
+nav{display:flex;gap:4px;padding:20px 0;flex-wrap:wrap}
+nav button{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans);background:var(--surface);color:var(--dim);transition:all .15s}
+nav button.active{background:var(--accent);color:#fff}
+nav button:hover:not(.active){background:#22263a}
+.card{background:var(--surface);border-radius:12px;border:1px solid var(--border);padding:24px;margin-bottom:16px}
+.btn{padding:10px 24px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:var(--sans);color:#fff;transition:all .15s}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:default}
+.progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:20px}
+.progress-fill{height:100%;border-radius:2px;transition:width .3s}
+.ip{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:.5px;padding:20px 0}
+.explain{margin-top:16px;padding:16px;border-radius:8px;font-size:14px;line-height:1.6}
+.explain.correct{background:var(--greenDim);border-left:3px solid var(--green)}
+.explain.wrong{background:var(--redDim);border-left:3px solid var(--red)}
+.explain.warn{background:var(--amberDim);border-left:3px solid var(--amber)}
+.score-box{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:14px;font-weight:600;font-family:var(--mono)}
+.pill{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:var(--mono);color:#fff;letter-spacing:.5px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;font-size:13px;font-family:var(--mono)}
+th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+td{padding:8px 12px;border-bottom:1px solid var(--border)}
+td.highlight{background:var(--accentDim)}
+.quiz-input{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--mono);font-size:16px;width:200px;outline:none}
+.quiz-input:focus{border-color:var(--accent)}
+.traffic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.traffic-box{padding:10px 14px;border-radius:8px;background:var(--bg)}
+.traffic-label{font-size:10px;color:var(--muted)}
+.traffic-val{font-family:var(--mono);font-size:14px}
+section{display:none}
+section.active{display:block}
+p{font-size:14px;line-height:1.7;color:var(--dim)}
+strong{color:var(--text)}
+.mono{font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Networking Quizzes</h1>
+    <p class="sub">MCA Threat Detection Academy — Domain 2 Study Buddy</p>
+  </header>
+  <nav id="topNav"></nav>
+  <div id="content"></div>
+</div>
+
+<script>
+// ===== DATA =====
+const IPV4_Q = [
+  {ip:"192.168.1.1",valid:true,ex:"Valid private IP in the 192.168.0.0/16 range. Classic home router address."},
+  {ip:"256.1.1.1",valid:false,ex:"Each octet must be 0-255. 256 exceeds the maximum for 8 bits."},
+  {ip:"10.0.0.1",valid:true,ex:"Valid private IP in the 10.0.0.0/8 range. Common in enterprise and Azure VNETs."},
+  {ip:"172.16.0.1",valid:true,ex:"Valid private IP in the 172.16.0.0/12 range."},
+  {ip:"8.8.8.8",valid:true,ex:"Valid public IP. Google's public DNS resolver."},
+  {ip:"192.168.1.999",valid:false,ex:"999 is beyond the 0-255 limit. Each octet is 8 bits, max 255."},
+  {ip:"0.0.0.0",valid:true,ex:"Valid special address meaning 'all interfaces' or 'default route'."},
+  {ip:"127.0.0.1",valid:true,ex:"Valid loopback address (localhost). Traffic never leaves the machine."},
+  {ip:"192.168.1",valid:false,ex:"Only 3 octets. IPv4 requires exactly 4 octets separated by dots."},
+  {ip:"10.0.0.0.1",valid:false,ex:"5 octets! IPv4 has exactly 4. Common typo."},
+  {ip:"169.254.1.1",valid:true,ex:"Valid APIPA address. Auto-assigned when DHCP fails — seeing this means something is broken."},
+  {ip:"255.255.255.255",valid:true,ex:"Valid broadcast address. Sends to all hosts on the local segment."},
+  {ip:"172.32.0.1",valid:true,ex:"Valid but PUBLIC. The private range is 172.16.0.0 to 172.31.255.255. 172.32.x.x is public!"},
+];
+
+const RFC_Q = [
+  {ip:"10.50.0.12",type:"private",range:"10.0.0.0/8",hint:"Anything starting with 10.x is private. The biggest private range."},
+  {ip:"8.8.4.4",type:"public",range:"N/A",hint:"Google's secondary DNS. No private range starts with 8."},
+  {ip:"172.20.5.1",type:"private",range:"172.16.0.0/12",hint:"172.16 to 172.31 is private. 172.20 falls inside."},
+  {ip:"172.32.1.1",type:"public",range:"N/A",hint:"Trick! 172.32 is OUTSIDE private range (stops at 172.31.255.255)."},
+  {ip:"192.168.0.50",type:"private",range:"192.168.0.0/16",hint:"Classic home network range."},
+  {ip:"1.1.1.1",type:"public",range:"N/A",hint:"Cloudflare's public DNS. Nothing in 1.x is private."},
+  {ip:"10.255.255.254",type:"private",range:"10.0.0.0/8",hint:"Still in 10.x — entire 10.0.0.0 to 10.255.255.255 is private."},
+  {ip:"192.169.1.1",type:"public",range:"N/A",hint:"Close! 192.169 is NOT private. Only 192.168 is. One digit difference."},
+  {ip:"172.16.0.1",type:"private",range:"172.16.0.0/12",hint:"Start of the 172 private range."},
+  {ip:"52.168.112.64",type:"public",range:"N/A",hint:"Azure public IP range. You'll see these in Sentinel logs."},
+];
+
+const SUBNET_Q = [
+  {ipA:"10.0.1.10",ipB:"10.0.1.200",subnet:"10.0.1.0/24",can:true,ex:"Both in 10.0.1.0/24 (10.0.1.0–10.0.1.255). Same subnet = direct."},
+  {ipA:"10.0.1.10",ipB:"10.0.2.10",subnet:"10.0.1.0/24",can:false,ex:"10.0.2.10 is in 10.0.2.0/24, not 10.0.1.0/24. Different subnets need a router."},
+  {ipA:"192.168.1.50",ipB:"192.168.1.100",subnet:"192.168.1.0/25",can:true,ex:"/25 = range .0 to .127. Both .50 and .100 are inside."},
+  {ipA:"192.168.1.50",ipB:"192.168.1.200",subnet:"192.168.1.0/25",can:false,ex:"/25 = range .0 to .127. IP .200 is OUTSIDE (it's in the 192.168.1.128/25 block)."},
+  {ipA:"10.0.0.5",ipB:"10.0.0.14",subnet:"10.0.0.0/28",can:true,ex:"/28 = 16 addresses: 10.0.0.0–10.0.0.15. Both inside."},
+  {ipA:"10.0.0.5",ipB:"10.0.0.20",subnet:"10.0.0.0/28",can:false,ex:"/28 = range .0 to .15. IP .20 is in the next /28 block (10.0.0.16/28)."},
+  {ipA:"172.16.0.100",ipB:"172.16.1.100",subnet:"172.16.0.0/16",can:true,ex:"/16 covers 172.16.0.0–172.16.255.255. Both well inside."},
+];
+
+const PORT_Q = [
+  {port:80,proto:"TCP",svc:"HTTP",hint:"Unencrypted web. If you see this in 2026, someone's doing it wrong."},
+  {port:443,proto:"TCP",svc:"HTTPS",hint:"Encrypted web. Vast majority of web traffic today."},
+  {port:22,proto:"TCP",svc:"SSH",hint:"Secure Shell. Linux remote access. Open to internet = instant attacks."},
+  {port:3389,proto:"TCP",svc:"RDP",hint:"Remote Desktop. Windows remote access. Never expose directly."},
+  {port:53,proto:"TCP/UDP",svc:"DNS",hint:"Domain Name System. UDP for queries, TCP for zone transfers."},
+  {port:445,proto:"TCP",svc:"SMB",hint:"Server Message Block. File sharing. WannaCry, EternalBlue, NotPetya."},
+  {port:25,proto:"TCP",svc:"SMTP",hint:"Simple Mail Transfer Protocol. Email sending."},
+  {port:88,proto:"TCP/UDP",svc:"Kerberos",hint:"AD authentication. Key to understanding Kerberoasting attacks."},
+  {port:389,proto:"TCP/UDP",svc:"LDAP",hint:"Lightweight Directory Access Protocol. AD directory queries."},
+  {port:135,proto:"TCP",svc:"RPC",hint:"Remote Procedure Call. Used in lateral movement."},
+];
+
+const NSG_Q = [
+  {
+    rules:[{pri:100,name:"AllowHTTPS",src:"Any",dst:"10.0.1.0/24",port:"443",proto:"TCP",act:"Allow"},{pri:200,name:"AllowSSH-Admin",src:"10.0.0.5/32",dst:"10.0.1.0/24",port:"22",proto:"TCP",act:"Allow"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"85.210.47.3",dst:"10.0.1.10",port:"443",proto:"TCP"},
+    result:"Allow",matched:"AllowHTTPS",
+    ex:"Source matches 'Any', destination in 10.0.1.0/24, port 443 TCP. Priority 100 hits first. ALLOWED."
+  },
+  {
+    rules:[{pri:100,name:"AllowHTTPS",src:"Any",dst:"10.0.1.0/24",port:"443",proto:"TCP",act:"Allow"},{pri:200,name:"AllowSSH-Admin",src:"10.0.0.5/32",dst:"10.0.1.0/24",port:"22",proto:"TCP",act:"Allow"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"10.0.0.5",dst:"10.0.1.10",port:"22",proto:"TCP"},
+    result:"Allow",matched:"AllowSSH-Admin",
+    ex:"Source 10.0.0.5 matches /32, dest in 10.0.1.0/24, port 22 TCP. Priority 200 hits. ALLOWED — only from that admin IP."
+  },
+  {
+    rules:[{pri:100,name:"AllowHTTPS",src:"Any",dst:"10.0.1.0/24",port:"443",proto:"TCP",act:"Allow"},{pri:200,name:"AllowSSH-Admin",src:"10.0.0.5/32",dst:"10.0.1.0/24",port:"22",proto:"TCP",act:"Allow"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"85.210.47.3",dst:"10.0.1.10",port:"22",proto:"TCP"},
+    result:"Deny",matched:"DenyAllInbound",
+    ex:"SSH from external IP. Rule 100 is port 443 only — no match. Rule 200 requires source 10.0.0.5 — no match. Falls to DenyAll at 4096. DENIED."
+  },
+  {
+    rules:[{pri:100,name:"DenyRDP-Internet",src:"Internet",dst:"Any",port:"3389",proto:"TCP",act:"Deny"},{pri:200,name:"AllowRDP-VPN",src:"10.10.0.0/16",dst:"10.0.1.0/24",port:"3389",proto:"TCP",act:"Allow"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"10.10.5.20",dst:"10.0.1.10",port:"3389",proto:"TCP"},
+    result:"Allow",matched:"AllowRDP-VPN",
+    ex:"Source 10.10.5.20 is private — 'Internet' tag in rule 100 doesn't match private IPs. Rule 200 matches: source in 10.10.0.0/16, dest in 10.0.1.0/24, port 3389 TCP. ALLOWED via VPN."
+  },
+  {
+    rules:[{pri:100,name:"DenyRDP-Internet",src:"Internet",dst:"Any",port:"3389",proto:"TCP",act:"Deny"},{pri:200,name:"AllowRDP-VPN",src:"10.10.0.0/16",dst:"10.0.1.0/24",port:"3389",proto:"TCP",act:"Allow"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"203.0.113.50",dst:"10.0.1.10",port:"3389",proto:"TCP"},
+    result:"Deny",matched:"DenyRDP-Internet",
+    ex:"Source 203.0.113.50 is public — matches 'Internet' tag. Port 3389 TCP matches. Priority 100 hits FIRST. DENIED. This is why you block RDP from internet!"
+  },
+  {
+    rules:[{pri:100,name:"AllowHTTPS",src:"Any",dst:"10.0.1.0/24",port:"443",proto:"TCP",act:"Allow"},{pri:150,name:"DenyHTTPS-Dodgy",src:"198.51.100.0/24",dst:"10.0.1.0/24",port:"443",proto:"TCP",act:"Deny"},{pri:4096,name:"DenyAllInbound",src:"Any",dst:"Any",port:"Any",proto:"Any",act:"Deny"}],
+    traffic:{src:"198.51.100.50",dst:"10.0.1.10",port:"443",proto:"TCP"},
+    result:"Allow",matched:"AllowHTTPS",
+    ex:"GOTCHA! The Deny for the dodgy range is priority 150, but AllowHTTPS at 100 matches first — 'Any' includes 198.51.100.50. The deny never fires. To fix: deny needs a LOWER priority number."
+  },
+];
+
+// ===== STATE =====
+let state = {};
+
+function initQuiz(id) {
+  const s = {idx:0, answered:null, score:{c:0,t:0}};
+  if (id === 'ipv4') s.order = shuffle([...IPV4_Q]).slice(0,10);
+  else if (id === 'rfc') s.order = [...RFC_Q];
+  else if (id === 'subnet') s.order = [...SUBNET_Q];
+  else if (id === 'ports') { s.order = shuffle([...PORT_Q]); s.input = ''; }
+  else if (id === 'nsg') s.order = [...NSG_Q];
+  state[id] = s;
+}
+
+function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+// ===== RENDER =====
+const QUIZZES = [
+  {id:'ipv4',label:'🔢 IPv4 Validity'},
+  {id:'rfc',label:'🔒 Public vs Private'},
+  {id:'subnet',label:'📐 Can They Talk?'},
+  {id:'ports',label:'🚪 Ports Quiz'},
+  {id:'nsg',label:'🛡️ NSG Scenarios'},
+];
+
+function init() {
+  const nav = document.getElementById('topNav');
+  QUIZZES.forEach(q => {
+    const btn = document.createElement('button');
+    btn.textContent = q.label;
+    btn.id = 'nav-' + q.id;
+    btn.onclick = () => showQuiz(q.id);
+    nav.appendChild(btn);
+    initQuiz(q.id);
+  });
+  showQuiz('ipv4');
+}
+
+function showQuiz(id) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + id).classList.add('active');
+  render(id);
+}
+
+function render(id) {
+  const s = state[id];
+  const el = document.getElementById('content');
+
+  if (id === 'ipv4') renderIPv4(el, s);
+  else if (id === 'rfc') renderRFC(el, s);
+  else if (id === 'subnet') renderSubnet(el, s);
+  else if (id === 'ports') renderPorts(el, s);
+  else if (id === 'nsg') renderNSG(el, s);
+}
+
+function renderIPv4(el, s) {
+  if (s.idx >= s.order.length) {
+    el.innerHTML = doneCard('IPv4 Quiz Complete', s.score, s.score.c === s.score.t ? "Perfect! You know your octets." : s.score.c >= 7 ? "Solid. Watch the edge cases." : "Review the basics — octets 0-255, always 4 of them.", 'ipv4');
+    return;
+  }
+  const q = s.order[s.idx];
+  el.innerHTML = `
+    <div class="card" style="text-align:center">
+      ${quizHeader(s)}
+      <p>Is this a valid IPv4 address?</p>
+      <div class="ip">${q.ip}</div>
+      ${!s.answered ? `
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px">
+          <button class="btn" style="background:var(--green)" onclick="answer('ipv4',true)">Valid ✓</button>
+          <button class="btn" style="background:var(--red)" onclick="answer('ipv4',false)">Invalid ✗</button>
+        </div>
+      ` : `
+        <div class="explain ${s.answered.correct?'correct':'wrong'}">
+          <div style="font-weight:700;margin-bottom:6px">${s.answered.correct?'✓ Correct!':'✗ Wrong — this IP is '+(q.valid?'VALID':'INVALID')}</div>
+          ${q.ex}
+        </div>
+        <button class="btn" style="background:var(--accent);margin-top:16px" onclick="next('ipv4')">${s.idx<s.order.length-1?'Next Question →':'See Results'}</button>
+      `}
+    </div>
+  `;
+}
+
+function renderRFC(el, s) {
+  if (s.idx >= s.order.length) {
+    el.innerHTML = `
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="margin-bottom:8px;font-size:16px">RFC 1918 Reference</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>10.0.0.0/8</strong></div>
+          <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>172.16.0.0/12</strong></div>
+          <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>192.168.0.0/16</strong></div>
+        </div>
+      </div>
+    ` + doneCard('RFC 1918 Complete', s.score, s.score.c >= 9 ? "Excellent — trick questions didn't catch you." : s.score.c >= 7 ? "Good, but watch boundaries (172.32, 192.169)." : "Review the three ranges. Boundaries are where mistakes happen.", 'rfc');
+    return;
+  }
+  const q = s.order[s.idx];
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:8px;font-size:16px">RFC 1918 — Private IP Ranges</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>10.0.0.0/8</strong> <span style="color:var(--dim)">10.0.0.0 → 10.255.255.255</span></div>
+        <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>172.16.0.0/12</strong> <span style="color:var(--dim)">172.16.0.0 → 172.31.255.255</span></div>
+        <div style="padding:8px 14px;border-radius:8px;background:var(--accentDim);font-family:var(--mono);font-size:13px"><strong>192.168.0.0/16</strong> <span style="color:var(--dim)">192.168.0.0 → 192.168.255.255</span></div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center">
+      ${quizHeader(s)}
+      <p>Public or Private?</p>
+      <div class="ip">${q.ip}</div>
+      ${!s.answered ? `
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:16px">
+          <button class="btn" style="background:#7c3aed" onclick="answer('rfc','private')">🔒 Private</button>
+          <button class="btn" style="background:#0891b2" onclick="answer('rfc','public')">🌐 Public</button>
+        </div>
+      ` : `
+        <div class="explain ${s.answered.correct?'correct':'wrong'}">
+          <div style="font-weight:700;margin-bottom:6px">${s.answered.correct?'✓ Correct!':'✗ Wrong — this is '+q.type.toUpperCase()}</div>
+          ${q.hint}
+          ${q.range!=='N/A'?'<div style="margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--dim)">Range: '+q.range+'</div>':''}
+        </div>
+        <button class="btn" style="background:var(--accent);margin-top:16px" onclick="next('rfc')">${s.idx<s.order.length-1?'Next →':'See Results'}</button>
+      `}
+    </div>
+  `;
+}
+
+function renderSubnet(el, s) {
+  if (s.idx >= s.order.length) {
+    el.innerHTML = doneCard('Subnet Scenarios Complete', s.score, s.score.c === s.score.t ? "Perfect! You've got subnetting down." : "Review the ones you missed — /25 and /28 boundaries catch most people.", 'subnet');
+    return;
+  }
+  const q = s.order[s.idx];
+  el.innerHTML = `
+    <div class="card" style="text-align:center">
+      ${quizHeader(s)}
+      <p>Can these two devices communicate directly?</p>
+      <div style="display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;margin:16px 0">
+        <div style="padding:12px 20px;border-radius:10px;background:var(--accentDim);font-family:var(--mono);font-size:16px">💻 ${q.ipA}</div>
+        <span style="font-size:24px;color:var(--muted)">↔</span>
+        <div style="padding:12px 20px;border-radius:10px;background:var(--accentDim);font-family:var(--mono);font-size:16px">🖥️ ${q.ipB}</div>
+      </div>
+      <div style="padding:8px 16px;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:inline-block;font-family:var(--mono);font-size:14px;margin-bottom:16px">Subnet: ${q.subnet}</div>
+      ${!s.answered ? `
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px">
+          <button class="btn" style="background:var(--green)" onclick="answer('subnet',true)">Yes, same subnet ✓</button>
+          <button class="btn" style="background:var(--red)" onclick="answer('subnet',false)">No, different ✗</button>
+        </div>
+      ` : `
+        <div class="explain ${s.answered.correct?'correct':'wrong'}">
+          <div style="font-weight:700;margin-bottom:6px">${s.answered.correct?'✓ Correct!':'✗ Wrong — they '+(q.can?'CAN':'CANNOT')+' communicate directly.'}</div>
+          ${q.ex}
+        </div>
+        <button class="btn" style="background:var(--accent);margin-top:16px" onclick="next('subnet')">${s.idx<s.order.length-1?'Next Scenario →':'See Results'}</button>
+      `}
+    </div>
+  `;
+}
+
+function renderPorts(el, s) {
+  if (s.idx >= s.order.length) {
+    el.innerHTML = doneCard('Ports Complete', s.score, s.score.c >= 9 ? "You know your ports cold." : s.score.c >= 7 ? "Good — brush up on the AD-specific ones (88, 389)." : "These are critical for log analysis. Review and retry.", 'ports');
+    return;
+  }
+  const q = s.order[s.idx];
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:6px;font-size:16px">Why Ports Matter</h3>
+      <p>When you're writing KQL in Sentinel or reading NSG flow logs, you'll see destination ports constantly. Knowing ports = knowing what the traffic IS.</p>
+    </div>
+    <div class="card" style="text-align:center">
+      ${quizHeader(s)}
+      <p>What service runs on this port?</p>
+      <div style="font-size:48px;font-family:var(--mono);font-weight:700;color:var(--accent);padding:12px 0">${q.port}</div>
+      <div class="pill" style="background:var(--accentDim);color:var(--dim);margin-bottom:16px">${q.proto}</div>
+      ${!s.answered ? `
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+          <input class="quiz-input" id="portInput" placeholder="Type service name..." onkeydown="if(event.key==='Enter')checkPort()" autofocus>
+          <button class="btn" style="background:var(--accent)" onclick="checkPort()">Check</button>
+        </div>
+      ` : `
+        <div class="explain ${s.answered.correct?'correct':'wrong'}">
+          <div style="font-weight:700;margin-bottom:6px">${s.answered.correct?'✓ Correct!':'✗ The answer is '+q.svc}</div>
+          Port ${q.port}/${q.proto} — ${q.hint}
+        </div>
+        <button class="btn" style="background:var(--accent);margin-top:16px" onclick="next('ports')">${s.idx<s.order.length-1?'Next Port →':'See Results'}</button>
+      `}
+    </div>
+  `;
+  if (!s.answered) setTimeout(() => { const inp = document.getElementById('portInput'); if(inp) inp.focus(); }, 50);
+}
+
+function renderNSG(el, s) {
+  if (s.idx >= s.order.length) {
+    el.innerHTML = doneCard('NSG Scenarios Complete', s.score, s.score.c === s.score.t ? "Perfect! You understand NSG rule evaluation." : s.score.c >= 4 ? "Good, but review priority ordering — lowest number wins." : "Key: NSGs evaluate lowest priority number first and stop at first match.", 'nsg');
+    return;
+  }
+  const q = s.order[s.idx];
+  const rulesHTML = q.rules.map(r => `
+    <tr>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''}>${r.pri}</td>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''}>${r.name}</td>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''}>${r.src}</td>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''}>${r.dst}</td>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''}>${r.port}</td>
+      <td${s.answered && r.name===q.matched?' class="highlight"':''} style="color:${r.act==='Allow'?'var(--green)':'var(--red)'};font-weight:700">${r.act}</td>
+    </tr>
+  `).join('');
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-bottom:6px;font-size:16px">How NSG Rules Work</h3>
+      <p>Rules evaluated by priority — <strong>lowest number = highest priority</strong>. Once matched, evaluation STOPS.</p>
+    </div>
+    <div class="card">
+      ${quizHeader(s)}
+      <h4 style="margin-bottom:12px;font-size:14px;color:var(--dim)">NSG Rules:</h4>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Pri</th><th>Name</th><th>Source</th><th>Dest</th><th>Port</th><th>Action</th></tr></thead>
+          <tbody>${rulesHTML}</tbody>
+        </table>
+      </div>
+      <div style="margin-top:20px;padding:16px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+        <h4 style="margin-bottom:10px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px">Incoming Traffic:</h4>
+        <div class="traffic-grid">
+          <div class="traffic-box"><div class="traffic-label">Source</div><div class="traffic-val">${q.traffic.src}</div></div>
+          <div class="traffic-box"><div class="traffic-label">Destination</div><div class="traffic-val">${q.traffic.dst}</div></div>
+          <div class="traffic-box"><div class="traffic-label">Port</div><div class="traffic-val">${q.traffic.port}</div></div>
+          <div class="traffic-box"><div class="traffic-label">Protocol</div><div class="traffic-val">${q.traffic.proto}</div></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:20px">
+        <p style="font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text)">Will this traffic be allowed or denied?</p>
+        ${!s.answered ? `
+          <div style="display:flex;gap:12px;justify-content:center">
+            <button class="btn" style="background:var(--green)" onclick="answer('nsg','Allow')">✓ ALLOW</button>
+            <button class="btn" style="background:var(--red)" onclick="answer('nsg','Deny')">✗ DENY</button>
+          </div>
+        ` : `
+          <div class="explain ${s.answered.correct?'correct':'wrong'}">
+            <div style="font-weight:700;margin-bottom:6px">${s.answered.correct?'✓ Correct!':'✗ Wrong — this traffic is '+q.result.toUpperCase()+'ED'}</div>
+            <div style="margin-bottom:6px">Matched rule: <strong class="mono">${q.matched}</strong></div>
+            ${q.ex}
+          </div>
+          <button class="btn" style="background:var(--accent);margin-top:16px" onclick="next('nsg')">${s.idx<s.order.length-1?'Next Scenario →':'See Results'}</button>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+// ===== HELPERS =====
+function quizHeader(s) {
+  const total = s.order.length;
+  const pct = (s.idx / total) * 100;
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="color:var(--dim);font-size:13px">Question ${s.idx+1} of ${total}</span>
+      <div style="display:flex;gap:8px">
+        <span class="score-box" style="background:var(--greenDim)">✓ ${s.score.c}</span>
+        <span class="score-box" style="background:var(--redDim)">✗ ${s.score.t - s.score.c}</span>
+      </div>
+    </div>
+    <div class="progress"><div class="progress-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+  `;
+}
+
+function doneCard(title, score, msg, id) {
+  return `<div class="card">
+    <h3 style="margin-bottom:12px;font-size:18px">${title}</h3>
+    <div style="font-size:32px;font-family:var(--mono);font-weight:700">${score.c}/${score.t}</div>
+    <p style="margin:8px 0 16px">${msg}</p>
+    <button class="btn" style="background:var(--accent)" onclick="resetQuiz('${id}')">Try Again</button>
+  </div>`;
+}
+
+function answer(id, choice) {
+  const s = state[id];
+  const q = s.order[s.idx];
+  let correct;
+  if (id === 'ipv4') correct = choice === q.valid;
+  else if (id === 'rfc') correct = choice === q.type;
+  else if (id === 'subnet') correct = choice === q.can;
+  else if (id === 'nsg') correct = choice === q.result;
+  s.answered = {correct};
+  s.score.t++;
+  if (correct) s.score.c++;
+  render(id);
+}
+
+function checkPort() {
+  const s = state['ports'];
+  const q = s.order[s.idx];
+  const input = document.getElementById('portInput').value.trim().toLowerCase();
+  const correct = input === q.svc.toLowerCase() || input.replace(/\s/g,'') === q.svc.toLowerCase().replace(/\s/g,'');
+  s.answered = {correct};
+  s.score.t++;
+  if (correct) s.score.c++;
+  render('ports');
+}
+
+function next(id) {
+  state[id].idx++;
+  state[id].answered = null;
+  render(id);
+}
+
+function resetQuiz(id) {
+  initQuiz(id);
+  render(id);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
