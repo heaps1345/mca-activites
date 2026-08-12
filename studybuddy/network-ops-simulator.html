@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Ops Simulator - MCA Cyber Academy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e14;--surface:#131920;--surface2:#1a2230;--surface3:#212d3b;
+  --border:#2a3545;--text:#d4dce8;--dim:#6b7d94;--accent:#00a8ff;
+  --accent2:#0070cc;--green:#00d68f;--green-bg:rgba(0,214,143,.1);
+  --red:#ff4d6a;--red-bg:rgba(255,77,106,.1);--amber:#ffb020;
+  --amber-bg:rgba(255,176,32,.1);--purple:#a78bfa;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#061224 0%,#0a1a30 50%,#0d2240 100%);padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px}
+.hdr-icon{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hdr h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.hdr p{font-size:12px;color:var(--dim);margin-top:2px}
+
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px}
+
+/* SCENARIO SELECTOR */
+.scenario-select{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:20px}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.sc-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.sc-card.locked{opacity:.45;cursor:not-allowed}
+.sc-card.complete{border-color:var(--green)}
+.sc-card .sc-num{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+.sc-card h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.sc-card p{font-size:13px;color:var(--dim);line-height:1.5}
+.sc-badge{position:absolute;top:16px;right:16px;font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.sc-badge.done{background:var(--green-bg);color:var(--green)}
+.sc-badge.new{background:rgba(0,168,255,.1);color:var(--accent)}
+
+/* GAME AREA */
+.game{display:none}
+.game.active{display:block}
+
+/* SCENE */
+.scene-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.scene-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.scene-title{font-size:15px;font-weight:600}
+.scene-step{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.scene-body{padding:20px}
+.scene-narrative{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px}
+.scene-narrative strong{color:var(--accent)}
+.scene-narrative .alert-text{color:var(--red);font-weight:600}
+.scene-narrative .success-text{color:var(--green);font-weight:600}
+
+/* TERMINAL */
+.terminal{background:#05080d;border:1px solid #1a2535;border-radius:8px;overflow:hidden;margin:16px 0;font-family:var(--mono);font-size:13px}
+.term-bar{background:#0d1520;padding:6px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #1a2535}
+.term-dot{width:8px;height:8px;border-radius:50%}
+.term-dot.r{background:#ff5f57}.term-dot.y{background:#febc2e}.term-dot.g{background:#28c840}
+.term-label{font-size:11px;color:#4a5568;margin-left:8px}
+.term-body{padding:14px;line-height:1.8;color:#8ec07c;max-height:300px;overflow-y:auto}
+.term-body .cmd{color:#83a598}
+.term-body .comment{color:#504945}
+.term-body .highlight{color:var(--amber);font-weight:600}
+.term-body .danger{color:var(--red);font-weight:600}
+.term-body .info{color:var(--accent)}
+.term-body .ok{color:var(--green)}
+.term-body .heading{color:var(--purple);font-weight:600}
+
+/* LOG TABLE */
+.log-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:16px 0}
+.log-table th{text-align:left;padding:8px;color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:500}
+.log-table td{padding:8px;border-bottom:1px solid rgba(42,53,69,.5);color:var(--text)}
+.log-table tr:hover td{background:rgba(0,168,255,.03)}
+.log-table .port-col{color:var(--amber);font-weight:500}
+.log-table .deny-col{color:var(--red)}
+.log-table .allow-col{color:var(--green)}
+.log-table .suspicious{background:var(--red-bg)}
+
+/* CHOICES */
+.choices{display:flex;flex-direction:column;gap:8px;margin-top:20px}
+.choice{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;text-align:left;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.5;width:100%}
+.choice:hover{border-color:var(--accent);background:var(--surface3)}
+.choice .key{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);background:rgba(0,168,255,.1);padding:3px 8px;border-radius:4px;flex-shrink:0;margin-top:1px}
+.choice.correct-choice{border-color:var(--green);background:var(--green-bg)}
+.choice.wrong-choice{border-color:var(--red);background:var(--red-bg);opacity:.6}
+.choice[disabled]{cursor:default}
+.choice[disabled]:hover{border-color:var(--border);background:var(--surface2)}
+.choice.correct-choice[disabled]:hover{border-color:var(--green);background:var(--green-bg)}
+.choice.wrong-choice[disabled]:hover{border-color:var(--red);background:var(--red-bg)}
+
+/* FEEDBACK */
+.feedback-box{margin-top:16px;padding:16px;border-radius:8px;font-size:13px;line-height:1.6;display:none}
+.feedback-box.show{display:block}
+.feedback-box.good{background:var(--green-bg);border:1px solid var(--green);color:var(--green)}
+.feedback-box.bad{background:var(--red-bg);border:1px solid var(--red);color:var(--red)}
+.feedback-box.info{background:var(--amber-bg);border:1px solid var(--amber);color:var(--amber)}
+.feedback-box h4{margin-bottom:6px;font-size:14px}
+
+.continue-btn{margin-top:16px;padding:10px 24px;background:var(--accent);border:none;border-radius:8px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);display:none}
+.continue-btn.show{display:inline-block}
+.continue-btn:hover{background:var(--accent2)}
+
+.back-btn{padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--dim);font-size:12px;cursor:pointer;font-family:var(--sans);margin-bottom:16px}
+.back-btn:hover{border-color:var(--accent);color:var(--text)}
+
+/* DRAG/DROP for network builder */
+.drag-zone{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;min-height:48px;padding:12px;background:var(--surface2);border:2px dashed var(--border);border-radius:8px}
+.drag-zone.active{border-color:var(--accent);background:rgba(0,168,255,.05)}
+.drag-item{padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:13px;cursor:grab;user-select:none;transition:all .15s}
+.drag-item:active{cursor:grabbing;transform:scale(.95)}
+.drag-item.placed{opacity:.4;cursor:default}
+.drop-zone{min-height:44px;padding:10px;background:var(--surface2);border:2px dashed var(--border);border-radius:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;transition:all .2s}
+.drop-zone.over{border-color:var(--accent);background:rgba(0,168,255,.05)}
+.drop-zone .dropped-item{padding:6px 12px;background:var(--accent);color:white;border-radius:4px;font-family:var(--mono);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.drop-zone .dropped-item .remove{font-size:14px;opacity:.7}
+.drop-zone .dropped-item .remove:hover{opacity:1}
+.drop-label{font-size:12px;color:var(--dim);margin-bottom:4px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px}
+
+/* INPUT FIELDS */
+.input-row{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;align-items:center}
+.input-row label{font-size:12px;font-family:var(--mono);color:var(--dim);min-width:80px}
+.input-field{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;width:180px}
+.input-field:focus{border-color:var(--accent)}
+.submit-btn{padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);margin-top:12px}
+.submit-btn:hover{background:var(--accent2)}
+
+/* RESULTS */
+.results-card{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:36px;text-align:center}
+.results-card h2{font-size:22px;margin-bottom:8px}
+.results-card .big-score{font-family:var(--mono);font-size:60px;font-weight:700;color:var(--accent)}
+.results-card p{color:var(--dim);font-size:14px;margin-top:8px}
+.results-card .detail{margin-top:20px;text-align:left;font-size:13px;color:var(--dim);line-height:1.6}
+.results-card .detail strong{color:var(--accent)}
+.sc200-callout{margin-top:20px;padding:16px;background:var(--surface2);border-radius:8px;text-align:left;font-size:13px;color:var(--dim);border-left:3px solid var(--accent);line-height:1.6}
+.sc200-callout strong{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-icon">⚡</div>
+  <div>
+    <h1>Network Ops Simulator</h1>
+    <p>MCA Threat Detection Academy - Apply what you've learned. Make the call.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="menuArea"></div>
+  <div id="gameArea" class="game"></div>
+</div>
+
+<script>
+// =====================================================
+// SCENARIO DATA
+// =====================================================
+const SCENARIOS = [
+{
+  id: "alert_triage",
+  title: "Midnight Alert",
+  desc: "It's 02:14. Defender fires an alert. External IP hammering one of your VMs. You're the analyst on call. Figure out what's happening and make the right calls.",
+  badge: "new",
+  steps: [
+    {
+      title: "The Alert",
+      step: "1 / 6",
+      narrative: `Your phone buzzes. Defender for Cloud has triggered a <strong>High severity alert</strong>: <span class="alert-text">Suspicious inbound network activity detected</span> on VM <strong>YOURORG-WEB-01</strong> (10.0.1.4) in the Web subnet.<br><br>The alert summary shows a spike in connection attempts from a single external IP. You pull up the NSG flow logs. Here's what you see:`,
+      terminal: {
+        label: "NSG Flow Logs - last 60 seconds",
+        lines: [
+          { text: "TIMESTAMP          SRC IP          DST IP      PORT  PROTO  ACTION", class: "heading" },
+          { text: "02:14:01.221      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:01.445      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:01.892      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.103      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.304      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.556      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:03.012      10.0.1.4        10.0.3.10   1433  TCP    ALLOW", class: "info" },
+          { text: "02:14:03.201      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "// 847 similar entries in last 60 seconds", class: "comment" },
+        ]
+      },
+      question: "What protocol is being targeted and why is this dangerous?",
+      choices: [
+        { key: "A", text: "SSH (port 22) - someone is brute-forcing Linux credentials", correct: false },
+        { key: "B", text: "RDP (port 3389) - brute-force attack on Remote Desktop, top ransomware entry vector", correct: true },
+        { key: "C", text: "HTTPS (port 443) - DDoS against the web server", correct: false },
+        { key: "D", text: "SMB (port 445) - attempting an EternalBlue exploit", correct: false },
+      ],
+      feedback_good: "Port 3389 is RDP. This is a brute-force attack against Remote Desktop. RDP exposed to the internet is consistently one of the top three initial access vectors for ransomware. The fact it says ALLOW means the NSG is letting this traffic through, which is a serious misconfiguration.",
+      feedback_bad_A: "Port 22 would be SSH. This is port 3389, which is RDP. Different protocol, same type of attack (brute-force), but RDP is the bigger ransomware risk.",
+      feedback_bad_C: "HTTPS is port 443. Port 3389 is RDP. The volume looks like a DDoS but the single source IP and specific port targeting means this is a brute-force, not a volumetric attack.",
+      feedback_bad_D: "SMB is port 445. Good instinct on EternalBlue but wrong port. 3389 = RDP.",
+    },
+    {
+      title: "The Second Problem",
+      step: "2 / 6",
+      narrative: `Good. But look at the logs again. There's something else buried in there that should concern you. One line doesn't match the pattern.`,
+      terminal: {
+        label: "NSG Flow Logs - highlighted",
+        lines: [
+          { text: "02:14:01.221      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:01.445      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:01.892      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.103      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.304      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:02.556      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+          { text: "02:14:03.012      10.0.1.4        10.0.3.10   1433  TCP    ALLOW", class: "highlight" },
+          { text: "02:14:03.201      185.143.72.91   10.0.1.4    3389  TCP    ALLOW", class: "danger" },
+        ]
+      },
+      question: "What's the highlighted line telling you?",
+      choices: [
+        { key: "A", text: "Normal database traffic from the web server to the DB server - probably the application", correct: false },
+        { key: "B", text: "The web server (10.0.1.4) is making a SQL connection (1433) to the database server (10.0.3.10) - could be legitimate, but the timing is suspicious", correct: false },
+        { key: "C", text: "The compromised web server is now reaching the database on port 1433 - possible lateral movement. The attacker may already be in.", correct: true },
+        { key: "D", text: "A DNS lookup (port 53) from the web server to an internal resolver", correct: false },
+      ],
+      feedback_good: "Exactly. The web server is connecting to the database on SQL port 1433 right in the middle of an active brute-force against that same web server. This could be normal app behaviour, but the timing is suspicious. If the attacker has already gained access via RDP, this could be lateral movement towards your data. You need to investigate this immediately.",
+      feedback_bad_A: "It might be normal app traffic, but you can't just assume that when the source machine is under active attack. That connection to port 1433 (SQL) happening during a brute-force needs investigating. Never dismiss anomalous timing.",
+      feedback_bad_B: "You've identified it correctly but your response is too passive. 'Could be legitimate' isn't good enough during an active incident. When a machine under attack starts making new connections to your database server, you treat it as potential compromise until proven otherwise.",
+      feedback_bad_D: "DNS is port 53, not 1433. Port 1433 is Microsoft SQL Server. The web server is connecting to the database.",
+    },
+    {
+      title: "Immediate Action",
+      step: "3 / 6",
+      narrative: `Right. You've got an actively brute-forced web server that's also talking to your database. Your SOC lead picks up the phone. "What are you doing about it?"<br><br>You need to act NOW. What's your first move?`,
+      question: "What do you do first?",
+      choices: [
+        { key: "A", text: "Email the infrastructure team and ask them to look at it in the morning", correct: false },
+        { key: "B", text: "Add an NSG Deny rule for source 185.143.72.91 on port 3389, priority 100", correct: false },
+        { key: "C", text: "Block ALL inbound traffic to the VM immediately with a priority 100 Deny All rule, then add targeted Allow rules only for forensics access", correct: true },
+        { key: "D", text: "Shut down the VM in the Azure portal", correct: false },
+      ],
+      feedback_good: "This is incident response 101. Isolate first, investigate second. A blanket Deny All at priority 100 stops all inbound traffic immediately. Then you add a specific Allow for your forensics workstation (SSH on port 22 from a known IP) at a lower priority number so it evaluates first. Blocking just the attacker IP isn't enough because they might have already got in, and they can come from a different IP.",
+      feedback_bad_A: "This is a live incident at 2am. Waiting until morning means the attacker has hours to exfiltrate data, deploy ransomware, or pivot to other systems. This would be a career-ending decision.",
+      feedback_bad_B: "Blocking the single IP addresses the brute-force but misses the bigger problem. If the attacker already got in, they're inside the VM now. Blocking their source IP doesn't stop them using the access they've already gained. Also, they can just switch to a different IP. You need to isolate the entire VM.",
+      feedback_bad_D: "Shutting down destroys volatile memory evidence (running processes, network connections, cached credentials). Forensics needs the machine running but isolated. An NSG Deny All achieves network isolation without losing evidence.",
+    },
+    {
+      title: "The NSG Fix",
+      step: "4 / 6",
+      narrative: `Good call. You need to write the NSG rules. Your forensics workstation is <strong>10.0.10.50</strong>. The compromised VM is <strong>10.0.1.4</strong>.<br><br>You're adding rules to the VM's NSG. What rules do you need?`,
+      question: "Pick the correct ruleset:",
+      choices: [
+        { key: "A", text: "Priority 100: Allow SSH (22) from 10.0.10.50. Priority 200: Deny All inbound from *. Priority 300: Deny All outbound to *.", correct: true },
+        { key: "B", text: "Priority 100: Deny All inbound from *. Priority 200: Allow SSH (22) from 10.0.10.50. Priority 300: Deny All outbound to *.", correct: false },
+        { key: "C", text: "Priority 100: Allow SSH (22) from *. Priority 200: Deny RDP (3389) from 185.143.72.91.", correct: false },
+        { key: "D", text: "Priority 100: Deny RDP (3389) from *. Priority 200: Allow SSH (22) from 10.0.10.50.", correct: false },
+      ],
+      feedback_good: "Priority matters. Allow SSH from the forensics workstation at 100 (evaluated first), then Deny All inbound at 200, then Deny All outbound at 300. This gives forensics access while completely isolating the VM from everything else. The outbound deny is critical. It stops the attacker exfiltrating data or maintaining a C2 channel.",
+      feedback_bad_B: "Priority trap. The Deny All at priority 100 fires before the Allow SSH at priority 200. Your forensics team can't get in. The Allow rule needs a LOWER priority number than the Deny All.",
+      feedback_bad_C: "Two problems. SSH open to * (any source) means anyone can connect, not just forensics. And you're only blocking RDP from one IP, not isolating the VM. The attacker could have other access methods. Isolate everything, then poke precise holes.",
+      feedback_bad_D: "Only blocking RDP isn't isolation. The VM can still receive and send traffic on every other port. If the attacker has a reverse shell on port 8080 or is exfiltrating data over HTTPS, you haven't stopped anything. Deny ALL, then allow only what forensics needs.",
+    },
+    {
+      title: "The Database Question",
+      step: "5 / 6",
+      narrative: `The VM is isolated. Forensics has SSH access. Your SOC lead asks: "What about that SQL connection to 10.0.3.10? Do we need to worry about the database server too?"<br><br>You check the database server's NSG flow logs:`,
+      terminal: {
+        label: "DB Server (10.0.3.10) - NSG Flow Logs",
+        lines: [
+          { text: "TIMESTAMP          SRC IP          DST IP      PORT  PROTO  ACTION", class: "heading" },
+          { text: "02:14:03.012      10.0.1.4        10.0.3.10   1433  TCP    ALLOW", class: "highlight" },
+          { text: "02:14:03.450      10.0.3.10       185.220.101.3  443  TCP   ALLOW", class: "danger" },
+          { text: "02:14:04.112      10.0.3.10       185.220.101.3  443  TCP   ALLOW", class: "danger" },
+          { text: "02:14:05.890      10.0.3.10       185.220.101.3  443  TCP   ALLOW", class: "danger" },
+          { text: "// outbound traffic to 185.220.101.3 started 3 seconds after", class: "comment" },
+          { text: "// the inbound SQL connection from compromised web server", class: "comment" },
+        ]
+      },
+      question: "What's happening on the database server?",
+      choices: [
+        { key: "A", text: "Normal HTTPS traffic to a Microsoft update server", correct: false },
+        { key: "B", text: "The database server is now making outbound HTTPS connections to an unknown external IP - 3 seconds after the compromised web server connected. This looks like data exfiltration or C2.", correct: true },
+        { key: "C", text: "DNS resolution traffic, nothing to worry about", correct: false },
+        { key: "D", text: "A backup job running to cloud storage", correct: false },
+      ],
+      feedback_good: "The timeline tells the story. The compromised web server connects to the database on port 1433. Three seconds later, the database starts sending outbound HTTPS (443) traffic to an unknown external IP. That's textbook lateral movement followed by data exfiltration. The database server is now compromised too. It needs the same treatment: immediate network isolation with NSG Deny All rules.",
+      feedback_bad_A: "Never assume outbound traffic is benign during an incident. The timing is the key evidence: this outbound traffic started 3 seconds after a connection from a known-compromised machine. Microsoft update servers don't work like that. Check the destination IP. 185.220.101.x is a known Tor exit node range.",
+      feedback_bad_C: "DNS is port 53. This is port 443 (HTTPS). And even if it were DNS, the timing pattern (starting immediately after a connection from a compromised host) would still be suspicious.",
+      feedback_bad_D: "Backup jobs don't start spontaneously 3 seconds after a connection from a compromised server. The timing correlation is your strongest evidence. Always follow the timeline.",
+    },
+    {
+      title: "The Write-Up",
+      step: "6 / 6",
+      narrative: `The incident is contained. Both VMs are isolated. Forensics is collecting evidence. Your SOC lead wants a one-line summary for the incident ticket.<br><br>Which summary best captures what happened?`,
+      question: "Pick the most accurate incident summary:",
+      choices: [
+        { key: "A", text: "RDP brute-force against web server from external IP, leading to lateral movement via SQL to database server, followed by suspected data exfiltration over HTTPS to external host.", correct: true },
+        { key: "B", text: "DDoS attack against web server on port 3389 causing service outage.", correct: false },
+        { key: "C", text: "Malware infection on web server spreading to database server via port 445.", correct: false },
+        { key: "D", text: "Suspicious DNS traffic detected on the web server subnet.", correct: false },
+      ],
+      feedback_good: "That's the full kill chain in one sentence. Initial access (RDP brute-force), lateral movement (SQL connection to DB), and action on objectives (HTTPS exfiltration). This is exactly how you'd write it in a Sentinel incident and exactly the kind of analysis SC-200 tests you on.",
+      feedback_bad_B: "This wasn't a DDoS. It was a brute-force. A DDoS tries to overwhelm with volume from many sources. This was a single IP targeting a specific service (RDP) to gain access. And you've completely missed the lateral movement and exfiltration.",
+      feedback_bad_C: "SMB is port 445. The lateral movement was via SQL (1433). Getting the port and protocol wrong in an incident report means your team goes hunting for the wrong thing.",
+      feedback_bad_D: "DNS (port 53) wasn't involved at all. The traffic was RDP (3389), SQL (1433), and HTTPS (443). An inaccurate summary sends investigators down the wrong path.",
+    }
+  ]
+},
+{
+  id: "network_design",
+  title: "Build the Network",
+  desc: "New client. Three-tier app. You're designing the Azure network from scratch. Pick the right address ranges, carve the subnets, and justify every decision.",
+  badge: "new",
+  steps: [
+    {
+      title: "Address Space",
+      step: "1 / 5",
+      narrative: `A new client needs an Azure VNet for a three-tier application: <strong>web tier</strong> (public-facing), <strong>app tier</strong> (internal logic), <strong>data tier</strong> (database). Plus a <strong>management subnet</strong> for admin access.<br><br>First decision: what address space for the VNet?`,
+      question: "Which VNet address space do you choose?",
+      choices: [
+        { key: "A", text: "10.0.0.0/16 - gives 65,536 addresses, plenty of room to grow", correct: true },
+        { key: "B", text: "10.0.1.0/24 - one subnet is enough for a small application", correct: false },
+        { key: "C", text: "82.14.22.0/24 - use a public range so it's internet accessible", correct: false },
+        { key: "D", text: "172.32.0.0/16 - nice and tidy private range", correct: false },
+      ],
+      feedback_good: "10.0.0.0/16 is a solid choice. It's an RFC 1918 private range, giving you 65,536 addresses. You'll carve this into /24 subnets (251 usable each), giving you room for 256 possible subnets. Always provision more address space than you think you need. Re-addressing a VNet is painful.",
+      feedback_bad_B: "A /24 gives you 251 usable addresses in Azure. That's fine for ONE subnet but you need four (web, app, data, management). You can't carve a /24 into multiple /24 subnets. Start bigger.",
+      feedback_bad_C: "Azure VNets use RFC 1918 private address ranges. 82.14.22.0 is a public IP range. You never assign public ranges to VNet address spaces. Azure handles public IP assignment separately via Public IP resources.",
+      feedback_bad_D: "Trap. 172.32.0.0 is NOT a private range. RFC 1918 defines 172.16.0.0 to 172.31.255.255 as private (172.16.0.0/12). 172.32.x.x is public. This is the exam gotcha we covered in the study sessions.",
+    },
+    {
+      title: "Subnet Design",
+      step: "2 / 5",
+      narrative: `VNet is 10.0.0.0/16. Now carve it into four subnets. Each tier needs its own subnet for security segmentation. Smaller subnets = tighter blast radius if one tier gets compromised.`,
+      question: "Which subnet layout is correct?",
+      choices: [
+        { key: "A", text: "Web: 10.0.1.0/24, App: 10.0.2.0/24, Data: 10.0.3.0/24, Mgmt: 10.0.10.0/24", correct: true },
+        { key: "B", text: "Web: 10.0.1.0/16, App: 10.0.2.0/16, Data: 10.0.3.0/16, Mgmt: 10.0.4.0/16", correct: false },
+        { key: "C", text: "Web: 10.1.0.0/24, App: 10.2.0.0/24, Data: 10.3.0.0/24, Mgmt: 10.4.0.0/24", correct: false },
+        { key: "D", text: "All four tiers in 10.0.1.0/24, separated by NSG rules only", correct: false },
+      ],
+      feedback_good: "Clean layout. Each /24 gives 251 usable addresses per tier. The third octet differentiates them (1=web, 2=app, 3=data, 10=mgmt). The management subnet is deliberately separated in a different range (10.0.10.x instead of 10.0.4.x) for clarity. All four subnets fit within the 10.0.0.0/16 VNet address space.",
+      feedback_bad_B: "Subnets can't be the same size as the VNet. Each /16 is 65,536 addresses. They would overlap with each other AND with the parent VNet. Subnets must be smaller than the VNet address space and can't overlap.",
+      feedback_bad_C: "These subnets fall outside the VNet address space. The VNet is 10.0.0.0/16, which covers 10.0.0.0 to 10.0.255.255. The address 10.1.0.0 is outside that range. Subnets must be carved from within the VNet's address space.",
+      feedback_bad_D: "Putting everything in one subnet defeats the purpose. Subnet segmentation is your first line of defence. If the web tier gets compromised, the attacker is already on the same subnet as your database. Separate subnets let you apply different NSG rules to each tier.",
+    },
+    {
+      title: "Web Tier NSG",
+      step: "3 / 5",
+      narrative: `Subnets are carved. Now you need NSG rules for the <strong>web subnet</strong> (10.0.1.0/24). This tier runs Nginx serving a public website. It also needs to talk to the app tier behind it.`,
+      question: "Which inbound ruleset is correct for the web tier?",
+      choices: [
+        { key: "A", text: "100: Allow HTTPS (443) from * | 110: Allow HTTP (80) from * | 200: Allow SSH (22) from 10.0.10.0/24 | 4000: Deny All from *", correct: true },
+        { key: "B", text: "100: Allow All from * | 200: Deny RDP (3389) from *", correct: false },
+        { key: "C", text: "100: Deny All from * | 200: Allow HTTPS (443) from * | 300: Allow SSH (22) from *", correct: false },
+        { key: "D", text: "100: Allow HTTPS (443) from * | 200: Allow SSH (22) from * | 4000: Deny All from *", correct: false },
+      ],
+      feedback_good: "Solid. HTTPS (443) and HTTP (80) are open to the internet because it's a public web server. SSH (22) is restricted to the management subnet only - no direct internet access. Deny All at 4000 catches everything else. The priorities are in the right order: Allow rules at lower numbers, Deny All at a high number.",
+      feedback_bad_B: "Allow All from * means every port is open to the internet. RDP, SSH, SQL, SMB - everything. Denying just RDP doesn't help when every other port is wide open. Whitelist what you need, deny everything else.",
+      feedback_bad_C: "Priority trap again. Deny All at 100 fires before anything else. The Allow HTTPS at 200 never gets evaluated. Your web server is completely unreachable.",
+      feedback_bad_D: "SSH from * means anyone on the internet can attempt to connect to your web servers on port 22. SSH should be restricted to the management subnet (10.0.10.0/24). You just saw in the first scenario what happens when remote access ports are open to the internet.",
+    },
+    {
+      title: "Data Tier Lockdown",
+      step: "4 / 5",
+      narrative: `The data tier (10.0.3.0/24) runs Azure SQL on port 1433. This is your crown jewels. Only the app tier should reach it.`,
+      question: "Which ruleset correctly locks down the data tier?",
+      choices: [
+        { key: "A", text: "100: Allow SQL (1433) from * | 200: Allow SSH (22) from 10.0.10.0/24 | 4000: Deny All", correct: false },
+        { key: "B", text: "100: Allow SQL (1433) from 10.0.2.0/24 | 110: Allow SSH (22) from 10.0.10.0/24 | 4000: Deny All inbound | 4001: Deny All outbound", correct: true },
+        { key: "C", text: "100: Allow SQL (1433) from 10.0.1.0/24 | 200: Deny All", correct: false },
+        { key: "D", text: "100: Allow All from 10.0.2.0/24 | 4000: Deny All", correct: false },
+      ],
+      feedback_good: "Locked tight. SQL only from the app subnet (10.0.2.0/24), not the web subnet. SSH from management only. Deny All both inbound AND outbound. The outbound deny is critical for the data tier. If the DB is compromised, you don't want it reaching the internet for exfiltration. You saw exactly this pattern in the first scenario.",
+      feedback_bad_A: "SQL from * means any machine in any subnet (or the internet if routing allows) can connect to your database. The data tier should only accept SQL connections from the app tier (10.0.2.0/24), not from everywhere.",
+      feedback_bad_C: "Wrong subnet. 10.0.1.0/24 is the web tier, not the app tier. The web tier shouldn't talk directly to the database. That's the whole point of three-tier architecture. Web talks to app (10.0.2.0/24), app talks to data (10.0.3.0/24).",
+      feedback_bad_D: "Allow All from the app subnet means every port is open between app and data tiers. The app only needs SQL (1433). If the app tier gets compromised, the attacker can reach the database on any port. Principle of least privilege: allow only the specific port and protocol needed.",
+    },
+    {
+      title: "Design Review",
+      step: "5 / 5",
+      narrative: `Final check. A junior admin looks at your design and says: "Why didn't you just put everything in one big /16 subnet and use NSGs to separate them? It's simpler."<br><br>How do you explain why separate subnets matter?`,
+      question: "What's the best justification for subnet segmentation?",
+      choices: [
+        { key: "A", text: "It's just Azure best practice, that's how it's done", correct: false },
+        { key: "B", text: "NSGs alone are a single layer of defence. Subnets add network-level isolation, reduce blast radius, enable different route tables per tier, and allow independent security policies. Defence in depth.", correct: true },
+        { key: "C", text: "Subnets make the Azure portal look more organised", correct: false },
+        { key: "D", text: "It's required by Azure - you can't apply NSGs without subnets", correct: false },
+      ],
+      feedback_good: "Defence in depth. Subnets give you: network-level isolation (traffic between subnets goes through Azure's routing, where you can inspect it), independent NSG policies per tier, different route tables (you might force-tunnel data tier traffic through a firewall), and reduced blast radius (a compromised web server is on a different network segment from the database). One flat subnet with NSGs is a single point of failure. If someone misconfigures an NSG rule, there's nothing else between the attacker and every other machine.",
+      feedback_bad_A: "'Because best practice' isn't an answer. If you can't explain WHY something is best practice, you don't understand it well enough to defend the design when someone pushes back. Know the reasoning.",
+      feedback_bad_C: "If your security architecture decision is based on how the portal looks, that's a problem. Subnets exist for isolation and security, not aesthetics.",
+      feedback_bad_D: "Not true. You can apply NSGs at both the subnet level and the NIC level. NSGs work without multiple subnets. The reason for multiple subnets is defence in depth, not a technical requirement.",
+    }
+  ]
+},
+{
+  id: "troubleshoot",
+  title: "Nothing Works",
+  desc: "A developer says their new VM 'can't connect to anything'. The ticket has zero useful detail. Diagnose the problem using only what the network tells you.",
+  badge: "new",
+  steps: [
+    {
+      title: "The Ticket",
+      step: "1 / 5",
+      narrative: `Ticket #4471: <em>"My new VM can't connect to anything. Please fix ASAP, I'm blocked."</em><br><br>That's the entire ticket. No error messages, no screenshots, nothing. Classic.<br><br>You pull up the VM details:`,
+      terminal: {
+        label: "VM Details - DEV-APP-03",
+        lines: [
+          { text: "VM Name:        DEV-APP-03", class: "info" },
+          { text: "Private IP:     10.0.5.20", class: "info" },
+          { text: "Subnet:         DevTest (10.0.5.0/24)", class: "info" },
+          { text: "NSG:            nsg-devtest", class: "info" },
+          { text: "Public IP:      None assigned", class: "highlight" },
+          { text: "OS:             Ubuntu 22.04 LTS", class: "" },
+          { text: "State:          Running", class: "ok" },
+        ]
+      },
+      question: "Where do you start troubleshooting?",
+      choices: [
+        { key: "A", text: "Assign a public IP - that's clearly the problem, no public IP means no internet", correct: false },
+        { key: "B", text: "Check the NSG rules on nsg-devtest - the firewall might be blocking everything", correct: true },
+        { key: "C", text: "Reboot the VM - that usually fixes things", correct: false },
+        { key: "D", text: "Ask the developer what 'can't connect to anything' actually means", correct: false },
+      ],
+      feedback_good: "The NSG is the first place to look. A misconfigured NSG is the most common reason a new VM can't talk to anything. Azure VMs don't need a public IP for outbound internet access - Azure provides default outbound connectivity via SNAT. But an NSG can block everything if the rules are wrong.",
+      feedback_bad_A: "Azure VMs don't need a public IP for outbound internet access. Azure provides default outbound connectivity through SNAT (Source Network Address Translation). A missing public IP would only prevent inbound connections from the internet. The developer said they can't connect TO anything (outbound), not that nothing can connect to them.",
+      feedback_bad_C: "The VM is already running. Rebooting without diagnosis is cargo cult troubleshooting. You need to understand WHY it can't connect before you start pressing buttons.",
+      feedback_bad_D: "Normally yes, but you've already got the VM details. The NSG is right there. Check it. You can ask for clarification AND investigate simultaneously. Don't wait for a response when you can start diagnosing now.",
+    },
+    {
+      title: "The NSG Rules",
+      step: "2 / 5",
+      narrative: `You pull the NSG rules for <strong>nsg-devtest</strong>:`,
+      terminal: {
+        label: "nsg-devtest - Inbound Rules",
+        lines: [
+          { text: "PRI   SOURCE          DEST          PORT  PROTO  ACTION", class: "heading" },
+          { text: "100   *               *             *     Any    Deny", class: "danger" },
+          { text: "---   (no other custom rules)       ---   ---    ---", class: "comment" },
+          { text: "", class: "" },
+          { text: "DEFAULT AZURE RULES:", class: "heading" },
+          { text: "65000 VirtualNetwork  VirtualNetwork *    Any    Allow", class: "ok" },
+          { text: "65001 AzureLB         *             *     Any    Allow", class: "ok" },
+          { text: "65500 *               *             *     Any    Deny", class: "" },
+        ]
+      },
+      question: "What's the problem?",
+      choices: [
+        { key: "A", text: "The default Azure rules are blocking traffic", correct: false },
+        { key: "B", text: "There's a custom Deny All at priority 100 that fires before Azure's default Allow rules at 65000. Nothing gets through.", correct: true },
+        { key: "C", text: "The NSG has no Allow rules so it defaults to allow everything", correct: false },
+        { key: "D", text: "Port 22 isn't listed so SSH is blocked", correct: false },
+      ],
+      feedback_good: "There it is. Someone added a custom Deny All at priority 100. Azure has default rules that allow intra-VNet traffic (65000) and load balancer probes (65001), but custom rules in the 100-4096 range are evaluated BEFORE default rules in the 65000+ range. That Deny All at 100 kills everything before the defaults even get a look. This is why the developer can't connect to anything - not even other VMs in the same VNet.",
+      feedback_bad_A: "The default rules (65000, 65001, 65500) are fine. They allow VNet-to-VNet and load balancer traffic by default. The problem is the custom Deny All at priority 100, which fires before any default rules are evaluated.",
+      feedback_bad_C: "NSGs are deny-by-default (the default rule at 65500 is Deny All). But Azure also has built-in Allow rules at 65000-65001 that permit basic VNet traffic. The custom Deny All at 100 blocks everything before those helpful defaults.",
+      feedback_bad_D: "SSH (22) being absent isn't the main issue. The Deny All at priority 100 blocks ALL traffic on ALL ports. Even if you added an SSH rule, it wouldn't help unless its priority number is lower than 100.",
+    },
+    {
+      title: "The Fix",
+      step: "3 / 5",
+      narrative: `The Deny All at priority 100 is blocking everything. The developer needs: SSH access from the management subnet, outbound internet access for package updates, and connectivity to other VMs in the VNet.`,
+      question: "How do you fix this?",
+      choices: [
+        { key: "A", text: "Delete the Deny All rule entirely - let the default rules handle it", correct: false },
+        { key: "B", text: "Change the Deny All priority from 100 to 4000, then add: Allow SSH (22) from 10.0.10.0/24 at 100, Allow VNet-to-VNet at 110", correct: true },
+        { key: "C", text: "Add Allow All from * at priority 50", correct: false },
+        { key: "D", text: "Delete the NSG and remove all firewall protection", correct: false },
+      ],
+      feedback_good: "Move the Deny All to a high priority number (4000) so it's the last custom rule evaluated. Then add specific Allow rules at lower numbers. SSH from management subnet at 100, VNet traffic at 110. The Deny All at 4000 catches everything else. You keep the explicit deny (belt and braces with the default deny at 65500) but now your specific Allow rules fire first.",
+      feedback_bad_A: "Removing the Deny All entirely means you rely only on Azure's default Deny at 65500. That works, but it's sloppy. If someone later adds a broad Allow rule, there's no explicit catch-all to stop it. Keep the Deny All, just move it to a high priority number so your Allow rules fire first.",
+      feedback_bad_C: "Allow All from * at priority 50 opens every port to the entire internet. You've just solved 'nothing works' by creating 'everything is exposed'. That's worse than the original problem.",
+      feedback_bad_D: "Removing the NSG entirely means no firewall protection at all. Every port on the VM is reachable from any source in the VNet, and potentially from the internet depending on routing. Never remove security controls to fix connectivity. Fix the rules.",
+    },
+    {
+      title: "The Developer's Second Problem",
+      step: "4 / 5",
+      narrative: `NSG is fixed. The developer messages back: "OK I can SSH in now, but I can't reach the database server at 10.0.3.10 on port 5432."<br><br>Port 5432. That's not SQL Server.`,
+      question: "What runs on port 5432?",
+      choices: [
+        { key: "A", text: "MySQL", correct: false },
+        { key: "B", text: "PostgreSQL", correct: true },
+        { key: "C", text: "Microsoft SQL Server", correct: false },
+        { key: "D", text: "MongoDB", correct: false },
+      ],
+      feedback_good: "Port 5432 is PostgreSQL. SQL Server is 1433, MySQL is 3306, MongoDB is 27017. Knowing your port numbers means you can instantly identify what service is involved when you're reading NSG flow logs or Sentinel alerts. You'll need to check the data tier NSG allows inbound 5432 from the DevTest subnet (10.0.5.0/24).",
+      feedback_bad_A: "MySQL is port 3306, not 5432. Close family (both are relational databases), but different ports. 5432 is PostgreSQL.",
+      feedback_bad_C: "SQL Server is port 1433. We used it in the first scenario. 5432 is PostgreSQL.",
+      feedback_bad_D: "MongoDB defaults to port 27017. 5432 is PostgreSQL. Different database, different port.",
+    },
+    {
+      title: "Lessons Learned",
+      step: "5 / 5",
+      narrative: `Everything is working. Before you close the ticket, you want to prevent this happening again.<br><br>What's the root cause and what change do you recommend?`,
+      question: "What went wrong and what do you recommend?",
+      choices: [
+        { key: "A", text: "The developer should have been given admin access to manage their own NSGs", correct: false },
+        { key: "B", text: "Someone created a blanket Deny All with no Allow rules. Recommend: use Azure Policy to enforce that new NSGs must include baseline Allow rules for VNet traffic and SSH from management, and require change approval for NSG modifications.", correct: true },
+        { key: "C", text: "Azure defaults are broken. Recommend: disable NSGs on dev subnets", correct: false },
+        { key: "D", text: "The VM was in the wrong subnet. Recommend: move all dev VMs to the management subnet", correct: false },
+      ],
+      feedback_good: "Root cause: a Deny All was created without corresponding Allow rules, and there was no policy or review process to catch it. The fix isn't just technical (fixing the rules) but operational: Azure Policy can enforce that NSGs always contain baseline rules, and change approval processes prevent someone from accidentally locking down a subnet. This is governance feeding into security, which is exactly where AZ-900 Domain 3 meets real-world operations.",
+      feedback_bad_A: "Giving developers NSG admin access is how you end up with Allow All From * rules on production databases. Network security controls should be managed by the infrastructure or security team, not application developers. Least privilege applies to Azure RBAC too.",
+      feedback_bad_C: "Disabling NSGs on any subnet, even dev, removes your firewall. Dev environments often contain test data, credentials, and connectivity to production resources. They need protection too. The problem wasn't NSGs existing, it was NSGs being misconfigured.",
+      feedback_bad_D: "The management subnet is for admin access, not developer workloads. Putting dev VMs there breaks your security segmentation. The subnet was fine. The NSG rules were the problem.",
+    }
+  ]
+}
+];
+
+// =====================================================
+// ENGINE
+// =====================================================
+let currentScenario = null;
+let currentStep = 0;
+let scenarioScores = {};
+let stepAnswered = false;
+
+function showMenu() {
+  document.getElementById('gameArea').classList.remove('active');
+  const menu = document.getElementById('menuArea');
+  menu.innerHTML = `
+    <div class="scenario-select">
+      ${SCENARIOS.map(sc => {
+        const done = scenarioScores[sc.id] !== undefined;
+        const score = scenarioScores[sc.id];
+        return `
+          <div class="sc-card ${done ? 'complete' : ''}" onclick="startScenario('${sc.id}')">
+            <div class="sc-num">${sc.id.replace('_',' ')}</div>
+            <h3>${sc.title}</h3>
+            <p>${sc.desc}</p>
+            ${done
+              ? `<span class="sc-badge done">${score}/${SCENARIOS.find(s=>s.id===sc.id).steps.length} ✓</span>`
+              : `<span class="sc-badge new">Start</span>`
+            }
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function startScenario(id) {
+  currentScenario = SCENARIOS.find(s => s.id === id);
+  currentStep = 0;
+  scenarioScores[id] = 0;
+  document.getElementById('menuArea').innerHTML = '';
+  document.getElementById('gameArea').classList.add('active');
+  renderStep();
+}
+
+function renderStep() {
+  stepAnswered = false;
+  const step = currentScenario.steps[currentStep];
+  const game = document.getElementById('gameArea');
+
+  let terminalHtml = '';
+  if (step.terminal) {
+    terminalHtml = `
+      <div class="terminal">
+        <div class="term-bar">
+          <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+          <span class="term-label">${step.terminal.label}</span>
+        </div>
+        <div class="term-body">${step.terminal.lines.map(l =>
+          `<div class="${l.class}">${l.text}</div>`
+        ).join('')}</div>
+      </div>
+    `;
+  }
+
+  let logHtml = '';
+  if (step.logTable) {
+    logHtml = `
+      <table class="log-table">
+        <thead><tr>${step.logTable.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${step.logTable.rows.map(r =>
+          `<tr class="${r.suspicious ? 'suspicious' : ''}">${r.cells.map((c,i) =>
+            `<td class="${r.classes && r.classes[i] ? r.classes[i] : ''}">${c}</td>`
+          ).join('')}</tr>`
+        ).join('')}</tbody>
+      </table>
+    `;
+  }
+
+  game.innerHTML = `
+    <button class="back-btn" onclick="showMenu()">← Back to scenarios</button>
+    <div class="scene-box">
+      <div class="scene-header">
+        <div class="scene-title">${step.title}</div>
+        <div class="scene-step">${step.step}</div>
+      </div>
+      <div class="scene-body">
+        <div class="scene-narrative">${step.narrative}</div>
+        ${terminalHtml}
+        ${logHtml}
+        <div style="font-size:15px;font-weight:600;margin-top:20px;margin-bottom:12px;color:var(--accent)">${step.question}</div>
+        <div class="choices" id="choiceArea">
+          ${step.choices.map((c, i) => `
+            <button class="choice" onclick="makeChoice(${i})" id="choice-${i}">
+              <span class="key">${c.key}</span>
+              <span>${c.text}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="feedback-box" id="feedbackBox"></div>
+        <button class="continue-btn" id="continueBtn" onclick="nextStep()">Continue →</button>
+      </div>
+    </div>
+  `;
+}
+
+function makeChoice(idx) {
+  if (stepAnswered) return;
+  stepAnswered = true;
+
+  const step = currentScenario.steps[currentStep];
+  const chosen = step.choices[idx];
+  const correctIdx = step.choices.findIndex(c => c.correct);
+
+  // Disable all
+  step.choices.forEach((c, i) => {
+    const el = document.getElementById('choice-' + i);
+    el.disabled = true;
+    if (c.correct) el.classList.add('correct-choice');
+    if (i === idx && !c.correct) el.classList.add('wrong-choice');
+  });
+
+  // Feedback
+  const fb = document.getElementById('feedbackBox');
+  if (chosen.correct) {
+    scenarioScores[currentScenario.id]++;
+    fb.className = 'feedback-box show good';
+    fb.innerHTML = `<h4>Correct.</h4><p>${step.feedback_good}</p>`;
+  } else {
+    const badKey = 'feedback_bad_' + chosen.key;
+    const badFeedback = step[badKey] || step.feedback_good;
+    fb.className = 'feedback-box show bad';
+    fb.innerHTML = `<h4>Not quite.</h4><p>${badFeedback}</p>`;
+  }
+
+  document.getElementById('continueBtn').classList.add('show');
+  fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function nextStep() {
+  currentStep++;
+  if (currentStep >= currentScenario.steps.length) {
+    showResults();
+  } else {
+    renderStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function showResults() {
+  const score = scenarioScores[currentScenario.id];
+  const total = currentScenario.steps.length;
+  const pct = Math.round((score / total) * 100);
+  const game = document.getElementById('gameArea');
+
+  let message = '';
+  if (pct === 100) message = "Flawless. Every call was right.";
+  else if (pct >= 80) message = "Strong. A couple of wobbles but you know your stuff.";
+  else if (pct >= 60) message = "Getting there. Review the ones you got wrong - those are teaching you the most.";
+  else message = "Go back through the study buddy lesson content and run this again.";
+
+  game.innerHTML = `
+    <button class="back-btn" onclick="showMenu()">← Back to scenarios</button>
+    <div class="results-card">
+      <h2>${currentScenario.title} - Complete</h2>
+      <div class="big-score">${score}/${total}</div>
+      <p>${message}</p>
+      <div class="sc200-callout">
+        <strong>SC-200 Connection:</strong> Everything in this scenario maps to what you'll do in Microsoft Sentinel as a Security Operations Analyst. Reading NSG flow logs, identifying attack patterns, correlating timestamps across multiple data sources, writing incident summaries, and making containment decisions under pressure. The port numbers, protocol knowledge, subnet logic, and NSG priority rules aren't abstract exam topics. They're the tools you use to investigate real incidents. KQL queries in Sentinel filter on these exact fields: SourceIP, DestinationIP, DestinationPort, Protocol, Action. If you know what port 3389 is without thinking, you're faster at triage. That's the point.
+      </div>
+      <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="submit-btn" onclick="startScenario('${currentScenario.id}')">Run Again</button>
+        <button class="back-btn" style="margin:0" onclick="showMenu()">All Scenarios</button>
+      </div>
+    </div>
+  `;
+}
+
+// INIT
+showMenu();
+</script>
+</body>
+</html>
