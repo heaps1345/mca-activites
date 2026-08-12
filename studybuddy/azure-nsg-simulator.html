@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure NSG Rule Builder - MCA Cyber Academy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --azure-blue: #0078D4;
+    --azure-dark: #003A6C;
+    --azure-light: #50A0E6;
+    --bg: #0D1117;
+    --surface: #161B22;
+    --surface-2: #1C2330;
+    --border: #30363D;
+    --text: #E6EDF3;
+    --text-dim: #8B949E;
+    --green: #3FB950;
+    --green-bg: rgba(63,185,80,0.12);
+    --red: #F85149;
+    --red-bg: rgba(248,81,73,0.12);
+    --amber: #D29922;
+    --amber-bg: rgba(210,153,34,0.12);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--azure-dark), var(--azure-blue));
+    padding: 24px 32px;
+    border-bottom: 2px solid var(--azure-light);
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 4px;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Progress bar */
+  .progress-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .progress-pip {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    transition: background 0.3s;
+  }
+  .progress-pip.complete { background: var(--green); }
+  .progress-pip.active { background: var(--azure-blue); }
+
+  /* Scenario card */
+  .scenario-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .scenario-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--azure-light);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .scenario-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .scenario-desc {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  /* Network diagram */
+  .network-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .net-box {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+  }
+  .net-box-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .net-box-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--azure-light);
+  }
+
+  /* Requirements list */
+  .requirements {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    border-left: 3px solid var(--azure-blue);
+  }
+  .requirements h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--azure-light);
+  }
+  .req-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .req-item .check {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.3s;
+  }
+  .req-item.met .check {
+    background: var(--green-bg);
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .req-item.failed .check {
+    background: var(--red-bg);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* Rule builder */
+  .rule-builder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .rule-builder h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rule-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--azure-blue);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* Rule form */
+  .rule-form {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr 100px 90px 100px 90px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 900px) {
+    .rule-form {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--azure-blue);
+  }
+  .form-group input::placeholder { color: var(--text-dim); opacity: 0.5; }
+  .form-group select option { background: var(--bg); }
+
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-add {
+    background: var(--azure-blue);
+    color: white;
+    align-self: end;
+  }
+  .btn-add:hover { background: var(--azure-light); }
+  .btn-validate {
+    background: var(--green);
+    color: var(--bg);
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-validate:hover { opacity: 0.9; }
+  .btn-reset {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+  .btn-reset:hover { border-color: var(--text-dim); }
+  .btn-next {
+    background: var(--azure-blue);
+    color: white;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-next:hover { background: var(--azure-light); }
+
+  /* Rules table */
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .rules-table th {
+    text-align: left;
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-table td {
+    padding: 8px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .rules-table tr:last-child td { border-bottom: none; }
+  .rules-table .action-allow { color: var(--green); }
+  .rules-table .action-deny { color: var(--red); }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .delete-btn:hover { color: var(--red); background: var(--red-bg); }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  /* Feedback */
+  .feedback {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback-pass {
+    border-color: var(--green);
+    background: linear-gradient(135deg, var(--surface), rgba(63,185,80,0.05));
+  }
+  .feedback-fail {
+    border-color: var(--red);
+    background: linear-gradient(135deg, var(--surface), rgba(248,81,73,0.05));
+  }
+  .feedback h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .feedback-pass h3 { color: var(--green); }
+  .feedback-fail h3 { color: var(--red); }
+  .feedback p, .feedback li {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .feedback ul { padding-left: 20px; }
+  .feedback .hint {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--amber-bg);
+    border-radius: 6px;
+    border-left: 3px solid var(--amber);
+    font-size: 13px;
+    color: var(--amber);
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* Score summary */
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--azure-blue);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    display: none;
+  }
+  .score-card.show { display: block; }
+  .score-card h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .score-big {
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--azure-blue);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .score-card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 12px;
+  }
+  .sc200-hook {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text-dim);
+    border-left: 3px solid var(--azure-light);
+  }
+  .sc200-hook strong { color: var(--azure-light); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Azure NSG Rule Builder Simulator</h1>
+  <p>MCA Threat Detection Academy - Apply your networking fundamentals to Azure Network Security Groups</p>
+</div>
+
+<div class="container">
+  <div class="progress-bar" id="progressBar"></div>
+  <div id="scenarioArea"></div>
+  <div id="ruleBuilderArea"></div>
+  <div id="feedbackArea" class="feedback"></div>
+  <div id="scoreCard" class="score-card"></div>
+</div>
+
+<script>
+const SCENARIOS = [
+  {
+    id: 1,
+    label: "Scenario 1 of 5",
+    title: "Web Server - Basic Public Access",
+    desc: "You've deployed an Ubuntu VM running Nginx as a public web server. It needs to serve HTTPS traffic to the internet and allow SSH access only from your management workstation for admin tasks.",
+    network: [
+      { label: "VNet", value: "10.0.0.0/16" },
+      { label: "Web Subnet", value: "10.0.1.0/24" },
+      { label: "VM Private IP", value: "10.0.1.4" },
+      { label: "Your Workstation", value: "82.14.22.50/32" }
+    ],
+    requirements: [
+      { text: "Allow HTTPS (443) inbound from any source", key: "https" },
+      { text: "Allow SSH (22) inbound from 82.14.22.50 only", key: "ssh" },
+      { text: "Deny all other inbound traffic", key: "denyall" }
+    ],
+    validate: function(rules) {
+      let results = { https: false, ssh: false, denyall: false, issues: [] };
+      const inbound = rules.filter(r => r.direction === 'Inbound');
+
+      // Check HTTPS rule
+      const httpsRule = inbound.find(r => r.port === '443' && r.action === 'Allow' && (r.source === '*' || r.source === '0.0.0.0/0' || r.source.toLowerCase() === 'any' || r.source.toLowerCase() === 'internet'));
+      if (httpsRule) results.https = true;
+      else results.issues.push("No rule allowing HTTPS (443) from any source. Remember: web servers need to be reachable from the internet on port 443.");
+
+      // Check SSH rule
+      const sshRule = inbound.find(r => r.port === '22' && r.action === 'Allow' && (r.source === '82.14.22.50' || r.source === '82.14.22.50/32'));
+      if (sshRule) {
+        results.ssh = true;
+        // Check there's no broad SSH rule
+        const broadSsh = inbound.find(r => r.port === '22' && r.action === 'Allow' && (r.source === '*' || r.source === '0.0.0.0/0' || r.source.toLowerCase() === 'any' || r.source.toLowerCase() === 'internet'));
+        if (broadSsh) {
+          results.ssh = false;
+          results.issues.push("SSH is allowed from ANY source. The requirement says management workstation only (82.14.22.50/32). Leaving SSH open to the internet is a critical security risk.");
+        }
+      } else {
+        const anySsh = inbound.find(r => r.port === '22' && r.action === 'Allow');
+        if (anySsh) results.issues.push("SSH rule exists but the source isn't restricted to 82.14.22.50/32. Lock it down to the management workstation.");
+        else results.issues.push("No SSH rule found. You need to allow port 22 from the management workstation (82.14.22.50/32).");
+      }
+
+      // Check deny all
+      const denyAll = inbound.find(r => r.port === '*' && r.action === 'Deny' && (r.source === '*' || r.source === '0.0.0.0/0' || r.source.toLowerCase() === 'any'));
+      if (denyAll) {
+        results.denyall = true;
+        // Check priority ordering
+        const denyPri = denyAll.priority;
+        if (httpsRule && parseInt(httpsRule.priority) >= parseInt(denyPri)) {
+          results.issues.push("Priority problem: your Deny All rule (priority " + denyPri + ") will block HTTPS before the Allow rule (priority " + httpsRule.priority + ") gets evaluated. Lower priority numbers are processed first in Azure NSGs.");
+          results.https = false;
+        }
+        if (sshRule && parseInt(sshRule.priority) >= parseInt(denyPri)) {
+          results.issues.push("Priority problem: your Deny All rule will block SSH before the Allow rule gets evaluated. Allow rules need a lower priority number than the Deny All.");
+          results.ssh = false;
+        }
+      } else {
+        results.issues.push("No Deny All rule. Without an explicit deny, Azure's default rules may allow unwanted traffic. Best practice is an explicit catch-all deny at a high priority number.");
+      }
+
+      results.passed = results.https && results.ssh && results.denyall && results.issues.length === 0;
+      return results;
+    },
+    hint: "Remember: Azure NSG rules are evaluated by priority number (lowest number = highest priority). Allow rules must have a lower priority number than your Deny All rule, or they'll never be reached."
+  },
+  {
+    id: 2,
+    label: "Scenario 2 of 5",
+    title: "Database Lockdown",
+    desc: "Your Azure SQL Database VM sits in a dedicated data subnet. Only the application tier should be able to connect to it on the SQL port. No direct internet access. No SSH except from the management subnet.",
+    network: [
+      { label: "VNet", value: "10.0.0.0/16" },
+      { label: "App Subnet", value: "10.0.2.0/24" },
+      { label: "Data Subnet", value: "10.0.3.0/24" },
+      { label: "Mgmt Subnet", value: "10.0.10.0/24" }
+    ],
+    requirements: [
+      { text: "Allow SQL (1433) inbound from the App Subnet (10.0.2.0/24) only", key: "sql" },
+      { text: "Allow SSH (22) inbound from the Mgmt Subnet (10.0.10.0/24) only", key: "ssh" },
+      { text: "Deny all other inbound traffic", key: "denyall" }
+    ],
+    validate: function(rules) {
+      let results = { sql: false, ssh: false, denyall: false, issues: [] };
+      const inbound = rules.filter(r => r.direction === 'Inbound');
+
+      const sqlRule = inbound.find(r => r.port === '1433' && r.action === 'Allow' && r.source === '10.0.2.0/24');
+      if (sqlRule) results.sql = true;
+      else {
+        const anySql = inbound.find(r => r.port === '1433' && r.action === 'Allow');
+        if (anySql && (anySql.source === '*' || anySql.source === '0.0.0.0/0')) results.issues.push("SQL is open to everyone. It must only be reachable from the App Subnet (10.0.2.0/24). An open database port is a catastrophic misconfiguration.");
+        else if (anySql) results.issues.push("SQL rule exists but the source isn't the App Subnet (10.0.2.0/24). Check your CIDR.");
+        else results.issues.push("No rule allowing SQL (1433). The app tier needs to reach the database.");
+      }
+
+      const sshRule = inbound.find(r => r.port === '22' && r.action === 'Allow' && r.source === '10.0.10.0/24');
+      if (sshRule) results.ssh = true;
+      else {
+        const anySsh = inbound.find(r => r.port === '22' && r.action === 'Allow');
+        if (anySsh) results.issues.push("SSH source must be the Mgmt Subnet (10.0.10.0/24) only.");
+        else results.issues.push("No SSH rule. Admins in the management subnet need access on port 22.");
+      }
+
+      const denyAll = inbound.find(r => r.port === '*' && r.action === 'Deny' && (r.source === '*' || r.source === '0.0.0.0/0' || r.source.toLowerCase() === 'any'));
+      if (denyAll) {
+        results.denyall = true;
+        const denyPri = parseInt(denyAll.priority);
+        if (sqlRule && parseInt(sqlRule.priority) >= denyPri) { results.sql = false; results.issues.push("Priority issue: Deny All blocks SQL before it's allowed. Lower the Allow rule's priority number."); }
+        if (sshRule && parseInt(sshRule.priority) >= denyPri) { results.ssh = false; results.issues.push("Priority issue: Deny All blocks SSH before it's allowed."); }
+      } else {
+        results.issues.push("No explicit Deny All rule. Always close the door before opening specific windows.");
+      }
+
+      results.passed = results.sql && results.ssh && results.denyall && results.issues.length === 0;
+      return results;
+    },
+    hint: "The data tier is your crown jewels. Think about it like a vault - only the app servers that need to talk to the database should be allowed in, and only on the exact port they need. Everything else: denied."
+  },
+  {
+    id: 3,
+    label: "Scenario 3 of 5",
+    title: "The Priority Trap",
+    desc: "A junior admin set up NSG rules but users are reporting they can't reach the web app. The existing rules are shown below. You need to FIX the ruleset - don't start from scratch, just adjust the priorities so the rules work as intended.",
+    network: [
+      { label: "VNet", value: "10.0.0.0/16" },
+      { label: "Web Subnet", value: "10.0.1.0/24" },
+      { label: "Intended: Allow HTTP/HTTPS, Deny everything else", value: "" }
+    ],
+    requirements: [
+      { text: "HTTP (80) must be allowed from the internet", key: "http" },
+      { text: "HTTPS (443) must be allowed from the internet", key: "https" },
+      { text: "All other traffic must be denied", key: "denyall" },
+      { text: "Rules must be in the correct priority order", key: "order" }
+    ],
+    prefill: [
+      { priority: "100", source: "*", dest: "*", port: "*", protocol: "Any", direction: "Inbound", action: "Deny" },
+      { priority: "200", source: "*", dest: "10.0.1.0/24", port: "80", protocol: "TCP", direction: "Inbound", action: "Allow" },
+      { priority: "300", source: "*", dest: "10.0.1.0/24", port: "443", protocol: "TCP", direction: "Inbound", action: "Allow" }
+    ],
+    validate: function(rules) {
+      let results = { http: false, https: false, denyall: false, order: false, issues: [] };
+      const inbound = rules.filter(r => r.direction === 'Inbound');
+
+      const httpRule = inbound.find(r => r.port === '80' && r.action === 'Allow');
+      const httpsRule = inbound.find(r => r.port === '443' && r.action === 'Allow');
+      const denyRule = inbound.find(r => r.port === '*' && r.action === 'Deny');
+
+      if (httpRule) results.http = true; else results.issues.push("No Allow rule for HTTP (80).");
+      if (httpsRule) results.https = true; else results.issues.push("No Allow rule for HTTPS (443).");
+      if (denyRule) results.denyall = true; else results.issues.push("No Deny All rule.");
+
+      if (httpRule && httpsRule && denyRule) {
+        const httpPri = parseInt(httpRule.priority);
+        const httpsPri = parseInt(httpsRule.priority);
+        const denyPri = parseInt(denyRule.priority);
+        if (httpPri < denyPri && httpsPri < denyPri) {
+          results.order = true;
+        } else {
+          results.issues.push("Priority order is still wrong. The Deny All rule (priority " + denyPri + ") is being evaluated before one or both Allow rules. In Azure, the lowest priority number wins. Allow rules need lower numbers than the Deny.");
+        }
+      }
+
+      results.passed = results.http && results.https && results.denyall && results.order && results.issues.length === 0;
+      return results;
+    },
+    hint: "This is the classic NSG gotcha. Azure evaluates rules from lowest priority number to highest. If Deny All is at 100 and Allow HTTP is at 200, the Deny fires first and the Allow never gets checked. Swap the priorities around."
+  },
+  {
+    id: 4,
+    label: "Scenario 4 of 5",
+    title: "Three-Tier Architecture",
+    desc: "You're securing a three-tier application: a public web frontend, a private application layer, and a locked-down database. Build the NSG rules for the APPLICATION tier's NSG. The app tier should only accept traffic from the web tier and only talk to the database tier.",
+    network: [
+      { label: "VNet", value: "10.0.0.0/16" },
+      { label: "Web Subnet", value: "10.0.1.0/24" },
+      { label: "App Subnet", value: "10.0.2.0/24" },
+      { label: "Data Subnet", value: "10.0.3.0/24" }
+    ],
+    requirements: [
+      { text: "Allow inbound on port 8080 from Web Subnet (10.0.1.0/24) only", key: "appIn" },
+      { text: "Allow outbound on port 1433 to Data Subnet (10.0.3.0/24) only", key: "dbOut" },
+      { text: "Deny all other inbound traffic", key: "denyIn" },
+      { text: "Deny all other outbound traffic", key: "denyOut" }
+    ],
+    validate: function(rules) {
+      let results = { appIn: false, dbOut: false, denyIn: false, denyOut: false, issues: [] };
+      const inbound = rules.filter(r => r.direction === 'Inbound');
+      const outbound = rules.filter(r => r.direction === 'Outbound');
+
+      const appRule = inbound.find(r => r.port === '8080' && r.action === 'Allow' && r.source === '10.0.1.0/24');
+      if (appRule) results.appIn = true;
+      else {
+        const anyApp = inbound.find(r => r.port === '8080' && r.action === 'Allow');
+        if (anyApp) results.issues.push("App port 8080 is allowed but not restricted to the Web Subnet (10.0.1.0/24). Only the web tier should reach the app tier.");
+        else results.issues.push("No inbound rule for port 8080 from the Web Subnet.");
+      }
+
+      const dbRule = outbound.find(r => r.port === '1433' && r.action === 'Allow' && r.dest === '10.0.3.0/24');
+      if (dbRule) results.dbOut = true;
+      else {
+        const anyDb = outbound.find(r => r.port === '1433' && r.action === 'Allow');
+        if (anyDb) results.issues.push("Outbound SQL is allowed but not restricted to the Data Subnet (10.0.3.0/24).");
+        else results.issues.push("No outbound rule for SQL (1433) to the Data Subnet. The app needs to talk to the database.");
+      }
+
+      const denyIn = inbound.find(r => r.port === '*' && r.action === 'Deny' && (r.source === '*' || r.source.toLowerCase() === 'any'));
+      if (denyIn) {
+        results.denyIn = true;
+        if (appRule && parseInt(appRule.priority) >= parseInt(denyIn.priority)) { results.appIn = false; results.issues.push("Inbound Deny All has a lower priority number than the Allow rule. Fix the priority order."); }
+      } else results.issues.push("No inbound Deny All rule.");
+
+      const denyOut = outbound.find(r => r.port === '*' && r.action === 'Deny' && (r.dest === '*' || r.dest.toLowerCase() === 'any'));
+      if (denyOut) {
+        results.denyOut = true;
+        if (dbRule && parseInt(dbRule.priority) >= parseInt(denyOut.priority)) { results.dbOut = false; results.issues.push("Outbound Deny All has a lower priority number than the Allow rule. Fix the priority order."); }
+      } else results.issues.push("No outbound Deny All rule. The app tier could reach anywhere on the internet without this.");
+
+      results.passed = results.appIn && results.dbOut && results.denyIn && results.denyOut && results.issues.length === 0;
+      return results;
+    },
+    hint: "This scenario tests both directions. Inbound: only accept from the web tier on 8080. Outbound: only allow connections to the database on 1433. Both need an explicit Deny All with a higher priority number than the Allow rules."
+  },
+  {
+    id: 5,
+    label: "Scenario 5 of 5",
+    title: "Incident Response - Isolate a Compromised VM",
+    desc: "Defender for Endpoint has flagged VM 10.0.2.15 as compromised. Your SOC lead wants it network-isolated immediately while forensics investigates. It must not be able to talk to anything - except the forensics workstation needs SSH access to collect evidence.",
+    network: [
+      { label: "VNet", value: "10.0.0.0/16" },
+      { label: "Compromised VM", value: "10.0.2.15" },
+      { label: "Forensics Workstation", value: "10.0.10.50/32" },
+      { label: "Current NSG", value: "No custom rules (defaults only)" }
+    ],
+    requirements: [
+      { text: "Deny ALL inbound traffic from any source", key: "denyIn" },
+      { text: "Deny ALL outbound traffic to any destination", key: "denyOut" },
+      { text: "Allow SSH (22) inbound from forensics workstation (10.0.10.50/32) only", key: "forensics" },
+      { text: "Forensics SSH rule must override the Deny All", key: "priority" }
+    ],
+    validate: function(rules) {
+      let results = { denyIn: false, denyOut: false, forensics: false, priority: false, issues: [] };
+      const inbound = rules.filter(r => r.direction === 'Inbound');
+      const outbound = rules.filter(r => r.direction === 'Outbound');
+
+      const denyIn = inbound.find(r => r.port === '*' && r.action === 'Deny' && (r.source === '*' || r.source.toLowerCase() === 'any' || r.source === '0.0.0.0/0'));
+      if (denyIn) results.denyIn = true;
+      else results.issues.push("No inbound Deny All. The compromised VM can still receive traffic.");
+
+      const denyOut = outbound.find(r => r.port === '*' && r.action === 'Deny' && (r.dest === '*' || r.dest.toLowerCase() === 'any' || r.dest === '0.0.0.0/0'));
+      if (denyOut) results.denyOut = true;
+      else results.issues.push("No outbound Deny All. The attacker could exfiltrate data or maintain C2 communications. This is critical during incident response.");
+
+      const sshRule = inbound.find(r => r.port === '22' && r.action === 'Allow' && (r.source === '10.0.10.50' || r.source === '10.0.10.50/32'));
+      if (sshRule) {
+        results.forensics = true;
+        if (denyIn && parseInt(sshRule.priority) < parseInt(denyIn.priority)) {
+          results.priority = true;
+        } else if (denyIn) {
+          results.priority = false;
+          results.issues.push("The forensics SSH rule has a higher priority number (" + sshRule.priority + ") than the Deny All (" + denyIn.priority + "). It'll never be reached. Give it a lower number so it's evaluated first.");
+        }
+      } else {
+        const broadSsh = inbound.find(r => r.port === '22' && r.action === 'Allow');
+        if (broadSsh) results.issues.push("SSH is allowed but not restricted to the forensics workstation (10.0.10.50/32). During an incident, you cannot open SSH to a broad range.");
+        else results.issues.push("No SSH rule for the forensics workstation. They need access to collect evidence from the compromised machine.");
+      }
+
+      if (!denyIn) results.priority = false;
+
+      results.passed = results.denyIn && results.denyOut && results.forensics && results.priority && results.issues.length === 0;
+      return results;
+    },
+    hint: "Think incident response: lock everything down first, then poke a precise hole for forensics. The SSH Allow rule needs a lower priority number than the Deny All so it gets evaluated first. This is exactly what you'd do in a real SOC when Defender flags a compromised host."
+  }
+];
+
+let currentScenario = 0;
+let userRules = [];
+let scores = [];
+
+function init() {
+  renderProgress();
+  loadScenario(0);
+}
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  SCENARIOS.forEach((s, i) => {
+    const pip = document.createElement('div');
+    pip.className = 'progress-pip';
+    if (i < currentScenario) pip.classList.add('complete');
+    if (i === currentScenario) pip.classList.add('active');
+    bar.appendChild(pip);
+  });
+}
+
+function loadScenario(idx) {
+  currentScenario = idx;
+  userRules = [];
+  const s = SCENARIOS[idx];
+
+  // Prefill rules if scenario has them
+  if (s.prefill) userRules = JSON.parse(JSON.stringify(s.prefill));
+
+  renderProgress();
+  renderScenario(s);
+  renderRuleBuilder(s);
+  hideFeedback();
+}
+
+function renderScenario(s) {
+  const area = document.getElementById('scenarioArea');
+  let netHtml = s.network.map(n => n.value ?
+    `<div class="net-box"><div class="net-box-label">${n.label}</div><div class="net-box-value">${n.value}</div></div>` : ''
+  ).join('');
+
+  let reqHtml = s.requirements.map(r =>
+    `<div class="req-item" id="req-${r.key}"><div class="check"></div><div>${r.text}</div></div>`
+  ).join('');
+
+  area.innerHTML = `
+    <div class="scenario-card">
+      <div class="scenario-label">${s.label}</div>
+      <div class="scenario-title">${s.title}</div>
+      <div class="scenario-desc">${s.desc}</div>
+      <div class="network-info">${netHtml}</div>
+      <div class="requirements">
+        <h3>Requirements</h3>
+        ${reqHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderRuleBuilder(s) {
+  const area = document.getElementById('ruleBuilderArea');
+  area.innerHTML = `
+    <div class="rule-builder">
+      <h2>NSG Rules <span class="rule-count" id="ruleCount">${userRules.length}</span></h2>
+      <div class="rule-form">
+        <div class="form-group">
+          <label>Priority</label>
+          <input type="number" id="inp-priority" placeholder="100" min="100" max="4096" step="10">
+        </div>
+        <div class="form-group">
+          <label>Source</label>
+          <input type="text" id="inp-source" placeholder="10.0.1.0/24 or *">
+        </div>
+        <div class="form-group">
+          <label>Destination</label>
+          <input type="text" id="inp-dest" placeholder="10.0.2.0/24 or *">
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input type="text" id="inp-port" placeholder="443 or *">
+        </div>
+        <div class="form-group">
+          <label>Protocol</label>
+          <select id="inp-protocol">
+            <option value="TCP">TCP</option>
+            <option value="UDP">UDP</option>
+            <option value="Any">Any</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Direction</label>
+          <select id="inp-direction">
+            <option value="Inbound">Inbound</option>
+            <option value="Outbound">Outbound</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Action</label>
+          <select id="inp-action">
+            <option value="Allow">Allow</option>
+            <option value="Deny">Deny</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-add" onclick="addRule()">+ Add Rule</button>
+      </div>
+      <div style="overflow-x:auto;margin-top:16px;">
+        <table class="rules-table" id="rulesTable">
+          <thead><tr>
+            <th>Pri</th><th>Source</th><th>Dest</th><th>Port</th><th>Proto</th><th>Dir</th><th>Action</th><th></th>
+          </tr></thead>
+          <tbody id="rulesBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="${userRules.length ? 'display:none' : ''}">No rules yet. Build your NSG ruleset above.</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-validate" onclick="validateRules()">Validate Rules</button>
+        <button class="btn btn-reset" onclick="resetRules()">Clear All</button>
+      </div>
+    </div>
+  `;
+
+  renderRulesTable();
+}
+
+function addRule() {
+  const priority = document.getElementById('inp-priority').value.trim();
+  const source = document.getElementById('inp-source').value.trim();
+  const dest = document.getElementById('inp-dest').value.trim();
+  const port = document.getElementById('inp-port').value.trim();
+  const protocol = document.getElementById('inp-protocol').value;
+  const direction = document.getElementById('inp-direction').value;
+  const action = document.getElementById('inp-action').value;
+
+  if (!priority || !source || !dest || !port) {
+    alert("Fill in all fields. Use * for any.");
+    return;
+  }
+  if (parseInt(priority) < 100 || parseInt(priority) > 4096) {
+    alert("Priority must be between 100 and 4096.");
+    return;
+  }
+
+  userRules.push({ priority, source, dest, port, protocol, direction, action });
+  userRules.sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+  // Clear inputs
+  document.getElementById('inp-priority').value = '';
+  document.getElementById('inp-source').value = '';
+  document.getElementById('inp-dest').value = '';
+  document.getElementById('inp-port').value = '';
+
+  renderRulesTable();
+}
+
+function deleteRule(idx) {
+  userRules.splice(idx, 1);
+  renderRulesTable();
+  hideFeedback();
+}
+
+function editPriority(idx) {
+  const newPri = prompt("Enter new priority (100-4096):", userRules[idx].priority);
+  if (newPri && parseInt(newPri) >= 100 && parseInt(newPri) <= 4096) {
+    userRules[idx].priority = newPri;
+    userRules.sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+    renderRulesTable();
+    hideFeedback();
+  }
+}
+
+function renderRulesTable() {
+  const body = document.getElementById('rulesBody');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('ruleCount');
+
+  if (userRules.length === 0) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    count.textContent = '0';
+    return;
+  }
+
+  empty.style.display = 'none';
+  count.textContent = userRules.length;
+
+  body.innerHTML = userRules.map((r, i) => `
+    <tr>
+      <td><span style="cursor:pointer;text-decoration:underline dotted;color:var(--azure-light)" onclick="editPriority(${i})" title="Click to edit priority">${r.priority}</span></td>
+      <td>${r.source}</td>
+      <td>${r.dest}</td>
+      <td>${r.port}</td>
+      <td>${r.protocol}</td>
+      <td>${r.direction}</td>
+      <td class="${r.action === 'Allow' ? 'action-allow' : 'action-deny'}">${r.action}</td>
+      <td><button class="delete-btn" onclick="deleteRule(${i})" title="Remove rule">&times;</button></td>
+    </tr>
+  `).join('');
+}
+
+function resetRules() {
+  const s = SCENARIOS[currentScenario];
+  userRules = s.prefill ? JSON.parse(JSON.stringify(s.prefill)) : [];
+  renderRulesTable();
+  hideFeedback();
+  // Reset requirement checks
+  s.requirements.forEach(r => {
+    const el = document.getElementById('req-' + r.key);
+    if (el) { el.className = 'req-item'; el.querySelector('.check').textContent = ''; }
+  });
+}
+
+function hideFeedback() {
+  const fb = document.getElementById('feedbackArea');
+  fb.className = 'feedback';
+  fb.innerHTML = '';
+}
+
+function validateRules() {
+  const s = SCENARIOS[currentScenario];
+  const results = s.validate(userRules);
+  const fb = document.getElementById('feedbackArea');
+
+  // Update requirement checkboxes
+  s.requirements.forEach(r => {
+    const el = document.getElementById('req-' + r.key);
+    if (el) {
+      if (results[r.key]) {
+        el.className = 'req-item met';
+        el.querySelector('.check').textContent = '✓';
+      } else {
+        el.className = 'req-item failed';
+        el.querySelector('.check').textContent = '✗';
+      }
+    }
+  });
+
+  if (results.passed) {
+    scores[currentScenario] = true;
+    fb.className = 'feedback feedback-pass show';
+    fb.innerHTML = `
+      <h3>All requirements met. Nice one.</h3>
+      <p>Your NSG configuration is correct. Every rule is in the right place with the right priorities.</p>
+      ${currentScenario < SCENARIOS.length - 1 ? `
+        <div class="actions">
+          <button class="btn btn-next" onclick="loadScenario(${currentScenario + 1})">Next Scenario →</button>
+        </div>
+      ` : `
+        <div class="actions">
+          <button class="btn btn-next" onclick="showScore()">See Results →</button>
+        </div>
+      `}
+    `;
+  } else {
+    fb.className = 'feedback feedback-fail show';
+    fb.innerHTML = `
+      <h3>Not quite right yet</h3>
+      <ul>${results.issues.map(i => `<li>${i}</li>`).join('')}</ul>
+      <div class="hint">${s.hint}</div>
+    `;
+  }
+
+  fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showScore() {
+  const passed = scores.filter(Boolean).length;
+  const total = SCENARIOS.length;
+  const pct = Math.round((passed / total) * 100);
+
+  document.getElementById('scenarioArea').innerHTML = '';
+  document.getElementById('ruleBuilderArea').innerHTML = '';
+  document.getElementById('feedbackArea').className = 'feedback';
+  document.getElementById('feedbackArea').innerHTML = '';
+
+  const card = document.getElementById('scoreCard');
+  card.className = 'score-card show';
+  card.innerHTML = `
+    <h2>Session Complete</h2>
+    <div class="score-big">${passed}/${total}</div>
+    <p>Scenarios completed first time: ${passed} out of ${total} (${pct}%)</p>
+    <p style="margin-top:4px;color:var(--text-dim);">Remember - the ones you got wrong taught you the most. That's the point.</p>
+    <div class="sc200-hook">
+      <strong>SC-200 Connection:</strong> Everything you just did maps directly to what you'll see in Microsoft Sentinel. NSG flow logs use these exact fields - source IP, destination IP, port, protocol, direction, action. When you write KQL queries to detect suspicious traffic or analyse incidents, you're filtering on the same data you just configured. The priority trap in Scenario 3? That's exactly the kind of misconfiguration that creates blind spots a threat actor will exploit.
+    </div>
+    <div class="actions" style="justify-content:center;margin-top:20px;">
+      <button class="btn btn-next" onclick="restart()">Run Again</button>
+    </div>
+  `;
+}
+
+function restart() {
+  scores = [];
+  document.getElementById('scoreCard').className = 'score-card';
+  document.getElementById('scoreCard').innerHTML = '';
+  loadScenario(0);
+}
+
+init();
+</script>
+</body>
+</html>
