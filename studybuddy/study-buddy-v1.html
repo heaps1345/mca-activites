@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCA TDA Study Buddy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0B1120; color:#E2E8F0; font-family:'Inter',sans-serif; min-height:100vh; }
+  .shell { max-width:540px; margin:0 auto; padding:0 0 40px; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background:#3B82F6; color:#fff; border:none; border-radius:8px; padding:12px 32px;
+    font-weight:600; cursor:pointer; font-size:15px; font-family:'JetBrains Mono',monospace;
+    letter-spacing:1px; transition:background .15s;
+  }
+  .btn-primary:hover { background:#2563EB; }
+  .btn-secondary {
+    background:transparent; color:#94A3B8; border:1px solid #334155; border-radius:8px;
+    padding:10px 24px; font-weight:500; cursor:pointer; font-size:14px; transition:border-color .15s;
+  }
+  .btn-secondary:hover { border-color:#64748B; }
+
+  /* HOME */
+  .home-header { padding:32px 20px 20px; text-align:center; }
+  .home-header .eyebrow { font-size:13px; color:#475569; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+  .home-header h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
+  .home-header .sub { color:#64748B; font-size:14px; }
+
+  .module-grid { padding:12px 20px; display:grid; gap:12px; }
+  .module-card {
+    background:#1E293B; border:1px solid #334155; border-radius:10px; padding:18px 16px;
+    cursor:pointer; text-align:left; display:flex; gap:14px; align-items:flex-start;
+    transition:border-color .15s;
+  }
+  .module-card:hover { border-color:#60A5FA; }
+  .module-card .icon { font-size:28px; line-height:1; flex-shrink:0; }
+  .module-card .title { color:#E2E8F0; font-size:16px; font-weight:600; margin-bottom:4px; }
+  .module-card .desc { color:#94A3B8; font-size:13px; line-height:1.4; }
+  .module-card .tag {
+    display:inline-block; background:#0F172A; color:#60A5FA; font-size:11px; font-weight:600;
+    padding:3px 8px; border-radius:4px; letter-spacing:.5px; margin-top:8px;
+  }
+  .module-card .arrow { color:#475569; font-size:18px; align-self:center; margin-left:auto; flex-shrink:0; }
+
+  /* SHARED QUIZ UI */
+  .quiz-wrap { padding:20px; }
+  .quiz-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .quiz-top .counter { color:#94A3B8; font-size:13px; }
+  .quiz-top .score-display { color:#E2E8F0; font-size:14px; font-weight:600; }
+  .streak-badge { color:#FF6B35; }
+
+  .timer-bar { height:4px; background:#1E293B; border-radius:2px; margin-bottom:24px; overflow:hidden; }
+  .timer-fill { height:100%; border-radius:2px; transition:width 1s linear, background .3s; }
+
+  .term-display { text-align:center; margin-bottom:28px; }
+  .term-label { font-size:14px; color:#64748B; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+  .term-value { font-size:42px; font-weight:800; color:#F8FAFC; letter-spacing:2px; }
+
+  .question-box {
+    background:#1E293B; border-radius:10px; padding:20px; margin-bottom:20px;
+    border-left:3px solid #3B82F6;
+  }
+  .question-box p { font-size:15px; line-height:1.6; }
+
+  .options-grid { display:grid; gap:10px; }
+  .opt-btn {
+    background:#1E293B; border:1px solid #334155; border-radius:8px; padding:14px 16px;
+    color:#E2E8F0; font-size:14px; cursor:pointer; text-align:left; transition:all .15s;
+    line-height:1.4; font-family:'Inter',sans-serif; width:100%;
+  }
+  .opt-btn:not(.revealed):hover { border-color:#60A5FA; }
+  .opt-btn .opt-letter { color:#64748B; margin-right:10px; font-size:12px; }
+  .opt-btn.correct { background:#064E3B; border-color:#10B981; color:#A7F3D0; }
+  .opt-btn.wrong { background:#7F1D1D; border-color:#EF4444; color:#FCA5A5; }
+  .opt-btn.dimmed { background:#0F172A; border-color:#1E293B; color:#475569; }
+
+  .explain-box {
+    background:#0F172A; border-radius:8px; padding:14px 16px; border:1px solid #1E293B;
+    margin-top:16px; margin-bottom:16px;
+  }
+  .explain-box p { color:#94A3B8; font-size:13px; line-height:1.6; }
+  .explain-box strong { color:#60A5FA; }
+
+  .next-wrap { text-align:center; margin-top:20px; }
+
+  /* CENTERED SCREENS */
+  .center-screen { text-align:center; padding:60px 20px; }
+  .center-screen .big-icon { font-size:48px; margin-bottom:8px; }
+  .center-screen h2 { font-size:28px; font-weight:700; margin-bottom:12px; }
+  .center-screen .subtitle { color:#94A3B8; font-size:15px; margin-bottom:32px; line-height:1.5; }
+  .btn-row { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  .stats-row { display:flex; justify-content:center; gap:32px; margin-bottom:32px; flex-wrap:wrap; }
+  .stat-box .stat-val { font-size:28px; font-weight:700; color:#F8FAFC; }
+  .stat-box .stat-label { font-size:12px; color:#64748B; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+  /* NETWORK REF */
+  .net-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; padding:20px 20px 0; }
+  .net-header h2 { font-size:20px; font-weight:700; }
+  .accordion { padding:0 20px; }
+  .acc-toggle {
+    width:100%; background:#0F172A; border:1px solid #1E293B; border-radius:8px;
+    padding:14px 16px; color:#E2E8F0; font-size:15px; font-weight:600; cursor:pointer;
+    text-align:left; display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:2px; font-family:'Inter',sans-serif; transition:background .15s;
+  }
+  .acc-toggle.open { background:#1E293B; border-radius:8px 8px 0 0; margin-bottom:0; }
+  .acc-toggle:hover { background:#1E293B; }
+  .acc-toggle .plus { color:#64748B; font-size:18px; }
+  .acc-body {
+    background:#0F172A; border:1px solid #1E293B; border-top:none;
+    border-radius:0 0 8px 8px; padding:16px; margin-bottom:12px;
+  }
+  .layer-row { display:flex; gap:12px; align-items:flex-start; padding:8px 0; }
+  .layer-row:not(:last-child) { border-bottom:1px solid #1E293B; }
+  .layer-bar { width:4px; min-height:32px; border-radius:2px; flex-shrink:0; margin-top:2px; }
+  .layer-name { color:#E2E8F0; font-size:14px; font-weight:600; }
+  .layer-desc { color:#94A3B8; font-size:13px; margin-top:2px; }
+  .proto-row { padding:8px 0; }
+  .proto-row:not(:last-child) { border-bottom:1px solid #1E293B; }
+  .proto-head { display:flex; gap:8px; align-items:baseline; }
+  .proto-name { color:#60A5FA; font-weight:700; font-size:14px; }
+  .proto-port { color:#475569; font-size:12px; }
+  .proto-desc { color:#94A3B8; font-size:13px; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="shell" id="app"></div>
+
+<script>
+// ==================== DATA ====================
+const ACRONYMS = [
+  { term:"IaaS", answer:"Infrastructure as a Service", decoys:["Internet as a Service","Identity as a Solution","Integrated Application Stack"] },
+  { term:"PaaS", answer:"Platform as a Service", decoys:["Protocol as a Service","Private Access as a Service","Provisioning and Scaling"] },
+  { term:"SaaS", answer:"Software as a Service", decoys:["Security as a Service","Storage as a Service","System Administration as a Service"] },
+  { term:"NSG", answer:"Network Security Group", decoys:["Network Service Gateway","Native Security Guard","Network Segmentation Group"] },
+  { term:"RBAC", answer:"Role-Based Access Control", decoys:["Resource-Based Access Configuration","Rule-Based Authentication Control","Remote Backup and Compliance"] },
+  { term:"MFA", answer:"Multi-Factor Authentication", decoys:["Managed Firewall Access","Microsoft Federation Agent","Multi-Function Authorisation"] },
+  { term:"AAD", answer:"Azure Active Directory", decoys:["Azure Application Deployment","Advanced Authentication Domain","Automated Access Detection"] },
+  { term:"VNet", answer:"Virtual Network", decoys:["Variable Network","Verified Network Tunnel","Virtual Network Endpoint"] },
+  { term:"ARM", answer:"Azure Resource Manager", decoys:["Application Runtime Monitor","Automated Recovery Mode","Access Rights Manager"] },
+  { term:"SLA", answer:"Service Level Agreement", decoys:["Secure Logical Access","System Load Analyser","Storage Lifecycle Automation"] },
+  { term:"TCO", answer:"Total Cost of Ownership", decoys:["Technical Compliance Officer","Tenant Configuration Option","Threat Containment Operations"] },
+  { term:"DDoS", answer:"Distributed Denial of Service", decoys:["Direct Denial of Systems","Dynamic Data over Sockets","Decentralised Detection of Signals"] },
+  { term:"SIEM", answer:"Security Information and Event Management", decoys:["System Integration and Endpoint Monitoring","Secure Identity and Encryption Module","Standard Incident and Error Management"] },
+  { term:"SOAR", answer:"Security Orchestration Automation and Response", decoys:["System Operations and Recovery","Secure Object Access Registry","Security Operations Analytics Report"] },
+  { term:"XDR", answer:"Extended Detection and Response", decoys:["External Data Repository","Cross-Domain Routing","Exchange Data Relay"] },
+  { term:"EDR", answer:"Endpoint Detection and Response", decoys:["Encrypted Data Recovery","External Domain Resolution","Enterprise Deployment Registry"] },
+  { term:"CSPM", answer:"Cloud Security Posture Management", decoys:["Cloud Service Performance Monitor","Central Security Policy Manager","Compliance and Standards Protocol Manager"] },
+  { term:"WAF", answer:"Web Application Firewall", decoys:["Wide Area Federation","Workload Allocation Framework","Wireless Access Facility"] },
+  { term:"DLP", answer:"Data Loss Prevention", decoys:["Dynamic Load Processing","Device Lifecycle Policy","Distributed Logging Platform"] },
+  { term:"CMK", answer:"Customer Managed Key", decoys:["Cloud Management Kit","Centralised Master Key","Compliance Monitoring Kernel"] },
+  { term:"PIM", answer:"Privileged Identity Management", decoys:["Private Instance Monitor","Policy Integrity Module","Protocol Integration Manager"] },
+  { term:"JIT", answer:"Just-In-Time", decoys:["Joint Integration Testing","JSON Identity Token","Job Instance Tracker"] },
+  { term:"SSO", answer:"Single Sign-On", decoys:["Secure Service Orchestration","System State Observer","Shared Security Object"] },
+  { term:"SSPR", answer:"Self-Service Password Reset", decoys:["Secure Server Protocol Routing","System Security Patch Release","Single Sign-on Provider Registry"] },
+  { term:"SKU", answer:"Stock Keeping Unit", decoys:["Service Key Utility","System Kernel Update","Secure Knowledge Unit"] },
+  { term:"CapEx", answer:"Capital Expenditure", decoys:["Capacity Export","Capability Extension","Capture and Execute"] },
+  { term:"OpEx", answer:"Operational Expenditure", decoys:["Optimisation Export","Operations Exchange","Optional Execution"] },
+  { term:"BCDR", answer:"Business Continuity and Disaster Recovery", decoys:["Baseline Configuration Data Repository","Backend Compliance Detection Rule","Binary Cloud Data Replication"] },
+  { term:"KQL", answer:"Kusto Query Language", decoys:["Key Query Lookup","Kubernetes Query Layer","Knowledge Query Library"] },
+  { term:"MCAS", answer:"Microsoft Cloud App Security", decoys:["Managed Compliance and Security","Multi-Cloud Access Service","Microsoft Certificate Authority Server"] },
+];
+
+const AZ900_QS = [
+  { q:"A company wants to move their on-premises servers to the cloud but still manage the OS and runtime. Which cloud model fits?", options:["IaaS","PaaS","SaaS","Serverless"], correct:0, explain:"IaaS gives you VMs where you manage OS, runtime, and apps. The provider handles hardware, networking, and virtualisation." },
+  { q:"Which Azure service provides serverless compute that runs code in response to events without managing infrastructure?", options:["Azure App Service","Azure Functions","Azure Kubernetes Service","Azure Batch"], correct:1, explain:"Azure Functions is the serverless, event-driven compute option. You pay only for execution time." },
+  { q:"Your company needs 99.99% availability for a critical app. What is the minimum number of Availability Zones you should deploy across?", options:["1","2","3","4"], correct:1, explain:"Deploying across 2+ Availability Zones provides zone-redundancy. Azure SLAs increase to 99.99% for VMs across 2+ zones." },
+  { q:"Which pricing model lets you pay a reduced rate in exchange for committing to 1 or 3 years of usage?", options:["Pay-as-you-go","Reserved Instances","Spot pricing","Free tier"], correct:1, explain:"Reserved Instances offer up to 72% savings over pay-as-you-go by committing to 1 or 3 year terms." },
+  { q:"A resource group in Azure is deleted. What happens to the resources inside it?", options:["Resources move to another group","Resources are also deleted","Resources become unmanaged","Nothing — resources are independent"], correct:1, explain:"Deleting a resource group deletes ALL resources within it. It's a lifecycle container." },
+  { q:"Which tool would you use to estimate monthly Azure costs before deploying?", options:["Azure Advisor","Azure Pricing Calculator","Azure Cost Management","Azure Monitor"], correct:1, explain:"The Azure Pricing Calculator lets you configure services and estimate costs before deployment. Cost Management is for tracking existing spend." },
+  { q:"Which Azure governance feature lets you enforce rules like 'all resources must be in UK South'?", options:["Azure Blueprints","Azure Policy","Management Groups","Resource locks"], correct:1, explain:"Azure Policy evaluates resources for compliance with rules you define, such as allowed locations or required tags." },
+  { q:"What does Azure Arc enable you to do?", options:["Create virtual networks","Manage non-Azure resources using Azure tools","Automate CI/CD pipelines","Monitor application performance"], correct:1, explain:"Azure Arc extends Azure management and governance to on-prem, multi-cloud, and edge environments." },
+  { q:"Which cloud benefit means you can quickly add more VMs during peak demand and remove them after?", options:["High availability","Elasticity","Agility","Disaster recovery"], correct:1, explain:"Elasticity is the ability to automatically scale resources up or down based on demand." },
+  { q:"In the shared responsibility model, which layer is ALWAYS the customer's responsibility regardless of cloud model?", options:["Physical hosts","Network controls","Data and access management","Operating system patching"], correct:2, explain:"Data classification, access management, and account/identity management are always the customer's responsibility across IaaS, PaaS, and SaaS." },
+];
+
+const SC900_QS = [
+  { q:"A user's credentials are compromised. Which Microsoft Entra ID feature would have required an additional verification step beyond the password?", options:["Conditional Access","MFA","PIM","SSPR"], correct:1, explain:"MFA requires a second factor (phone, authenticator app, biometric) beyond just the password, blocking credential-only attacks." },
+  { q:"Your org wants to grant admin rights only when needed, with approval and time limits. Which feature?", options:["RBAC","Conditional Access","Privileged Identity Management","Access Reviews"], correct:2, explain:"PIM provides just-in-time privileged access with approval workflows, time-bound activation, and audit trails." },
+  { q:"Which Microsoft 365 Defender component protects against malicious email attachments and links?", options:["Defender for Endpoint","Defender for Office 365","Defender for Identity","Defender for Cloud Apps"], correct:1, explain:"Defender for Office 365 provides Safe Attachments, Safe Links, and anti-phishing protection for email and collaboration tools." },
+  { q:"An attacker is performing lateral movement inside your network using stolen Kerberos tickets. Which Defender component detects this?", options:["Defender for Endpoint","Defender for Office 365","Defender for Identity","Defender for Cloud Apps"], correct:2, explain:"Defender for Identity monitors Active Directory signals and detects identity-based attacks like pass-the-ticket, golden ticket, and lateral movement." },
+  { q:"Your CISO needs a single score showing the org's overall security posture with recommendations. What provides this?", options:["Compliance Manager","Microsoft Secure Score","Azure Security Center","Sentinel"], correct:1, explain:"Microsoft Secure Score analyses your configuration across M365 services and provides a numerical score with prioritised improvement actions." },
+  { q:"Which Microsoft service is a cloud-native SIEM that uses KQL for threat hunting?", options:["Defender for Cloud","Microsoft Purview","Microsoft Sentinel","Defender XDR"], correct:2, explain:"Microsoft Sentinel is the cloud-native SIEM/SOAR platform. It ingests logs from multiple sources and uses KQL for detection rules and hunting queries." },
+  { q:"An organisation must ensure that sensitive documents labelled 'Confidential' cannot be forwarded externally. Which feature?", options:["Data Loss Prevention","Sensitivity Labels with encryption","Retention Policies","eDiscovery"], correct:1, explain:"Sensitivity Labels can apply encryption and rights restrictions (no forward, no print, no copy) that travel with the document." },
+  { q:"Zero Trust principles include 'verify explicitly', 'use least privilege access', and what third principle?", options:["Defence in depth","Assume breach","Separation of duties","Security by design"], correct:1, explain:"The three Zero Trust principles are: verify explicitly, use least privilege access, and assume breach." },
+  { q:"Which Conditional Access signal would block a sign-in from a country your org doesn't operate in?", options:["Device compliance","User risk level","Named location","Client application"], correct:2, explain:"Named locations in Conditional Access let you define trusted/untrusted geographies and block or require MFA for sign-ins from specific countries." },
+  { q:"Your org needs to meet GDPR and ISO 27001. Which tool tracks compliance posture and provides assessments?", options:["Microsoft Purview Compliance Manager","Azure Policy","Microsoft Secure Score","Defender for Cloud"], correct:0, explain:"Compliance Manager provides pre-built assessments for regulations like GDPR and ISO 27001, tracks your compliance score, and suggests improvement actions." },
+];
+
+const NET_TOPICS = [
+  { title:"OSI Model", type:"layers", data:[
+    { name:"7 — Application", desc:"HTTP, DNS, SMTP — user-facing protocols", colour:"#E74C3C" },
+    { name:"6 — Presentation", desc:"Encryption, compression, encoding (TLS/SSL)", colour:"#E67E22" },
+    { name:"5 — Session", desc:"Session management, authentication tokens", colour:"#F1C40F" },
+    { name:"4 — Transport", desc:"TCP (reliable) / UDP (fast) — ports, segments", colour:"#2ECC71" },
+    { name:"3 — Network", desc:"IP addressing, routing, packets", colour:"#3498DB" },
+    { name:"2 — Data Link", desc:"MAC addresses, switches, frames", colour:"#9B59B6" },
+    { name:"1 — Physical", desc:"Cables, signals, bits on the wire", colour:"#7F8C8D" },
+  ]},
+  { title:"Key Protocols", type:"protos", data:[
+    { name:"TCP", port:"Various", desc:"Reliable, ordered delivery — HTTP, SSH, FTP" },
+    { name:"UDP", port:"Various", desc:"Fast, connectionless — DNS queries, VoIP, streaming" },
+    { name:"HTTP/S", port:"80 / 443", desc:"Web traffic. HTTPS = HTTP + TLS encryption" },
+    { name:"DNS", port:"53", desc:"Resolves domain names to IP addresses" },
+    { name:"DHCP", port:"67/68", desc:"Auto-assigns IP addresses to devices" },
+    { name:"RDP", port:"3389", desc:"Remote desktop access (Windows)" },
+    { name:"SSH", port:"22", desc:"Encrypted remote shell access" },
+    { name:"SMB", port:"445", desc:"File sharing (Windows networks)" },
+  ]},
+  { title:"Azure Networking", type:"protos", data:[
+    { name:"VNet", desc:"Isolated virtual network in Azure — your private address space" },
+    { name:"Subnet", desc:"Segment within a VNet for organising resources" },
+    { name:"NSG", desc:"Stateful firewall rules filtering traffic by IP, port, protocol" },
+    { name:"Azure Firewall", desc:"Managed, cloud-based network firewall with threat intelligence" },
+    { name:"VNet Peering", desc:"Connects two VNets — traffic stays on Microsoft backbone" },
+    { name:"VPN Gateway", desc:"Encrypted tunnel between Azure and on-prem (IPsec/IKE)" },
+    { name:"ExpressRoute", desc:"Private, dedicated connection to Azure (not over public internet)" },
+    { name:"Azure DDoS Protection", desc:"Absorbs volumetric attacks at the network edge" },
+  ]},
+];
+
+// ==================== UTILS ====================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k, v]) => {
+    if (k === 'className') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else e.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null) return;
+    e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+const app = document.getElementById('app');
+
+// ==================== VIEWS ====================
+
+function renderHome() {
+  app.innerHTML = '';
+  const modules = [
+    { id:'acronyms', icon:'⚡', title:'Acronym Blitz', desc:'Timed Kahoot-style quiz — cloud & security acronyms', tag:'AZ-900 + SC-900' },
+    { id:'network', icon:'🌐', title:'Network Fundamentals', desc:'OSI, protocols, ports, Azure networking', tag:'Reference' },
+    { id:'az900', icon:'☁️', title:'AZ-900 Scenarios', desc:'Azure Fundamentals scenario-based questions', tag:'AZ-900' },
+    { id:'sc900', icon:'🛡️', title:'SC-900 Scenarios', desc:'Security, Compliance & Identity scenario questions', tag:'SC-900' },
+  ];
+
+  const header = el('div', { className:'home-header' },
+    el('div', { className:'eyebrow mono' }, 'MCA — TDA'),
+    el('h1', { className:'mono' }, 'STUDY BUDDY'),
+    el('p', { className:'sub' }, 'AZ-900 · SC-900 · Fundamentals')
+  );
+
+  const grid = el('div', { className:'module-grid' });
+  modules.forEach(m => {
+    const card = el('div', { className:'module-card', onClick: () => navigate(m.id) },
+      el('div', { className:'icon' }, m.icon),
+      el('div', null,
+        el('div', { className:'title' }, m.title),
+        el('div', { className:'desc' }, m.desc),
+        el('span', { className:'tag mono' }, m.tag)
+      ),
+      el('span', { className:'arrow' }, '→')
+    );
+    grid.appendChild(card);
+  });
+
+  app.appendChild(header);
+  app.appendChild(grid);
+}
+
+function navigate(id) {
+  if (id === 'acronyms') renderAcronymReady();
+  else if (id === 'network') renderNetwork();
+  else if (id === 'az900') renderExamReady('AZ-900 SCENARIOS', '☁️', AZ900_QS);
+  else if (id === 'sc900') renderExamReady('SC-900 SCENARIOS', '🛡️', SC900_QS);
+}
+
+// ==================== ACRONYM BLITZ ====================
+const ROUND_SIZE = 15;
+let blitzState = {};
+
+function renderAcronymReady() {
+  app.innerHTML = '';
+  app.appendChild(el('div', { className:'center-screen' },
+    el('div', { className:'big-icon' }, '⚡'),
+    el('h2', { className:'mono' }, 'ACRONYM BLITZ'),
+    el('p', { className:'subtitle' }, `${ROUND_SIZE} acronyms. 12 seconds each.\nSpeed bonus for fast answers. Build streaks for glory.`),
+    el('button', { className:'btn-primary', style:{fontSize:'18px',padding:'14px 48px'}, onClick: startBlitz }, 'START')
+  ));
+}
+
+function startBlitz() {
+  const qs = shuffle(ACRONYMS).slice(0, ROUND_SIZE).map(a => {
+    const opts = shuffle([a.answer, ...a.decoys]);
+    return { term: a.term, correctAnswer: a.answer, options: opts };
+  });
+  blitzState = { qs, idx:0, score:0, streak:0, bestStreak:0, totalTime:0, timer:12, interval:null, selected:null };
+  renderBlitzQuestion();
+}
+
+function renderBlitzQuestion() {
+  const s = blitzState;
+  const cur = s.qs[s.idx];
+  s.timer = 12;
+  s.selected = null;
+  clearInterval(s.interval);
+
+  app.innerHTML = '';
+  const wrap = el('div', { className:'quiz-wrap' });
+
+  // Top bar
+  const top = el('div', { className:'quiz-top' },
+    el('span', { className:'counter mono' }, `${s.idx+1}/${s.qs.length}`),
+    el('span', { className:'score-display' }, `${s.score} pts ${s.streak > 1 ? '🔥' + s.streak : ''}`)
+  );
+  wrap.appendChild(top);
+
+  // Timer
+  const timerBar = el('div', { className:'timer-bar' });
+  const timerFill = el('div', { className:'timer-fill' });
+  timerFill.style.width = '100%';
+  timerFill.style.background = '#00E676';
+  timerBar.appendChild(timerFill);
+  wrap.appendChild(timerBar);
+
+  // Term
+  wrap.appendChild(el('div', { className:'term-display' },
+    el('div', { className:'term-label' }, 'What does this stand for?'),
+    el('div', { className:'term-value mono' }, cur.term)
+  ));
+
+  // Options
+  const grid = el('div', { className:'options-grid' });
+  const optBtns = [];
+  cur.options.forEach((opt, i) => {
+    const btn = el('button', { className:'opt-btn', onClick: () => handleBlitzAnswer(opt, optBtns, cur) },
+      el('span', { className:'opt-letter mono' }, String.fromCharCode(65 + i)),
+      opt
+    );
+    optBtns.push(btn);
+    grid.appendChild(btn);
+  });
+  wrap.appendChild(grid);
+
+  // Next btn placeholder
+  const nextWrap = el('div', { className:'next-wrap', id:'blitz-next' });
+  wrap.appendChild(nextWrap);
+
+  app.appendChild(wrap);
+
+  // Start timer
+  s.interval = setInterval(() => {
+    s.timer--;
+    s.totalTime++;
+    const pct = (s.timer / 12) * 100;
+    const col = s.timer > 6 ? '#00E676' : s.timer > 3 ? '#FFD600' : '#FF1744';
+    timerFill.style.width = pct + '%';
+    timerFill.style.background = col;
+    if (s.timer <= 0) {
+      clearInterval(s.interval);
+      s.selected = 'TIMEOUT';
+      s.streak = 0;
+      revealBlitz(optBtns, cur);
+    }
+  }, 1000);
+}
+
+function handleBlitzAnswer(opt, optBtns, cur) {
+  const s = blitzState;
+  if (s.selected !== null) return;
+  clearInterval(s.interval);
+  s.selected = opt;
+  if (opt === cur.correctAnswer) {
+    const bonus = Math.ceil(s.timer * 8);
+    s.score += 100 + bonus;
+    s.streak++;
+    s.bestStreak = Math.max(s.bestStreak, s.streak);
+  } else {
+    s.streak = 0;
+  }
+  revealBlitz(optBtns, cur);
+}
+
+function revealBlitz(optBtns, cur) {
+  optBtns.forEach(btn => {
+    btn.classList.add('revealed');
+    btn.disabled = true;
+    const text = btn.textContent.slice(1).trim(); // remove letter prefix
+    // need to match by checking if option text is in button
+    const optText = btn.childNodes[1]?.textContent || btn.textContent.slice(1);
+  });
+  // Re-style buttons by checking text content
+  optBtns.forEach(btn => {
+    btn.classList.add('revealed');
+    btn.disabled = true;
+    // Extract just the option text (skip the letter span)
+    const spans = btn.querySelectorAll('.opt-letter');
+    let optText = btn.textContent;
+    if (spans.length) optText = btn.textContent.replace(spans[0].textContent, '').trim();
+
+    if (optText === cur.correctAnswer) {
+      btn.classList.add('correct');
+    } else if (optText === blitzState.selected) {
+      btn.classList.add('wrong');
+    } else {
+      btn.classList.add('dimmed');
+    }
+  });
+
+  const nextWrap = document.getElementById('blitz-next');
+  if (nextWrap) {
+    const isLast = blitzState.idx + 1 >= blitzState.qs.length;
+    nextWrap.appendChild(el('button', { className:'btn-primary', style:{padding:'12px 40px'}, onClick: () => {
+      if (isLast) renderBlitzDone();
+      else { blitzState.idx++; renderBlitzQuestion(); }
+    }}, isLast ? 'SEE RESULTS' : 'NEXT →'));
+  }
+  // Update score display
+  const scoreEl = app.querySelector('.score-display');
+  if (scoreEl) scoreEl.textContent = `${blitzState.score} pts ${blitzState.streak > 1 ? '🔥' + blitzState.streak : ''}`;
+}
+
+function renderBlitzDone() {
+  clearInterval(blitzState.interval);
+  const s = blitzState;
+  const maxPossible = ROUND_SIZE * 196;
+  const pct = Math.round((s.score / maxPossible) * 100);
+  const icon = pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '📚';
+
+  app.innerHTML = '';
+  app.appendChild(el('div', { className:'center-screen' },
+    el('div', { className:'big-icon' }, icon),
+    el('h2', { className:'mono' }, 'ROUND COMPLETE'),
+    el('div', { className:'stats-row' },
+      el('div', { className:'stat-box', style:{textAlign:'center'} },
+        el('div', { className:'stat-val mono' }, String(s.score)),
+        el('div', { className:'stat-label' }, 'Score')
+      ),
+      el('div', { className:'stat-box', style:{textAlign:'center'} },
+        el('div', { className:'stat-val mono' }, s.bestStreak + '🔥'),
+        el('div', { className:'stat-label' }, 'Best Streak')
+      ),
+      el('div', { className:'stat-box', style:{textAlign:'center'} },
+        el('div', { className:'stat-val mono' }, (s.totalTime / ROUND_SIZE).toFixed(1) + 's'),
+        el('div', { className:'stat-label' }, 'Avg Time')
+      ),
+    ),
+    el('div', { className:'btn-row' },
+      el('button', { className:'btn-primary', style:{padding:'12px 32px'}, onClick: startBlitz }, 'PLAY AGAIN'),
+      el('button', { className:'btn-secondary', onClick: renderHome }, 'BACK')
+    )
+  ));
+}
+
+// ==================== EXAM QUIZ ====================
+let examState = {};
+
+function renderExamReady(title, icon, questions) {
+  app.innerHTML = '';
+  app.appendChild(el('div', { className:'center-screen' },
+    el('div', { className:'big-icon' }, icon),
+    el('h2', { className:'mono', style:{fontSize:'24px'} }, title),
+    el('p', { className:'subtitle' }, `${questions.length} scenario-based questions. No time limit — think it through.`),
+    el('button', { className:'btn-primary', style:{fontSize:'18px',padding:'14px 48px'}, onClick: () => startExam(title, icon, questions) }, 'START')
+  ));
+}
+
+function startExam(title, icon, questions) {
+  examState = { title, icon, qs: shuffle(questions), idx:0, score:0, selected:null };
+  renderExamQuestion();
+}
+
+function renderExamQuestion() {
+  const s = examState;
+  const cur = s.qs[s.idx];
+  s.selected = null;
+
+  app.innerHTML = '';
+  const wrap = el('div', { className:'quiz-wrap' });
+
+  wrap.appendChild(el('div', { className:'quiz-top' },
+    el('span', { className:'counter mono' }, `${s.idx+1}/${s.qs.length}`),
+    el('span', { className:'score-display' }, `${s.score} correct`)
+  ));
+
+  wrap.appendChild(el('div', { className:'question-box' },
+    el('p', null, cur.q)
+  ));
+
+  const grid = el('div', { className:'options-grid' });
+  const optBtns = [];
+  cur.options.forEach((opt, i) => {
+    const btn = el('button', { className:'opt-btn', onClick: () => handleExamAnswer(i, optBtns, cur) },
+      el('span', { className:'opt-letter mono' }, String.fromCharCode(65 + i)),
+      opt
+    );
+    optBtns.push(btn);
+    grid.appendChild(btn);
+  });
+  wrap.appendChild(grid);
+
+  // Explain + next placeholder
+  wrap.appendChild(el('div', { id:'exam-reveal' }));
+  app.appendChild(wrap);
+}
+
+function handleExamAnswer(i, optBtns, cur) {
+  const s = examState;
+  if (s.selected !== null) return;
+  s.selected = i;
+  if (i === cur.correct) s.score++;
+
+  optBtns.forEach((btn, bi) => {
+    btn.classList.add('revealed');
+    btn.disabled = true;
+    if (bi === cur.correct) btn.classList.add('correct');
+    else if (bi === i) btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
+  });
+
+  const revealDiv = document.getElementById('exam-reveal');
+  if (revealDiv) {
+    revealDiv.appendChild(el('div', { className:'explain-box' },
+      el('p', null, el('strong', null, 'Why? '), cur.explain)
+    ));
+    const isLast = s.idx + 1 >= s.qs.length;
+    revealDiv.appendChild(el('div', { className:'next-wrap' },
+      el('button', { className:'btn-primary', style:{padding:'12px 40px'}, onClick: () => {
+        if (isLast) renderExamDone();
+        else { s.idx++; renderExamQuestion(); }
+      }}, isLast ? 'SEE RESULTS' : 'NEXT →')
+    ));
+  }
+}
+
+function renderExamDone() {
+  const s = examState;
+  const pct = Math.round((s.score / s.qs.length) * 100);
+  const icon = pct >= 80 ? '🏆' : pct >= 50 ? '👍' : '📚';
+  const msg = pct >= 80 ? 'Strong. Exam ready.' : pct >= 50 ? 'Getting there. Review the explanations.' : 'Hit the materials again, then retry.';
+
+  app.innerHTML = '';
+  app.appendChild(el('div', { className:'center-screen' },
+    el('div', { className:'big-icon' }, icon),
+    el('h2', { className:'mono', style:{fontSize:'24px'} }, `${s.score}/${s.qs.length}`),
+    el('p', { className:'subtitle' }, msg),
+    el('div', { className:'btn-row' },
+      el('button', { className:'btn-primary', style:{padding:'12px 32px'}, onClick: () => startExam(s.title, s.icon, s.qs) }, 'RETRY'),
+      el('button', { className:'btn-secondary', onClick: renderHome }, 'BACK')
+    )
+  ));
+}
+
+// ==================== NETWORK REF ====================
+let netOpen = 0;
+
+function renderNetwork() {
+  app.innerHTML = '';
+  const header = el('div', { className:'net-header' },
+    el('button', { className:'btn-secondary', style:{padding:'6px 14px',fontSize:'13px'}, onClick: renderHome }, '← Back'),
+    el('h2', { className:'mono' }, '🌐 Network Fundamentals')
+  );
+  app.appendChild(header);
+
+  const acc = el('div', { className:'accordion' });
+  NET_TOPICS.forEach((topic, ti) => {
+    const toggle = el('button', { className:'acc-toggle' + (netOpen === ti ? ' open' : '') },
+      topic.title,
+      el('span', { className:'plus' }, netOpen === ti ? '−' : '+')
+    );
+    toggle.addEventListener('click', () => { netOpen = (netOpen === ti ? -1 : ti); renderNetwork(); });
+    acc.appendChild(toggle);
+
+    if (netOpen === ti) {
+      const body = el('div', { className:'acc-body' });
+      if (topic.type === 'layers') {
+        topic.data.forEach((l, li) => {
+          const row = el('div', { className:'layer-row' },
+            el('div', { className:'layer-bar', style:{background:l.colour} }),
+            el('div', null,
+              el('div', { className:'layer-name mono' }, l.name),
+              el('div', { className:'layer-desc' }, l.desc)
+            )
+          );
+          body.appendChild(row);
+        });
+      } else {
+        topic.data.forEach(item => {
+          const row = el('div', { className:'proto-row' },
+            el('div', { className:'proto-head' },
+              el('span', { className:'proto-name mono' }, item.name),
+              item.port ? el('span', { className:'proto-port mono' }, ':' + item.port) : null
+            ),
+            el('div', { className:'proto-desc' }, item.desc)
+          );
+          body.appendChild(row);
+        });
+      }
+      acc.appendChild(body);
+    }
+  });
+  app.appendChild(acc);
+}
+
+// ==================== INIT ====================
+renderHome();
+</script>
+</body>
+</html>
