@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 / SC-900 — Monitor, Detect & Defend</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0c0e14;
+    --surface: #151820;
+    --surface2: #1c2029;
+    --surface3: #242836;
+    --border: #2a2f3e;
+    --text: #e4e6ec;
+    --text-dim: #7e8494;
+    --text-mid: #a8adb8;
+    --blue: #4d8bf5;
+    --blue-dim: rgba(77,139,245,0.1);
+    --blue-glow: rgba(77,139,245,0.25);
+    --green: #34d399;
+    --green-dim: rgba(52,211,153,0.1);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.1);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.1);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.1);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34,211,238,0.1);
+    --pink: #f472b6;
+    --pink-dim: rgba(244,114,182,0.1);
+    --teal: #2dd4bf;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── NAV ── */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(12,14,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .top-bar-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+  }
+
+  .top-bar h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .top-bar h1 span { color: var(--blue); }
+
+  .nav-pills {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+  }
+
+  .nav-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--text-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .nav-pill:hover { color: var(--text); background: var(--surface2); }
+
+  /* ── LAYOUT ── */
+  .lesson { max-width: 820px; margin: 0 auto; padding: 40px 24px 100px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 56px; }
+
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .section-subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 24px;
+    max-width: 600px;
+  }
+
+  .prose {
+    color: var(--text-mid);
+    font-size: 14px;
+    line-height: 1.85;
+    margin-bottom: 20px;
+  }
+
+  .prose strong { color: var(--text); font-weight: 600; }
+
+  .key-term {
+    display: inline;
+    color: var(--cyan);
+    font-weight: 600;
+    cursor: help;
+    border-bottom: 1px dashed var(--cyan);
+    position: relative;
+  }
+
+  .key-term .tip-popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text);
+    width: 260px;
+    line-height: 1.6;
+    z-index: 50;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+
+  .key-term:hover .tip-popup { display: block; }
+
+  /* ── PRODUCT CARDS ── */
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr; } }
+
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: default;
+  }
+
+  .product-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+
+  .product-card .icon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .product-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .product-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .product-card .card-exam {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+
+  .product-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  .arch-box {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .arch-box:hover { transform: scale(1.04); }
+  .arch-box.active { box-shadow: 0 0 0 2px var(--blue), 0 4px 16px rgba(77,139,245,0.2); }
+
+  .arch-arrow {
+    color: var(--text-dim);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .arch-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-align: center;
+    margin: 14px 0 6px;
+    font-weight: 600;
+  }
+
+  .arch-detail {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.7;
+  }
+
+  .arch-detail.show { display: block; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+
+  .compare-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .compare-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-mid);
+    vertical-align: top;
+  }
+
+  .compare-table tr:hover td { background: var(--surface); }
+
+  .compare-table .product-col { font-weight: 600; color: var(--text); white-space: nowrap; }
+
+  /* ── EXPAND PANELS ── */
+  .expand-panel {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+
+  .expand-header {
+    background: var(--surface);
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.15s;
+    user-select: none;
+  }
+
+  .expand-header:hover { background: var(--surface2); }
+
+  .expand-chevron {
+    transition: transform 0.2s;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  .expand-panel.open .expand-chevron { transform: rotate(180deg); }
+
+  .expand-body {
+    display: none;
+    padding: 16px 18px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.75;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+
+  .expand-panel.open .expand-body { display: block; }
+
+  /* ── INLINE QUIZ ── */
+  .inline-quiz {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 24px 0;
+  }
+
+  .quiz-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  .quiz-question {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .quiz-options { display: flex; flex-direction: column; gap: 6px; }
+
+  .quiz-option {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .quiz-option:hover:not(.locked) { border-color: var(--blue); background: var(--blue-dim); }
+  .quiz-option.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .quiz-option.wrong { border-color: var(--red); background: var(--red-dim); color: var(--red); opacity: 0.7; }
+  .quiz-option.locked { cursor: default; }
+  .quiz-option.correct-reveal { border-color: var(--green); background: var(--green-dim); }
+
+  .quiz-explanation {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.7;
+    border-left: 3px solid var(--green);
+  }
+
+  .quiz-explanation.show { display: block; }
+
+  /* ── PILLAR DIAGRAM ── */
+  .pillars {
+    display: flex;
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 600px) { .pillars { flex-direction: column; } }
+
+  .pillar {
+    flex: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .pillar-head {
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .pillar-body {
+    padding: 14px;
+    background: var(--surface);
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .pillar-body .feat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .pillar-body .feat::before {
+    content: '→';
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  /* ── FLOW STRIP ── */
+  .flow-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    overflow-x: auto;
+    padding: 4px 0;
+  }
+
+  .flow-step {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid;
+  }
+
+  .flow-arrow {
+    font-size: 16px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 20px 0;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .callout.exam {
+    background: var(--amber-dim);
+    border: 1px solid rgba(251,191,36,0.25);
+    color: var(--amber);
+  }
+
+  .callout.exam strong { color: var(--amber); }
+
+  .callout.tip {
+    background: var(--blue-dim);
+    border: 1px solid rgba(77,139,245,0.2);
+    color: var(--text-mid);
+  }
+
+  .callout-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  /* ── TRACKER ── */
+  .tracker {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 90;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  .tracker-score {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green);
+  }
+
+  .hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-inner">
+    <h1><span>📘</span> Monitor, Detect & Defend</h1>
+    <nav class="nav-pills">
+      <a class="nav-pill" href="#s1">Monitoring</a>
+      <a class="nav-pill" href="#s2">Health</a>
+      <a class="nav-pill" href="#s3">Defender</a>
+      <a class="nav-pill" href="#s4">Sentinel</a>
+      <a class="nav-pill" href="#s5">Identity</a>
+      <a class="nav-pill" href="#s6">Big Picture</a>
+    </nav>
+  </div>
+</div>
+
+<div class="tracker">
+  Knowledge checks: <span class="tracker-score" id="trackerScore">0 / 0</span>
+</div>
+
+<div class="lesson">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 1: AZURE MONITOR -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-number">Section 01 — AZ-900</div>
+  <h2 class="section-title">Azure Monitor</h2>
+  <div class="section-subtitle">The single platform for collecting, analysing and acting on telemetry from your Azure resources and applications.</div>
+
+  <p class="prose">
+    Azure Monitor is the <strong>umbrella service</strong> that sits across everything. When you hear "monitoring in Azure," this is it. It collects two core data types:
+    <span class="key-term">Metrics<span class="tip-popup">Numeric time-series values collected at regular intervals. Think CPU %, memory usage, request count. Stored in a time-series database, lightweight and near real-time.</span></span>
+    and
+    <span class="key-term">Logs<span class="tip-popup">Structured and unstructured event data — traces, exceptions, audit records. Stored in a Log Analytics workspace and queried with KQL (Kusto Query Language).</span></span>.
+    Metrics tell you <strong>how much</strong>. Logs tell you <strong>what happened</strong>.
+  </p>
+
+  <div class="product-grid">
+    <div class="product-card">
+      <div class="icon-row">
+        <div class="product-icon" style="background: var(--blue-dim); color: var(--blue);">📊</div>
+        <h3>Azure Monitor Metrics</h3>
+      </div>
+      <p>Platform metrics collected automatically from every Azure resource. CPU, memory, network throughput, HTTP queue length. Near real-time, up to 1-minute granularity. No agent needed for platform metrics.</p>
+    </div>
+    <div class="product-card">
+      <div class="icon-row">
+        <div class="product-icon" style="background: var(--purple-dim); color: var(--purple);">📝</div>
+        <h3>Log Analytics Workspace</h3>
+      </div>
+      <p>The central data store for logs. Everything flows here — activity logs, diagnostic logs, App Insights data, Syslog. You query it with KQL. Sentinel also sits on top of this workspace.</p>
+    </div>
+    <div class="product-card">
+      <div class="icon-row">
+        <div class="product-icon" style="background: var(--cyan-dim); color: var(--cyan);">🔍</div>
+        <h3>Application Insights</h3>
+      </div>
+      <p>APM (Application Performance Monitoring) for your code. Instrument your app to trace requests, dependencies, exceptions, and page views. Part of Azure Monitor. Supports adaptive sampling to control costs.</p>
+    </div>
+    <div class="product-card">
+      <div class="icon-row">
+        <div class="product-icon" style="background: var(--pink-dim); color: var(--pink);">🔔</div>
+        <h3>Azure Monitor Alerts</h3>
+      </div>
+      <p>Fire notifications or trigger automated actions when metrics or log queries cross a threshold. Uses Action Groups to define who gets notified (email, SMS, webhook) and what runs (Logic Apps, autoscale, Azure Functions).</p>
+    </div>
+  </div>
+
+  <div class="expand-panel" data-expand>
+    <div class="expand-header">
+      <span>💡 Deep Dive: Metrics vs Logs — When to use which?</span>
+      <span class="expand-chevron">▼</span>
+    </div>
+    <div class="expand-body">
+      <strong>Use Metrics when:</strong> you need real-time dashboards, autoscale triggers, or quick health checks. Metrics are fast (sub-minute latency), cheap (included free), and ideal for alerting on thresholds like "CPU > 80% for 5 minutes."<br><br>
+      <strong>Use Logs when:</strong> you need to investigate root causes, correlate across services, or audit activity. Logs are richer but cost more (charged per GB ingested). A KQL query like <code>requests | where duration > 2s | summarize count() by operation_Name</code> can pinpoint exactly which API endpoint is slow.<br><br>
+      <strong>The pattern:</strong> Metrics detect the problem → Alerts notify the team → Logs diagnose the cause.
+    </div>
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="b">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">Your web app is experiencing intermittent 500 errors. You need to find which dependency call is failing. Which Azure Monitor feature do you use?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Azure Monitor Metrics — check the HTTP 5xx metric</div>
+      <div class="quiz-option" data-val="b">Application Insights — trace failed dependency calls</div>
+      <div class="quiz-option" data-val="c">Azure Advisor — check reliability recommendations</div>
+      <div class="quiz-option" data-val="d">Azure Service Health — check for platform outages</div>
+    </div>
+    <div class="quiz-explanation">Metrics will show you <em>that</em> 500s are happening, but not <em>why</em>. Application Insights instruments your code to trace each request through its dependency chain — it'll show you exactly which external call (SQL, API, cache) failed and the exception it threw. Service Health only tells you about Azure platform issues, not your app's bugs. Advisor gives proactive recommendations, not real-time diagnostics.</div>
+  </div>
+</div>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 2: HEALTH SERVICES -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-number">Section 02 — AZ-900</div>
+  <h2 class="section-title">Health Trio: Service Health, Resource Health & Advisor</h2>
+  <div class="section-subtitle">Three services that sound similar but answer completely different questions. This is a favourite exam trap.</div>
+
+  <p class="prose">
+    The exam loves presenting a scenario and asking which of these three you'd use. The trick is understanding <strong>whose problem</strong> you're investigating — Azure's infrastructure, your specific resource, or your overall best practices.
+  </p>
+
+  <div class="arch-diagram" id="healthDiagram">
+    <div class="arch-label">Click each box to see details</div>
+    <div class="arch-row">
+      <div class="arch-box" data-arch="sh" style="background: var(--amber-dim); border-color: rgba(251,191,36,0.3); color: var(--amber);">
+        🌐 Azure Service Health
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" data-arch="rh" style="background: var(--blue-dim); border-color: rgba(77,139,245,0.3); color: var(--blue);">
+        🖥️ Resource Health
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" data-arch="ad" style="background: var(--green-dim); border-color: rgba(52,211,153,0.3); color: var(--green);">
+        💡 Azure Advisor
+      </div>
+    </div>
+    <div class="arch-detail" id="archDetail-sh">
+      <strong>Azure Service Health</strong> answers: "Is Azure itself having problems?"<br><br>
+      Three components:<br>
+      → <strong>Azure Status</strong> — global view of all Azure services across all regions (the public status page)<br>
+      → <strong>Service Health</strong> — personalised dashboard filtered to YOUR subscriptions, regions, and services<br>
+      → <strong>Health Advisories</strong> — planned maintenance, feature retirements, and upcoming changes that affect you<br><br>
+      <em>Use when:</em> You suspect the problem isn't your code — it's Azure. "Is the UK South region having issues?" goes here.
+    </div>
+    <div class="arch-detail" id="archDetail-rh">
+      <strong>Resource Health</strong> answers: "Is THIS specific resource affected by an Azure platform issue?"<br><br>
+      → Checks whether your VM, App Service, or SQL Database is impacted by an ongoing platform event<br>
+      → Shows current state: Available, Unavailable, Degraded, or Unknown<br>
+      → Links directly to relevant Service Health events if there's a platform issue<br><br>
+      <em>Use when:</em> "My VM won't start — is it me or Azure?" Start at Resource Health to rule out platform issues before digging into your config.
+    </div>
+    <div class="arch-detail" id="archDetail-ad">
+      <strong>Azure Advisor</strong> answers: "What should I be doing better?"<br><br>
+      Five pillars of recommendations:<br>
+      → <strong>Reliability</strong> — availability zone usage, backup configuration<br>
+      → <strong>Security</strong> — integrates with Defender for Cloud recommendations<br>
+      → <strong>Performance</strong> — right-sizing, caching opportunities<br>
+      → <strong>Cost</strong> — underutilised resources, reserved instance opportunities<br>
+      → <strong>Operational Excellence</strong> — service health alerts, tagging<br><br>
+      <em>Use when:</em> You're NOT fighting a fire. Advisor is proactive — it analyses your deployed resources and suggests improvements. No real-time monitoring.
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <div class="callout-label">⚠️ Exam Trap</div>
+    "A VM is unresponsive — which service tells you if it's a platform issue?" → <strong>Resource Health</strong>, not Service Health. Service Health shows region/service-wide events. Resource Health checks YOUR specific resource. The exam tests this distinction repeatedly.
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="c">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">Azure has scheduled maintenance on the UK South compute cluster your App Service runs on. Where would you have seen advance notice of this?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Resource Health — it shows upcoming impacts to your resources</div>
+      <div class="quiz-option" data-val="b">Azure Advisor — under the Reliability pillar</div>
+      <div class="quiz-option" data-val="c">Azure Service Health — in the Health Advisories section</div>
+      <div class="quiz-option" data-val="d">Azure Monitor — via a planned maintenance metric alert</div>
+    </div>
+    <div class="quiz-explanation">Health Advisories within Azure Service Health is where planned maintenance notices appear, filtered to your subscriptions and regions. Resource Health tells you the current state during/after the event, not in advance. Advisor recommends best practices, not maintenance schedules.</div>
+  </div>
+</div>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 3: DEFENDER FOR CLOUD -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-number">Section 03 — SC-900</div>
+  <h2 class="section-title">Microsoft Defender for Cloud</h2>
+  <div class="section-subtitle">Cloud security posture management and workload protection. Two pillars, one portal blade.</div>
+
+  <p class="prose">
+    Defender for Cloud does two fundamentally different jobs under one roof. The exam absolutely loves testing whether you know the difference between them. Every Defender question maps back to this split:
+  </p>
+
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-head" style="background: var(--blue-dim); color: var(--blue);">CSPM — Cloud Security Posture Management</div>
+      <div class="pillar-body">
+        <div class="feat">Secure Score — your security posture as a percentage</div>
+        <div class="feat">Security Recommendations — prioritised fixes</div>
+        <div class="feat">Regulatory Compliance dashboard</div>
+        <div class="feat">Cloud Security Graph & attack path analysis</div>
+        <div class="feat">Free tier (foundational CSPM) included for all Azure subscriptions</div>
+        <div style="margin-top: 10px; color: var(--blue); font-weight: 600; font-size: 11px;">Think: "How secure IS my environment?"</div>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-head" style="background: var(--red-dim); color: var(--red);">CWP — Cloud Workload Protection</div>
+      <div class="pillar-body">
+        <div class="feat">Defender for Servers — EDR, vulnerability assessment, JIT</div>
+        <div class="feat">Defender for App Service — web attack detection</div>
+        <div class="feat">Defender for SQL — injection detection, anomalous access</div>
+        <div class="feat">Defender for Key Vault — unusual secret access</div>
+        <div class="feat">Defender for Containers, Storage, DNS, ARM, etc.</div>
+        <div style="margin-top: 10px; color: var(--red); font-weight: 600; font-size: 11px;">Think: "Is someone attacking my workloads RIGHT NOW?"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="expand-panel" data-expand>
+    <div class="expand-header">
+      <span>🔒 Deep Dive: Secure Score — How it works</span>
+      <span class="expand-chevron">▼</span>
+    </div>
+    <div class="expand-body">
+      Secure Score evaluates your resources against security controls. Each control groups related recommendations (e.g., "Enable MFA" is one recommendation within the "Manage access and permissions" control).<br><br>
+      <strong>How scoring works:</strong><br>
+      → Each control has a max score. Your score for that control = (compliant resources / total resources) × max score<br>
+      → Overall secure score = sum of all control scores / sum of all max scores × 100<br><br>
+      <strong>The quick wins that move the needle most:</strong><br>
+      → Enable MFA on privileged accounts (high weight, easy to do)<br>
+      → Enable JIT VM access (replaces always-open RDP/SSH)<br>
+      → Apply disk encryption<br>
+      → Remove public IPs from VMs that don't need them<br><br>
+      Note: Resource tags and cost optimisation don't affect secure score — those are Advisor territory.
+    </div>
+  </div>
+
+  <div class="expand-panel" data-expand>
+    <div class="expand-header">
+      <span>⚔️ Deep Dive: Defender for Servers — What Plan 2 gives you</span>
+      <span class="expand-chevron">▼</span>
+    </div>
+    <div class="expand-body">
+      <strong>Plan 1</strong> gives you Microsoft Defender for Endpoint (MDE) integration — EDR on your VMs. Basic threat detection.<br><br>
+      <strong>Plan 2</strong> adds everything from Plan 1 plus:<br>
+      → Qualys or Microsoft Defender Vulnerability Management (MDVM) for vulnerability assessment<br>
+      → Just-In-Time (JIT) VM access — time-limited, approval-based access to management ports<br>
+      → Adaptive Application Controls — ML-driven allowlisting of executables<br>
+      → File Integrity Monitoring (FIM)<br>
+      → Adaptive Network Hardening — tightens NSG rules based on actual traffic<br><br>
+      For the SC-900 exam, know the features exist and which plan they belong to. You won't need deep config, but you need to map capability → product.
+    </div>
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="b">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">A SQL injection attempt is detected on your Azure SQL database. Which Defender for Cloud pillar generated this alert?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">CSPM — it was flagged as a security recommendation</div>
+      <div class="quiz-option" data-val="b">CWP — Defender for SQL detected a runtime attack</div>
+      <div class="quiz-option" data-val="c">CSPM — it reduced the secure score</div>
+      <div class="quiz-option" data-val="d">Azure Advisor — under the security pillar</div>
+    </div>
+    <div class="quiz-explanation">SQL injection detection is a runtime threat — that's CWP (Cloud Workload Protection), specifically Defender for SQL. CSPM would tell you "you should enable auditing on your SQL server" as a recommendation, but it doesn't detect active attacks. That's the core distinction: CSPM = posture, CWP = protection.</div>
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="a">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">Which Defender for Cloud capability is available for FREE on every Azure subscription?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Foundational CSPM — secure score and recommendations</div>
+      <div class="quiz-option" data-val="b">Defender for Servers Plan 1</div>
+      <div class="quiz-option" data-val="c">Advanced cloud security graph and attack path analysis</div>
+      <div class="quiz-option" data-val="d">All CWP plans for the first 30 days</div>
+    </div>
+    <div class="quiz-explanation">Foundational CSPM is free — you get secure score, basic recommendations, and the regulatory compliance dashboard. The enhanced CWP plans (Servers, SQL, App Service, etc.) cost per resource per month. Defender for Cloud CSPM (advanced) with attack path analysis is also a paid upgrade. There IS a 30-day trial, but that's not the "free" tier — it's a trial.</div>
+  </div>
+</div>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 4: SENTINEL -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-number">Section 04 — SC-900</div>
+  <h2 class="section-title">Microsoft Sentinel</h2>
+  <div class="section-subtitle">Cloud-native SIEM + SOAR. Aggregates signals from everywhere and automates response.</div>
+
+  <p class="prose">
+    Sentinel is where <strong>everything comes together</strong>. It doesn't generate its own alerts — it ingests them from Defender for Cloud, Entra ID Protection, M365 Defender, third-party firewalls, and anything else you connect. Then it correlates, detects patterns, and automates response.
+  </p>
+
+  <div class="flow-strip">
+    <div class="flow-step" style="background: var(--surface2); border-color: var(--border); color: var(--text-dim);">Data Sources</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background: var(--blue-dim); border-color: rgba(77,139,245,0.3); color: var(--blue);">Data Connectors</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background: var(--purple-dim); border-color: rgba(167,139,250,0.3); color: var(--purple);">Log Analytics</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background: var(--amber-dim); border-color: rgba(251,191,36,0.3); color: var(--amber);">Analytics Rules</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background: var(--red-dim); border-color: rgba(248,113,113,0.3); color: var(--red);">Incidents</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="background: var(--green-dim); border-color: rgba(52,211,153,0.3); color: var(--green);">Playbooks</div>
+  </div>
+
+  <div class="expand-panel" data-expand>
+    <div class="expand-header">
+      <span>📡 The Four Pillars of Sentinel</span>
+      <span class="expand-chevron">▼</span>
+    </div>
+    <div class="expand-body">
+      <strong>1. Collect</strong> — Data connectors pull in logs from 100+ sources: Entra ID, M365 Defender, Defender for Cloud, AWS, firewalls (Syslog/CEF), threat intelligence feeds (STIX/TAXII).<br><br>
+      <strong>2. Detect</strong> — Analytics rules run KQL queries on schedule to find threats. Built-in templates, custom rules, or ML-based anomaly detection. When a rule matches, it creates an incident.<br><br>
+      <strong>3. Investigate</strong> — Investigation graph visualises entities (users, IPs, hosts) and their relationships. Hunting queries let you proactively search for threats the rules haven't caught. Workbooks provide dashboards.<br><br>
+      <strong>4. Respond</strong> — Playbooks (built on Azure Logic Apps) automate response. Examples: isolate a compromised VM, disable a risky user, open a ServiceNow ticket, send a Teams alert. This is the SOAR capability.
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <div class="callout-label">⚠️ Critical Exam Distinction</div>
+    <strong>Sentinel = SIEM + SOAR</strong> (Security Information & Event Management + Security Orchestration, Automation & Response)<br>
+    <strong>M365 Defender = XDR</strong> (Extended Detection & Response)<br><br>
+    They integrate tightly, but the exam asks you to classify them. "Which Microsoft product is a SIEM?" → Sentinel. "Which is XDR?" → M365 Defender. Sentinel sits on a <strong>Log Analytics workspace</strong> — that's where all the data lives.
+  </div>
+
+  <table class="compare-table">
+    <tr>
+      <th>Capability</th>
+      <th>Sentinel Feature</th>
+      <th>What it does</th>
+    </tr>
+    <tr>
+      <td class="product-col">SIEM — Detect</td>
+      <td>Analytics Rules</td>
+      <td>Scheduled KQL queries that create incidents when threats are found</td>
+    </tr>
+    <tr>
+      <td class="product-col">SIEM — Investigate</td>
+      <td>Hunting Queries</td>
+      <td>Proactive KQL queries run manually by analysts to find hidden threats</td>
+    </tr>
+    <tr>
+      <td class="product-col">SIEM — Visualise</td>
+      <td>Workbooks</td>
+      <td>Interactive dashboards built on KQL — operational visibility</td>
+    </tr>
+    <tr>
+      <td class="product-col">SOAR — Respond</td>
+      <td>Playbooks</td>
+      <td>Logic Apps triggered by automation rules — isolate VMs, disable users, create tickets</td>
+    </tr>
+    <tr>
+      <td class="product-col">Intel</td>
+      <td>Threat Intelligence</td>
+      <td>STIX/TAXII feeds for IOC matching against your log data</td>
+    </tr>
+  </table>
+
+  <div class="inline-quiz" data-quiz data-correct="c">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">An automation rule in Sentinel triggers when a high-severity incident is created, automatically isolating the affected VM and notifying the SOC lead. What Sentinel feature performs this automated response?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Analytics Rule — it detected and responded to the threat</div>
+      <div class="quiz-option" data-val="b">Hunting Query — a proactive search found and remediated it</div>
+      <div class="quiz-option" data-val="c">Playbook — a Logic App triggered by the automation rule</div>
+      <div class="quiz-option" data-val="d">Workbook — the dashboard automated the response</div>
+    </div>
+    <div class="quiz-explanation">Playbooks are Logic Apps that execute automated response actions — this is the SOAR capability. Analytics rules detect and create incidents. Hunting queries are manual, analyst-driven. Workbooks are dashboards only — no automation. The chain is: Analytics Rule detects → creates Incident → Automation Rule evaluates → triggers Playbook.</div>
+  </div>
+</div>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 5: IDENTITY PROTECTION -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-number">Section 05 — SC-900</div>
+  <h2 class="section-title">Microsoft Entra ID Protection</h2>
+  <div class="section-subtitle">Automated identity risk detection and remediation. The identity security layer.</div>
+
+  <p class="prose">
+    Entra ID Protection uses Microsoft's threat intelligence and ML models to detect identity-based risks in real time. It feeds into Conditional Access for automated remediation — and its alerts flow into Sentinel for SOC visibility. It operates on two risk types:
+  </p>
+
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-head" style="background: var(--amber-dim); color: var(--amber);">Sign-in Risk</div>
+      <div class="pillar-body">
+        <div class="feat">Impossible travel — London to Moscow in 4 minutes</div>
+        <div class="feat">Anonymous IP address — Tor exit node sign-in</div>
+        <div class="feat">Malware-linked IP address</div>
+        <div class="feat">Unfamiliar sign-in properties</div>
+        <div class="feat">Password spray detected</div>
+        <div style="margin-top: 10px; color: var(--amber); font-weight: 600; font-size: 11px;">Is this specific sign-in attempt suspicious?</div>
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-head" style="background: var(--red-dim); color: var(--red);">User Risk</div>
+      <div class="pillar-body">
+        <div class="feat">Leaked credentials — found on dark web paste</div>
+        <div class="feat">Azure AD Threat Intelligence — Microsoft flags the account</div>
+        <div class="feat">Anomalous user activity patterns</div>
+        <div class="feat">User confirmed compromised by admin</div>
+        <div class="feat">Accumulation of sign-in risk signals over time</div>
+        <div style="margin-top: 10px; color: var(--red); font-weight: 600; font-size: 11px;">Is this user account itself compromised?</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="expand-panel" data-expand>
+    <div class="expand-header">
+      <span>🔗 How ID Protection connects to Conditional Access</span>
+      <span class="expand-chevron">▼</span>
+    </div>
+    <div class="expand-body">
+      The real power is in the integration with Conditional Access policies:<br><br>
+      <strong>Sign-in risk policy:</strong> "If sign-in risk is High → require MFA." This means the impossible-travel sign-in gets challenged with MFA before it's allowed. If the real user confirms with MFA, the risk is auto-remediated.<br><br>
+      <strong>User risk policy:</strong> "If user risk is High → require password change." If credentials are found on the dark web, the user is forced to change their password at next sign-in (with MFA verification first).<br><br>
+      This is <strong>automated remediation</strong> — no SOC analyst needs to intervene for common identity threats. The alerts still flow to Sentinel for visibility and correlation with other signals.
+    </div>
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="b">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">A user's credentials are found on a dark web paste site. Entra ID Protection flags this. What type of risk is this?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Sign-in risk — because the next sign-in will be suspicious</div>
+      <div class="quiz-option" data-val="b">User risk — the account itself is compromised regardless of sign-in</div>
+      <div class="quiz-option" data-val="c">Application risk — the app credentials are exposed</div>
+      <div class="quiz-option" data-val="d">Device risk — handled by Microsoft Intune</div>
+    </div>
+    <div class="quiz-explanation">Leaked credentials = user risk. The account is compromised whether or not anyone has signed in with those credentials yet. Sign-in risk evaluates individual sign-in events (where, when, how). The leaked creds policy should force a password reset on next sign-in. The distinction matters because the remediation actions differ — sign-in risk → require MFA. User risk → require password change.</div>
+  </div>
+
+  <div class="inline-quiz" data-quiz data-correct="d">
+    <div class="quiz-badge">🧠 Knowledge Check</div>
+    <div class="quiz-question">Where do Entra ID Protection risk detections appear in a SOC's unified view?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Azure Monitor — as identity metrics</div>
+      <div class="quiz-option" data-val="b">Defender for Cloud — in the secure score</div>
+      <div class="quiz-option" data-val="c">Azure Advisor — under security recommendations</div>
+      <div class="quiz-option" data-val="d">Microsoft Sentinel — via the Entra ID data connector</div>
+    </div>
+    <div class="quiz-explanation">ID Protection alerts flow into Sentinel through the Microsoft Entra ID data connector (sign-in logs and audit logs). This is how the SOC gets a unified view — identity risks from Entra, workload alerts from Defender, and everything else, all correlated in Sentinel. Defender for Cloud's secure score doesn't include identity risk detections — that's posture, not detection.</div>
+  </div>
+</div>
+
+<hr class="hr">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 6: BIG PICTURE -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="section-number">Section 06 — AZ-900 + SC-900</div>
+  <h2 class="section-title">The Big Picture: How It All Connects</h2>
+  <div class="section-subtitle">Every product has its lane. The exam tests whether you can place the right tool in the right scenario.</div>
+
+  <div class="arch-diagram">
+    <div class="arch-label">Signal Flow — click any box</div>
+    <div class="arch-row">
+      <div class="arch-box" data-arch="bp-apps" style="background: var(--surface2); border-color: var(--border); color: var(--text-dim); font-size: 11px;">Your Apps & VMs</div>
+      <div class="arch-box" data-arch="bp-identity" style="background: var(--surface2); border-color: var(--border); color: var(--text-dim); font-size: 11px;">Entra ID Users</div>
+      <div class="arch-box" data-arch="bp-azure" style="background: var(--surface2); border-color: var(--border); color: var(--text-dim); font-size: 11px;">Azure Platform</div>
+    </div>
+    <div class="arch-row" style="margin: 4px 0;">
+      <div class="arch-arrow">↓</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-arrow">↓</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box" data-arch="bp-monitor" style="background: var(--blue-dim); border-color: rgba(77,139,245,0.3); color: var(--blue); font-size: 11px;">Azure Monitor<br><small>+ App Insights</small></div>
+      <div class="arch-box" data-arch="bp-idp" style="background: var(--amber-dim); border-color: rgba(251,191,36,0.3); color: var(--amber); font-size: 11px;">Entra ID Protection<br><small>Risk Detection</small></div>
+      <div class="arch-box" data-arch="bp-health" style="background: var(--cyan-dim); border-color: rgba(34,211,238,0.3); color: var(--cyan); font-size: 11px;">Service Health<br><small>+ Resource Health</small></div>
+    </div>
+    <div class="arch-row" style="margin: 4px 0;">
+      <div class="arch-arrow" style="visibility:hidden;">↓</div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-arrow" style="visibility:hidden;">↓</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box" data-arch="bp-defender" style="background: var(--red-dim); border-color: rgba(248,113,113,0.3); color: var(--red); font-size: 12px;">🛡️ Defender for Cloud<br><small>CSPM + CWP</small></div>
+    </div>
+    <div class="arch-row" style="margin: 4px 0;">
+      <div class="arch-arrow">↓</div>
+    </div>
+    <div class="arch-row">
+      <div class="arch-box" data-arch="bp-sentinel" style="background: var(--purple-dim); border-color: rgba(167,139,250,0.3); color: var(--purple); font-size: 12px;">🔮 Microsoft Sentinel<br><small>SIEM + SOAR</small></div>
+    </div>
+
+    <div class="arch-detail" id="archDetail-bp-apps">Your apps and VMs generate telemetry — requests, exceptions, performance metrics, OS-level events. This flows to Azure Monitor (platform metrics + logs) and Defender for Cloud (workload protection alerts).</div>
+    <div class="arch-detail" id="archDetail-bp-identity">Every sign-in, MFA challenge, conditional access decision, and directory change generates Entra ID logs. Entra ID Protection evaluates risk in real time. High-risk events trigger Conditional Access policies.</div>
+    <div class="arch-detail" id="archDetail-bp-azure">Azure's own infrastructure generates health events — outages, degradation, planned maintenance. Service Health tracks region/service status. Resource Health checks your specific resource.</div>
+    <div class="arch-detail" id="archDetail-bp-monitor">Azure Monitor collects metrics and logs from everything. App Insights adds application-level tracing. Alerts fire when thresholds are crossed. All log data lands in a Log Analytics workspace.</div>
+    <div class="arch-detail" id="archDetail-bp-idp">Entra ID Protection detects risky sign-ins and risky users using ML models trained on billions of sign-in events. It feeds risk signals to Conditional Access for automated remediation (require MFA, force password reset, block).</div>
+    <div class="arch-detail" id="archDetail-bp-health">Service Health = "Is Azure having problems?" Resource Health = "Is MY resource affected?" Advisor = "What should I improve?" None of these detect attacks — they're operational health and best practice tools.</div>
+    <div class="arch-detail" id="archDetail-bp-defender">Defender for Cloud provides CSPM (secure score, recommendations) and CWP (Defender plans that detect runtime attacks). Alerts from all Defender plans flow up to Sentinel for correlation.</div>
+    <div class="arch-detail" id="archDetail-bp-sentinel">Sentinel is the aggregation layer — SIEM + SOAR. It ingests alerts and logs from every source via data connectors, correlates them with analytics rules, and automates response with playbooks. Sits on a Log Analytics workspace.</div>
+  </div>
+
+  <table class="compare-table">
+    <tr>
+      <th>Scenario</th>
+      <th>Product</th>
+      <th>Why</th>
+    </tr>
+    <tr>
+      <td>"App is slow, need to find which API call is failing"</td>
+      <td class="product-col">Application Insights</td>
+      <td>Code-level tracing of requests and dependencies</td>
+    </tr>
+    <tr>
+      <td>"CPU is spiking on my VM"</td>
+      <td class="product-col">Azure Monitor Metrics</td>
+      <td>Platform metrics, no instrumentation needed</td>
+    </tr>
+    <tr>
+      <td>"Is Azure having an outage in UK South?"</td>
+      <td class="product-col">Azure Service Health</td>
+      <td>Region/service-level platform status</td>
+    </tr>
+    <tr>
+      <td>"Is my specific VM affected by a platform issue?"</td>
+      <td class="product-col">Resource Health</td>
+      <td>Per-resource impact assessment</td>
+    </tr>
+    <tr>
+      <td>"How can I reduce costs and improve security?"</td>
+      <td class="product-col">Azure Advisor</td>
+      <td>Proactive recommendations across 5 pillars</td>
+    </tr>
+    <tr>
+      <td>"What's our overall security posture percentage?"</td>
+      <td class="product-col">Defender for Cloud (CSPM)</td>
+      <td>Secure Score — posture management</td>
+    </tr>
+    <tr>
+      <td>"Someone just ran a SQL injection against our DB"</td>
+      <td class="product-col">Defender for Cloud (CWP)</td>
+      <td>Defender for SQL — runtime threat detection</td>
+    </tr>
+    <tr>
+      <td>"User signed in from two countries in 3 minutes"</td>
+      <td class="product-col">Entra ID Protection</td>
+      <td>Sign-in risk — impossible travel detection</td>
+    </tr>
+    <tr>
+      <td>"We need a unified SOC view of all alerts"</td>
+      <td class="product-col">Microsoft Sentinel</td>
+      <td>SIEM — aggregates and correlates everything</td>
+    </tr>
+    <tr>
+      <td>"Auto-isolate compromised VMs when alerts fire"</td>
+      <td class="product-col">Sentinel Playbooks</td>
+      <td>SOAR — Logic Apps for automated response</td>
+    </tr>
+  </table>
+
+  <div class="inline-quiz" data-quiz data-correct="c">
+    <div class="quiz-badge">🧠 Final Boss</div>
+    <div class="quiz-question">An analyst sees an incident in Sentinel: a user's credentials were leaked, they signed in from an anonymous IP, and then suspicious ARM operations were detected. Which THREE products contributed alerts to this incident?</div>
+    <div class="quiz-options">
+      <div class="quiz-option" data-val="a">Azure Monitor, Advisor, Service Health</div>
+      <div class="quiz-option" data-val="b">Defender for Cloud, Application Insights, Advisor</div>
+      <div class="quiz-option" data-val="c">Entra ID Protection (leaked creds + anon IP), Defender for Cloud (ARM ops)</div>
+      <div class="quiz-option" data-val="d">Sentinel generated all three alerts internally</div>
+    </div>
+    <div class="quiz-explanation">Leaked credentials and anonymous IP sign-in are Entra ID Protection alerts (user risk + sign-in risk). Suspicious ARM operations come from Defender for Resource Manager (a CWP plan in Defender for Cloud). Sentinel correlates these into a single incident but doesn't generate the source alerts — it ingests them via data connectors. This is the key: Sentinel = correlation layer, not a source.</div>
+  </div>
+</div>
+
+</div><!-- /lesson -->
+
+<script>
+  // ── Expand panels ──
+  document.querySelectorAll('[data-expand]').forEach(panel => {
+    panel.querySelector('.expand-header').addEventListener('click', () => {
+      panel.classList.toggle('open');
+    });
+  });
+
+  // ── Architecture diagram click ──
+  document.querySelectorAll('.arch-box[data-arch]').forEach(box => {
+    box.addEventListener('click', () => {
+      const id = box.dataset.arch;
+      const detail = document.getElementById('archDetail-' + id);
+      if (!detail) return;
+
+      // Close others in same diagram
+      const diagram = box.closest('.arch-diagram');
+      diagram.querySelectorAll('.arch-detail').forEach(d => {
+        if (d !== detail) d.classList.remove('show');
+      });
+      diagram.querySelectorAll('.arch-box').forEach(b => {
+        if (b !== box) b.classList.remove('active');
+      });
+
+      detail.classList.toggle('show');
+      box.classList.toggle('active');
+    });
+  });
+
+  // ── Inline quizzes ──
+  let quizTotal = 0;
+  let quizCorrect = 0;
+
+  document.querySelectorAll('[data-quiz]').forEach(quiz => {
+    const correctVal = quiz.dataset.correct;
+    const options = quiz.querySelectorAll('.quiz-option');
+    const explanation = quiz.querySelector('.quiz-explanation');
+    let answered = false;
+
+    options.forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        quizTotal++;
+
+        options.forEach(o => o.classList.add('locked'));
+
+        if (opt.dataset.val === correctVal) {
+          opt.classList.add('correct');
+          quizCorrect++;
+        } else {
+          opt.classList.add('wrong');
+          options.forEach(o => {
+            if (o.dataset.val === correctVal) o.classList.add('correct-reveal');
+          });
+        }
+
+        explanation.classList.add('show');
+        updateTracker();
+      });
+    });
+  });
+
+  function updateTracker() {
+    document.getElementById('trackerScore').textContent = `${quizCorrect} / ${quizTotal}`;
+  }
+
+  // ── Smooth scroll for nav pills ──
+  document.querySelectorAll('.nav-pill').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(pill.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>

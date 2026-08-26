@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZ-900 / SC-900 — Monitor & Defend Lab</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2e3340;
+    --text: #e2e4ea;
+    --text-dim: #8b90a0;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.12);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.12);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245, 158, 11, 0.12);
+    --purple: #a855f7;
+    --purple-dim: rgba(168, 85, 247, 0.12);
+    --cyan: #06b6d4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .app-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .app-header h1 span { color: var(--accent); }
+
+  .progress-bar {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .progress-pip {
+    width: 28px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+
+  .progress-pip.done { background: var(--green); }
+  .progress-pip.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  .progress-pip.failed { background: var(--red); }
+
+  .score-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .score-display strong { color: var(--green); }
+
+  .scenario-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .scenario-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .badge-az900 { background: var(--accent-glow); color: var(--accent); }
+  .badge-sc900 { background: var(--purple-dim); color: var(--purple); }
+  .badge-both { background: var(--amber-dim); color: var(--amber); }
+
+  .scenario-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+
+  .scenario-brief {
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    max-width: 680px;
+  }
+
+  .config-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .config-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .config-header .portal-crumb {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .config-body { padding: 18px; }
+
+  .config-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+
+  .config-row:last-child { border-bottom: none; }
+
+  .config-label {
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .config-label small {
+    display: block;
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 12px;
+    margin-top: 3px;
+  }
+
+  .config-control { flex-shrink: 0; }
+
+  /* Toggle switch */
+  .toggle {
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--border);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .toggle.on { background: var(--accent); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s;
+  }
+
+  .toggle.on::after { transform: translateX(20px); }
+
+  /* Dropdown */
+  select.config-select {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 28px 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238b90a0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 160px;
+  }
+
+  select.config-select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Drag and drop zone */
+  .drop-zone {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    margin-top: 10px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .drop-zone.over {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .drop-zone.correct-zone { border-color: var(--green); background: var(--green-dim); }
+  .drop-zone.wrong-zone { border-color: var(--red); background: var(--red-dim); }
+
+  .drag-chip {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.15s;
+  }
+
+  .drag-chip:active { cursor: grabbing; opacity: 0.7; }
+  .drag-chip.placed { background: var(--accent-glow); border-color: var(--accent); }
+
+  /* Slider */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .slider-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: right;
+    min-width: 50px;
+  }
+
+  /* Alert / log strip */
+  .alert-strip {
+    background: var(--surface2);
+    border-left: 3px solid var(--amber);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .alert-strip.critical { border-left-color: var(--red); }
+  .alert-strip.info { border-left-color: var(--accent); }
+
+  .alert-strip .ts {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  /* Submit / check */
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-primary:hover { filter: brightness(1.1); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { background: var(--border); }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.7;
+    display: none;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.pass { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); }
+  .feedback.fail { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.3); }
+  .feedback.partial { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); }
+
+  .feedback h4 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .feedback .exam-tip {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .feedback .exam-tip strong { color: var(--cyan); }
+
+  /* Results screen */
+  .results-screen {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .results-screen .big-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--green);
+    margin: 20px 0;
+  }
+
+  .results-screen .big-score.mid { color: var(--amber); }
+  .results-screen .big-score.low { color: var(--red); }
+
+  .results-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    max-width: 600px;
+    margin: 30px auto;
+    text-align: left;
+  }
+
+  .breakdown-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .breakdown-card h5 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .breakdown-card .result-icon { font-size: 18px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1><span>▶</span> Monitor & Defend Lab</h1>
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="score-display">Score: <strong id="scoreDisplay">0</strong> / <span id="maxScore">0</span></div>
+</div>
+
+<div class="scenario-container" id="scenarioContainer"></div>
+
+<script>
+const SCENARIOS = [
+  // ──────── SCENARIO 1: Azure Monitor config ────────
+  {
+    id: 'monitor-webapp',
+    badge: 'az900',
+    title: 'Web App Performance Is Tanking',
+    brief: `Your company's customer-facing web app (App Service, Standard S1) is getting reports of slow page loads during peak hours. The ops team has no visibility into what's happening. You need to set up monitoring. Configure the right Azure services below.`,
+    type: 'toggles-and-selects',
+    panels: [
+      {
+        title: 'Monitoring Configuration',
+        crumb: 'portal > Monitor > Settings',
+        controls: [
+          { id: 'enable-app-insights', type: 'toggle', label: 'Application Insights', desc: 'Instrument the app for request tracing, dependency tracking, and exception logging', correct: true },
+          { id: 'enable-service-health', type: 'toggle', label: 'Azure Service Health alerts', desc: 'Get notified about Azure platform outages and planned maintenance', correct: false },
+          { id: 'enable-azure-monitor', type: 'toggle', label: 'Azure Monitor Metrics', desc: 'Collect platform metrics (CPU, memory, HTTP queue length) from the App Service', correct: true },
+          { id: 'enable-resource-health', type: 'toggle', label: 'Resource Health', desc: 'Check whether the App Service resource itself is healthy from Azure\'s side', correct: false },
+          { id: 'enable-log-analytics', type: 'toggle', label: 'Log Analytics Workspace', desc: 'Central workspace to query logs with KQL across all connected sources', correct: true },
+          { id: 'enable-advisor', type: 'toggle', label: 'Azure Advisor', desc: 'Get recommendations for cost, security, reliability, performance, and operational excellence', correct: false },
+        ]
+      },
+      {
+        title: 'Alert Configuration',
+        crumb: 'portal > Monitor > Alerts',
+        controls: [
+          { id: 'alert-metric', type: 'select', label: 'Primary alert trigger', desc: 'What metric should fire the alert?',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'cpu', text: 'CPU percentage > 80%' },
+              { value: 'response', text: 'Avg response time > 2s' },
+              { value: 'health', text: 'Service Health advisory' },
+              { value: 'cost', text: 'Cost threshold exceeded' }
+            ],
+            correct: 'response'
+          },
+          { id: 'alert-action', type: 'select', label: 'Action group', desc: 'What happens when the alert fires?',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'email-ops', text: 'Email + SMS to Ops team' },
+              { value: 'autoscale', text: 'Trigger autoscale rule' },
+              { value: 'both', text: 'Email Ops AND trigger autoscale' },
+              { value: 'logic-app', text: 'Run Logic App to restart' }
+            ],
+            correct: 'both'
+          }
+        ]
+      }
+    ],
+    scoring: (answers) => {
+      let score = 0;
+      let max = 8;
+      let mistakes = [];
+      // Toggles: correct ones ON, incorrect ones OFF
+      if (answers['enable-app-insights']) score++; else mistakes.push('Application Insights is essential — it instruments your code for request tracing, not just platform metrics.');
+      if (answers['enable-azure-monitor']) score++; else mistakes.push('Azure Monitor Metrics gives you the platform-level CPU/memory/queue data from App Service.');
+      if (answers['enable-log-analytics']) score++; else mistakes.push('Log Analytics is where your logs land — you need it to run KQL queries across sources.');
+      if (!answers['enable-service-health']) score++; else mistakes.push('Service Health tells you about Azure outages — useful, but not the diagnosis tool for YOUR app performance.');
+      if (!answers['enable-resource-health']) score++; else mistakes.push('Resource Health checks if Azure itself is causing issues with your resource. Useful for troubleshooting, but not your monitoring stack.');
+      if (!answers['enable-advisor']) score++; else mistakes.push('Advisor gives recommendations — it doesn\'t monitor performance in real-time.');
+      if (answers['alert-metric'] === 'response') score++; else mistakes.push('Response time is the metric that matches "slow page loads" — CPU is a secondary indicator.');
+      if (answers['alert-action'] === 'both') score++; else mistakes.push('Best practice: notify the team AND auto-remediate. Autoscale alone means nobody knows about the issue.');
+      return { score, max, mistakes };
+    },
+    examTip: `<strong>AZ-900:</strong> Know the difference between Azure Monitor (metrics/logs from YOUR resources), Service Health (Azure platform status), Resource Health (is YOUR specific resource affected), and Advisor (proactive recommendations). App Insights is part of Azure Monitor for application-level telemetry.`
+  },
+
+  // ──────── SCENARIO 2: Defender for Cloud ────────
+  {
+    id: 'defender-posture',
+    badge: 'sc900',
+    title: 'Secure Score Is 38% — Fix It',
+    brief: `You've just been given access to Microsoft Defender for Cloud. The secure score is 38%. Your CISO wants it above 70% within a month. Review the recommendations below and decide which Defender plans to enable and which quick wins to prioritise.`,
+    type: 'toggles-and-selects',
+    panels: [
+      {
+        title: 'Defender Plans',
+        crumb: 'portal > Defender for Cloud > Environment settings',
+        controls: [
+          { id: 'plan-servers', type: 'toggle', label: 'Defender for Servers (Plan 2)', desc: 'EDR, vulnerability assessment, JIT VM access, adaptive application controls', correct: true },
+          { id: 'plan-appservice', type: 'toggle', label: 'Defender for App Service', desc: 'Detect attacks targeting web apps — dangling DNS, path traversal, etc.', correct: true },
+          { id: 'plan-sql', type: 'toggle', label: 'Defender for Azure SQL', desc: 'SQL injection detection, anomalous access patterns, vulnerability assessment', correct: true },
+          { id: 'plan-keyvault', type: 'toggle', label: 'Defender for Key Vault', desc: 'Detect unusual access patterns to secrets, keys and certificates', correct: true },
+          { id: 'plan-arm', type: 'toggle', label: 'Defender for Resource Manager', desc: 'Detect suspicious management operations across your subscriptions', correct: false },
+          { id: 'plan-dns', type: 'toggle', label: 'Defender for DNS', desc: 'Detect malicious DNS activity — data exfil, C2 beaconing, mining', correct: false },
+        ]
+      },
+      {
+        title: 'Quick Win Recommendations',
+        crumb: 'portal > Defender for Cloud > Recommendations',
+        controls: [
+          { id: 'rec-mfa', type: 'toggle', label: 'Enable MFA for all privileged accounts', desc: 'High impact — affects 12 admin accounts without MFA', correct: true },
+          { id: 'rec-jit', type: 'toggle', label: 'Enable JIT VM access', desc: 'Replace always-open RDP/SSH ports with just-in-time access requests', correct: true },
+          { id: 'rec-encryption', type: 'toggle', label: 'Enable disk encryption on VMs', desc: 'Azure Disk Encryption or server-side encryption with CMK', correct: true },
+          { id: 'rec-publicip', type: 'toggle', label: 'Remove public IPs from VMs', desc: '6 VMs have direct public IP addresses assigned', correct: true },
+          { id: 'rec-tags', type: 'toggle', label: 'Apply resource tags for cost tracking', desc: 'Tagging resources by department and environment', correct: false },
+          { id: 'rec-advisor', type: 'toggle', label: 'Review Advisor cost recommendations', desc: 'Right-size underutilised VMs to save on compute costs', correct: false },
+        ]
+      },
+      {
+        title: 'Posture Assessment',
+        crumb: 'portal > Defender for Cloud > Secure Score',
+        controls: [
+          { id: 'cspm-type', type: 'select', label: 'Which capability provides the Secure Score?', desc: 'This is the feature that calculates and tracks your security posture',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'cwp', text: 'Cloud Workload Protection (CWP)' },
+              { value: 'cspm', text: 'Cloud Security Posture Management (CSPM)' },
+              { value: 'sentinel', text: 'Microsoft Sentinel' },
+              { value: 'compliance', text: 'Microsoft Purview Compliance' }
+            ],
+            correct: 'cspm'
+          }
+        ]
+      }
+    ],
+    scoring: (answers) => {
+      let score = 0;
+      let max = 13;
+      let mistakes = [];
+      // Defender plans — first 4 correct, last 2 are lower priority
+      if (answers['plan-servers']) score++; else mistakes.push('Defender for Servers is the big one — EDR via Defender for Endpoint integration, VA, JIT access.');
+      if (answers['plan-appservice']) score++; else mistakes.push('Defender for App Service catches dangling DNS, web attack patterns — you have App Services in scope.');
+      if (answers['plan-sql']) score++; else mistakes.push('Defender for SQL detects injection attempts and anomalous access — critical for data workloads.');
+      if (answers['plan-keyvault']) score++; else mistakes.push('Key Vault holds your secrets — detecting unusual access patterns here is essential.');
+      if (!answers['plan-arm']) score++; else mistakes.push('Defender for Resource Manager is useful but lower ROI for hitting 70% — it monitors management plane ops, not workload security.');
+      if (!answers['plan-dns']) score++; else mistakes.push('Defender for DNS is being deprecated in favour of Defender for Servers\' network layer. Not a priority spend.');
+      // Quick wins
+      if (answers['rec-mfa']) score++; else mistakes.push('MFA on privileged accounts is the single highest-impact control — always enable first.');
+      if (answers['rec-jit']) score++; else mistakes.push('JIT replaces always-open management ports. Massive attack surface reduction.');
+      if (answers['rec-encryption']) score++; else mistakes.push('Disk encryption is a compliance baseline and scores well.');
+      if (answers['rec-publicip']) score++; else mistakes.push('Public IPs on VMs = direct internet exposure. Removing them is a major quick win.');
+      if (!answers['rec-tags']) score++; else mistakes.push('Tags are an operational/cost concern. They don\'t affect secure score.');
+      if (!answers['rec-advisor']) score++; else mistakes.push('Advisor cost recommendations won\'t move your secure score — that\'s a cost exercise.');
+      // CSPM
+      if (answers['cspm-type'] === 'cspm') score++; else mistakes.push('Secure Score is a CSPM feature. CWP is workload protection (runtime). They\'re the two pillars of Defender for Cloud.');
+      return { score, max, mistakes };
+    },
+    examTip: `<strong>SC-900:</strong> Defender for Cloud has two pillars — CSPM (posture, secure score, recommendations) and CWP (runtime protection via Defender plans). The exam loves asking which pillar does what. CSPM is free-tier (basic). CWP costs money per plan. Secure Score is CSPM. Alerts and threat detection are CWP.`
+  },
+
+  // ──────── SCENARIO 3: Incident Triage — drag and drop ────────
+  {
+    id: 'incident-triage',
+    badge: 'both',
+    title: 'Security Incident: Suspicious Sign-Ins',
+    brief: `It's 2am. Sentinel has fired three alerts. Your SOC lead wants you to classify each alert to the correct Azure security product that generated it. Drag each alert into the correct product bucket.`,
+    type: 'drag-drop',
+    alerts: [
+      { id: 'alert-1', text: '⚠️ Impossible travel: User signed in from London then Moscow within 4 minutes', correctBucket: 'entra-id-protection' },
+      { id: 'alert-2', text: '🔴 SQL injection pattern detected on production App Service endpoint', correctBucket: 'defender-cloud' },
+      { id: 'alert-3', text: '⚠️ Anomalous management operation: 23 role assignments created in 60 seconds', correctBucket: 'defender-cloud' },
+      { id: 'alert-4', text: '🔴 Malicious IP contacted by VM — known C2 infrastructure', correctBucket: 'defender-cloud' },
+      { id: 'alert-5', text: '⚠️ Risky user: leaked credentials found on dark web paste site', correctBucket: 'entra-id-protection' },
+      { id: 'alert-6', text: '🟡 Planned maintenance: UK South region compute updates 02:00–04:00', correctBucket: 'service-health' },
+    ],
+    buckets: [
+      { id: 'defender-cloud', label: 'Microsoft Defender for Cloud', desc: 'Workload protection alerts — VMs, SQL, App Service, Key Vault, ARM' },
+      { id: 'entra-id-protection', label: 'Entra ID Protection', desc: 'Identity risk — risky sign-ins, risky users, leaked credentials' },
+      { id: 'service-health', label: 'Azure Service Health', desc: 'Platform events — outages, maintenance, health advisories' },
+    ],
+    scoring: (placements) => {
+      let score = 0;
+      let max = 6;
+      let mistakes = [];
+      const alerts = SCENARIOS[2].alerts;
+      for (const alert of alerts) {
+        if (placements[alert.id] === alert.correctBucket) {
+          score++;
+        } else {
+          const bucketLabel = SCENARIOS[2].buckets.find(b => b.id === alert.correctBucket)?.label || alert.correctBucket;
+          mistakes.push(`"${alert.text.replace(/[⚠️🔴🟡]/g, '').trim()}" → belongs in ${bucketLabel}`);
+        }
+      }
+      return { score, max, mistakes };
+    },
+    examTip: `<strong>SC-900 + AZ-900:</strong> Sentinel aggregates alerts from everywhere — but each alert originates from a specific product. Identity threats (impossible travel, risky users, leaked creds) come from Entra ID Protection. Workload threats (SQLi, C2, anomalous ARM ops) come from Defender for Cloud. Azure platform events come from Service Health. The exam tests whether you know the source.`
+  },
+
+  // ──────── SCENARIO 4: Sentinel workspace design ────────
+  {
+    id: 'sentinel-setup',
+    badge: 'sc900',
+    title: 'Build the SOC: Sentinel Workspace',
+    brief: `Your organisation is deploying Microsoft Sentinel. The board wants a unified view of threats across identity, cloud workloads, and on-prem servers. Configure the Sentinel workspace and data connectors.`,
+    type: 'toggles-and-selects',
+    panels: [
+      {
+        title: 'Data Connectors',
+        crumb: 'portal > Sentinel > Data connectors',
+        controls: [
+          { id: 'dc-aad', type: 'toggle', label: 'Microsoft Entra ID (sign-in & audit logs)', desc: 'Identity event data — sign-ins, MFA, conditional access, directory changes', correct: true },
+          { id: 'dc-defender', type: 'toggle', label: 'Microsoft Defender for Cloud', desc: 'Security alerts from all enabled Defender plans', correct: true },
+          { id: 'dc-m365', type: 'toggle', label: 'Microsoft 365 Defender', desc: 'Unified incidents from Defender for Endpoint, Office 365, Identity, Cloud Apps', correct: true },
+          { id: 'dc-syslog', type: 'toggle', label: 'Syslog / CEF (on-prem firewalls)', desc: 'Forward on-prem device logs via Log Analytics agent or AMA', correct: true },
+          { id: 'dc-ti', type: 'toggle', label: 'Threat Intelligence — TAXII', desc: 'Ingest external threat intel feeds (STIX/TAXII) for IOC matching', correct: true },
+          { id: 'dc-intune', type: 'toggle', label: 'Microsoft Intune', desc: 'Device compliance and configuration data from MDM', correct: false },
+        ]
+      },
+      {
+        title: 'SIEM/SOAR Configuration',
+        crumb: 'portal > Sentinel > Automation',
+        controls: [
+          { id: 'sentinel-role', type: 'select', label: 'What type of solution is Sentinel?', desc: 'Understanding its classification is a core exam topic',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'siem', text: 'SIEM only' },
+              { value: 'soar', text: 'SOAR only' },
+              { value: 'siem-soar', text: 'Cloud-native SIEM + SOAR' },
+              { value: 'xdr', text: 'Extended Detection & Response (XDR)' }
+            ],
+            correct: 'siem-soar'
+          },
+          { id: 'sentinel-storage', type: 'select', label: 'Where does Sentinel store its data?', desc: 'The underlying data platform',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'cosmos', text: 'Azure Cosmos DB' },
+              { value: 'log-analytics', text: 'Log Analytics workspace' },
+              { value: 'blob', text: 'Azure Blob Storage' },
+              { value: 'sql', text: 'Azure SQL Database' }
+            ],
+            correct: 'log-analytics'
+          },
+          { id: 'auto-response', type: 'select', label: 'What Sentinel feature automates incident response?', desc: 'SOAR capability for automated triage and remediation',
+            options: [
+              { value: '', text: '— Select —' },
+              { value: 'workbook', text: 'Workbooks' },
+              { value: 'playbook', text: 'Playbooks (Logic Apps)' },
+              { value: 'hunting', text: 'Hunting queries' },
+              { value: 'analytics', text: 'Analytics rules' }
+            ],
+            correct: 'playbook'
+          }
+        ]
+      }
+    ],
+    scoring: (answers) => {
+      let score = 0;
+      let max = 9;
+      let mistakes = [];
+      if (answers['dc-aad']) score++; else mistakes.push('Entra ID logs are foundational — sign-in events are the #1 signal source for identity threats.');
+      if (answers['dc-defender']) score++; else mistakes.push('Defender for Cloud alerts must flow into Sentinel for a unified SOC view.');
+      if (answers['dc-m365']) score++; else mistakes.push('M365 Defender connector brings in endpoint, email, identity, and cloud app incidents.');
+      if (answers['dc-syslog']) score++; else mistakes.push('The brief says on-prem servers — you need Syslog/CEF to get firewall and Linux logs in.');
+      if (answers['dc-ti']) score++; else mistakes.push('Threat Intelligence feeds enable IOC matching against your log data. Essential for detection.');
+      if (!answers['dc-intune']) score++; else mistakes.push('Intune is MDM/compliance — useful for posture but not a priority data connector for threat detection.');
+      if (answers['sentinel-role'] === 'siem-soar') score++; else mistakes.push('Sentinel is both SIEM (collect, detect, investigate) AND SOAR (automate response). XDR is M365 Defender, not Sentinel.');
+      if (answers['sentinel-storage'] === 'log-analytics') score++; else mistakes.push('Sentinel sits on top of a Log Analytics workspace. That\'s where all the data lives. KQL queries hit that workspace.');
+      if (answers['auto-response'] === 'playbook') score++; else mistakes.push('Playbooks are Logic Apps triggered by automation rules. That\'s the SOAR bit. Workbooks = dashboards. Hunting = proactive KQL. Analytics rules = detection.');
+      return { score, max, mistakes };
+    },
+    examTip: `<strong>SC-900:</strong> Sentinel = SIEM + SOAR, built on Log Analytics. M365 Defender = XDR. They integrate but are different products. The exam asks: "Which is the SIEM?" Answer: Sentinel. "Which is the XDR?" Answer: M365 Defender. Playbooks automate response (SOAR). Analytics rules detect threats. Workbooks visualise. Hunting is proactive KQL.`
+  },
+
+  // ──────── SCENARIO 5: Cost & monitoring slider ────────
+  {
+    id: 'monitor-costs',
+    badge: 'az900',
+    title: 'Right-Size Your Monitoring Stack',
+    brief: `The finance team says monitoring costs have tripled. You need to tune data retention and sampling without losing critical visibility. Adjust the sliders to find the right balance.`,
+    type: 'sliders',
+    sliders: [
+      { id: 'retention-days', label: 'Log Analytics Retention', desc: 'How long to keep logs (free tier includes 31 days)', min: 7, max: 730, step: 1, initial: 365, unit: 'days', correct: { min: 31, max: 90 }, tip: '31 days is free. Beyond that you pay per GB/month. 90 days covers most compliance needs without blowing the budget.' },
+      { id: 'sampling-rate', label: 'App Insights Sampling Rate', desc: 'Percentage of telemetry to capture (lower = cheaper, less data)', min: 1, max: 100, step: 1, initial: 100, unit: '%', correct: { min: 20, max: 50 }, tip: 'Adaptive sampling at 20-50% captures enough to diagnose issues while massively cutting ingestion costs.' },
+      { id: 'alert-frequency', label: 'Metric Alert Evaluation Frequency', desc: 'How often the alert rule checks the metric', min: 1, max: 60, step: 1, initial: 1, unit: 'min', correct: { min: 5, max: 15 }, tip: '1-minute eval is expensive. For most apps 5-15 min is the sweet spot between cost and detection speed.' },
+      { id: 'archive-days', label: 'Archive Tier Retention', desc: 'Cold storage for compliance/audit (cheap, slow queries)', min: 0, max: 2555, step: 5, initial: 0, unit: 'days', correct: { min: 365, max: 2555 }, tip: 'Archive tier is dirt cheap. Use it for compliance data you rarely need to query. Move logs here after active retention.' },
+    ],
+    scoring: (values) => {
+      let score = 0;
+      let max = 4;
+      let mistakes = [];
+      const sliders = SCENARIOS[4].sliders;
+      for (const s of sliders) {
+        const v = values[s.id];
+        if (v >= s.correct.min && v <= s.correct.max) {
+          score++;
+        } else {
+          mistakes.push(`${s.label}: you set ${v} ${s.unit}. Sweet spot is ${s.correct.min}–${s.correct.max} ${s.unit}. ${s.tip}`);
+        }
+      }
+      return { score, max, mistakes };
+    },
+    examTip: `<strong>AZ-900:</strong> Log Analytics has a free tier (31 days, limited GB/day). Beyond that, costs scale with ingestion volume and retention. Archive tier is for long-term compliance storage at very low cost. Application Insights supports adaptive sampling to reduce costs. These cost/monitoring trade-offs come up in the "describe Azure management and governance" domain.`
+  }
+];
+
+// ──────── STATE ────────
+let currentScenario = 0;
+let answers = {};
+let scores = [];
+let totalScore = 0;
+let totalMax = 0;
+
+// ──────── RENDER ────────
+function init() {
+  renderProgress();
+  renderScenario(0);
+  updateScoreDisplay();
+}
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  SCENARIOS.forEach((s, i) => {
+    const pip = document.createElement('div');
+    pip.className = 'progress-pip' + (i === currentScenario ? ' active' : '') + (scores[i] !== undefined ? (scores[i].score === scores[i].max ? ' done' : ' failed') : '');
+    pip.title = s.title;
+    pip.addEventListener('click', () => {
+      if (scores[i] !== undefined || i === currentScenario) {
+        currentScenario = i;
+        renderProgress();
+        renderScenario(i);
+      }
+    });
+    bar.appendChild(pip);
+  });
+  document.getElementById('maxScore').textContent = SCENARIOS.reduce((a, s) => {
+    const dummy = {};
+    return a;
+  }, 0);
+}
+
+function updateScoreDisplay() {
+  document.getElementById('scoreDisplay').textContent = totalScore;
+  let tm = 0;
+  for (const s of scores) if (s) tm += s.max;
+  // Also count current scenario max if not yet submitted
+  document.getElementById('maxScore').textContent = totalMax || '?';
+}
+
+function renderScenario(idx) {
+  const s = SCENARIOS[idx];
+  const container = document.getElementById('scenarioContainer');
+  answers = {};
+
+  if (s.type === 'toggles-and-selects') {
+    container.innerHTML = renderToggleScenario(s);
+    attachToggleListeners(s);
+  } else if (s.type === 'drag-drop') {
+    container.innerHTML = renderDragDropScenario(s);
+    attachDragDropListeners(s);
+  } else if (s.type === 'sliders') {
+    container.innerHTML = renderSliderScenario(s);
+    attachSliderListeners(s);
+  }
+}
+
+// ──── Toggle/Select Renderer ────
+function renderToggleScenario(s) {
+  let html = `
+    <div class="scenario-badge badge-${s.badge}">${s.badge === 'both' ? 'AZ-900 + SC-900' : s.badge.toUpperCase()}</div>
+    <h2 class="scenario-title">${s.title}</h2>
+    <p class="scenario-brief">${s.brief}</p>
+  `;
+
+  for (const panel of s.panels) {
+    html += `<div class="config-panel">
+      <div class="config-header">
+        <span>${panel.title}</span>
+        <span class="portal-crumb">${panel.crumb}</span>
+      </div>
+      <div class="config-body">`;
+
+    for (const ctrl of panel.controls) {
+      if (ctrl.type === 'toggle') {
+        html += `<div class="config-row">
+          <div class="config-label">${ctrl.label}<small>${ctrl.desc}</small></div>
+          <div class="config-control"><div class="toggle" data-id="${ctrl.id}" id="toggle-${ctrl.id}"></div></div>
+        </div>`;
+        answers[ctrl.id] = false;
+      } else if (ctrl.type === 'select') {
+        html += `<div class="config-row">
+          <div class="config-label">${ctrl.label}<small>${ctrl.desc}</small></div>
+          <div class="config-control">
+            <select class="config-select" data-id="${ctrl.id}" id="select-${ctrl.id}">
+              ${ctrl.options.map(o => `<option value="${o.value}">${o.text}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+        answers[ctrl.id] = '';
+      }
+    }
+
+    html += `</div></div>`;
+  }
+
+  html += renderActionBar(s);
+  return html;
+}
+
+function attachToggleListeners(s) {
+  document.querySelectorAll('.toggle').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const isOn = el.classList.toggle('on');
+      answers[id] = isOn;
+    });
+  });
+  document.querySelectorAll('.config-select').forEach(el => {
+    el.addEventListener('change', () => {
+      answers[el.dataset.id] = el.value;
+    });
+  });
+}
+
+// ──── Drag-Drop Renderer ────
+function renderDragDropScenario(s) {
+  let html = `
+    <div class="scenario-badge badge-${s.badge}">${s.badge === 'both' ? 'AZ-900 + SC-900' : s.badge.toUpperCase()}</div>
+    <h2 class="scenario-title">${s.title}</h2>
+    <p class="scenario-brief">${s.brief}</p>
+  `;
+
+  // Alert chips
+  html += `<div class="config-panel">
+    <div class="config-header"><span>Alerts (drag these)</span><span class="portal-crumb">Sentinel > Incidents</span></div>
+    <div class="config-body" id="alert-source">`;
+  for (const alert of s.alerts) {
+    html += `<div class="drag-chip" draggable="true" data-alert-id="${alert.id}" id="chip-${alert.id}">${alert.text}</div>`;
+    answers[alert.id] = null;
+  }
+  html += `</div></div>`;
+
+  // Buckets
+  for (const bucket of s.buckets) {
+    html += `<div class="config-panel">
+      <div class="config-header"><span>${bucket.label}</span><span class="portal-crumb">${bucket.desc}</span></div>
+      <div class="config-body">
+        <div class="drop-zone" data-bucket-id="${bucket.id}" id="bucket-${bucket.id}"></div>
+      </div>
+    </div>`;
+  }
+
+  html += renderActionBar(s);
+  return html;
+}
+
+function attachDragDropListeners(s) {
+  let draggedId = null;
+
+  document.querySelectorAll('.drag-chip').forEach(chip => {
+    chip.addEventListener('dragstart', (e) => {
+      draggedId = chip.dataset.alertId;
+      e.dataTransfer.effectAllowed = 'move';
+      chip.style.opacity = '0.5';
+    });
+    chip.addEventListener('dragend', () => {
+      chip.style.opacity = '1';
+    });
+  });
+
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('over');
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('over');
+    });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('over');
+      if (draggedId) {
+        const chip = document.getElementById('chip-' + draggedId);
+        // Remove from previous bucket if re-dragging
+        zone.appendChild(chip);
+        chip.classList.add('placed');
+        answers[draggedId] = zone.dataset.bucketId;
+        draggedId = null;
+      }
+    });
+  });
+
+  // Also allow dropping back to source
+  const source = document.getElementById('alert-source');
+  source.addEventListener('dragover', (e) => e.preventDefault());
+  source.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (draggedId) {
+      const chip = document.getElementById('chip-' + draggedId);
+      source.appendChild(chip);
+      chip.classList.remove('placed');
+      answers[draggedId] = null;
+      draggedId = null;
+    }
+  });
+}
+
+// ──── Slider Renderer ────
+function renderSliderScenario(s) {
+  let html = `
+    <div class="scenario-badge badge-${s.badge}">${s.badge === 'both' ? 'AZ-900 + SC-900' : s.badge.toUpperCase()}</div>
+    <h2 class="scenario-title">${s.title}</h2>
+    <p class="scenario-brief">${s.brief}</p>
+    <div class="config-panel">
+      <div class="config-header"><span>Cost Optimisation</span><span class="portal-crumb">portal > Monitor > Usage and estimated costs</span></div>
+      <div class="config-body">
+  `;
+
+  for (const sl of s.sliders) {
+    answers[sl.id] = sl.initial;
+    html += `<div class="config-row" style="flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="config-label">${sl.label}<small>${sl.desc}</small></div>
+        <div class="slider-value" id="val-${sl.id}">${sl.initial} ${sl.unit}</div>
+      </div>
+      <div style="width: 100%;">
+        <input type="range" id="slider-${sl.id}" min="${sl.min}" max="${sl.max}" step="${sl.step}" value="${sl.initial}" data-id="${sl.id}">
+        <div class="slider-labels"><span>${sl.min} ${sl.unit}</span><span>${sl.max} ${sl.unit}</span></div>
+      </div>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  html += renderActionBar(s);
+  return html;
+}
+
+function attachSliderListeners(s) {
+  document.querySelectorAll('input[type="range"]').forEach(el => {
+    const slider = s.sliders.find(sl => sl.id === el.dataset.id);
+    el.addEventListener('input', () => {
+      const v = parseInt(el.value);
+      answers[el.dataset.id] = v;
+      document.getElementById('val-' + el.dataset.id).textContent = v + ' ' + slider.unit;
+    });
+  });
+}
+
+// ──── Action bar + submit ────
+function renderActionBar(s) {
+  const reviewed = scores[currentScenario] !== undefined;
+  return `
+    <div class="action-bar">
+      <button class="btn btn-primary" id="btnSubmit" ${reviewed ? 'disabled' : ''}>Check Configuration</button>
+      ${currentScenario > 0 ? `<button class="btn btn-secondary" id="btnPrev">← Previous</button>` : ''}
+      ${currentScenario < SCENARIOS.length - 1 ? `<button class="btn btn-secondary" id="btnNext">Next →</button>` : `<button class="btn btn-secondary" id="btnResults">View Results</button>`}
+    </div>
+    <div class="feedback" id="feedback"></div>
+  `;
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'btnSubmit') submitScenario();
+  if (e.target.id === 'btnNext') nextScenario();
+  if (e.target.id === 'btnPrev') prevScenario();
+  if (e.target.id === 'btnResults') showResults();
+  if (e.target.id === 'btnRestart') { location.reload(); }
+});
+
+function submitScenario() {
+  const s = SCENARIOS[currentScenario];
+  const result = s.scoring(answers);
+  scores[currentScenario] = result;
+  totalScore += result.score;
+  totalMax += result.max;
+  updateScoreDisplay();
+  renderProgress();
+
+  const fb = document.getElementById('feedback');
+  const pct = Math.round((result.score / result.max) * 100);
+  let cls = pct === 100 ? 'pass' : pct >= 50 ? 'partial' : 'fail';
+  let icon = pct === 100 ? '✅' : pct >= 50 ? '⚠️' : '❌';
+
+  fb.className = `feedback show ${cls}`;
+  fb.innerHTML = `
+    <h4>${icon} ${result.score} / ${result.max} (${pct}%)</h4>
+    ${result.mistakes.length ? '<ul style="margin: 8px 0 0 18px; font-size: 13px; line-height: 1.8;">' + result.mistakes.map(m => `<li>${m}</li>`).join('') + '</ul>' : '<p>Perfect configuration. Clean sweep.</p>'}
+    <div class="exam-tip">${s.examTip}</div>
+  `;
+
+  document.getElementById('btnSubmit').disabled = true;
+}
+
+function nextScenario() {
+  if (currentScenario < SCENARIOS.length - 1) {
+    currentScenario++;
+    renderProgress();
+    renderScenario(currentScenario);
+    window.scrollTo(0, 0);
+  }
+}
+
+function prevScenario() {
+  if (currentScenario > 0) {
+    currentScenario--;
+    renderProgress();
+    renderScenario(currentScenario);
+    window.scrollTo(0, 0);
+  }
+}
+
+function showResults() {
+  const container = document.getElementById('scenarioContainer');
+  const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+  let scoreClass = pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low';
+
+  let breakdownHtml = '';
+  SCENARIOS.forEach((s, i) => {
+    const r = scores[i];
+    if (r) {
+      const p = Math.round((r.score / r.max) * 100);
+      breakdownHtml += `<div class="breakdown-card">
+        <h5>${s.badge === 'both' ? 'AZ-900 + SC-900' : s.badge.toUpperCase()}</h5>
+        <div class="result-icon">${p === 100 ? '✅' : p >= 50 ? '⚠️' : '❌'}</div>
+        <div style="font-size: 14px; font-weight: 600; margin-top: 4px;">${s.title}</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-dim); margin-top: 4px;">${r.score}/${r.max} (${p}%)</div>
+      </div>`;
+    }
+  });
+
+  container.innerHTML = `
+    <div class="results-screen">
+      <div class="scenario-badge badge-both">SESSION COMPLETE</div>
+      <h2 class="scenario-title">Lab Results</h2>
+      <div class="big-score ${scoreClass}">${pct}%</div>
+      <p style="color: var(--text-dim); font-size: 14px;">${totalScore} / ${totalMax} points across ${SCENARIOS.length} scenarios</p>
+      <div class="results-breakdown">${breakdownHtml}</div>
+      <div style="margin-top: 30px;">
+        <button class="btn btn-primary" id="btnRestart">Run Again</button>
+      </div>
+      <p style="color: var(--text-dim); font-size: 12px; margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        Weak areas? Go back and review the exam tips on each scenario. The toggle/config style mirrors how Microsoft tests product knowledge — they want you to know <em>when</em> to use each service, not just what it does.
+      </p>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>
