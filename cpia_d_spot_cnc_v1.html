@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIA Module D - Spot the C&C</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0e17; --surface: #131825; --surface-hover: #1a2035;
+    --border: #1e2a42; --accent: #00d4aa; --accent-dim: #00d4aa22;
+    --danger: #ff4757; --warning: #ffa502;
+    --text: #e2e8f0; --text-dim: #64748b; --correct: #00d4aa; --incorrect: #ff4757;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  .scenario { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .scenario h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); margin-bottom: 0.75rem; }
+  .scenario p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+
+  .traffic-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.78rem; }
+  .traffic-table th {
+    background: var(--surface); border: 1px solid var(--border); padding: 0.6rem 0.75rem;
+    text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--accent); position: sticky; top: 0;
+  }
+  .traffic-table td {
+    border: 1px solid var(--border); padding: 0.5rem 0.75rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim);
+  }
+  .traffic-table tr { cursor: pointer; transition: all 0.15s; }
+  .traffic-table tr:hover td { background: var(--surface-hover); }
+  .traffic-table tr.selected td { background: var(--accent-dim); border-color: var(--accent); color: var(--text); }
+  .traffic-table tr.correct-row td { background: rgba(0,212,170,0.15); border-color: var(--correct); }
+  .traffic-table tr.incorrect-row td { background: rgba(255,71,87,0.1); border-color: var(--incorrect); }
+  .traffic-table tr.missed-row td { background: rgba(255,165,2,0.1); border-color: var(--warning); }
+
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+
+  .btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  .instructions { background: var(--surface); border-left: 3px solid var(--warning); padding: 1rem 1.25rem; border-radius: 0 6px 6px 0; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+
+  .result-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+  .result-panel h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); margin-bottom: 1rem; }
+  .result-panel .score { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; margin-bottom: 0.75rem; }
+
+  .legend { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; font-size: 0.8rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .analysis-item { margin-bottom: 1rem; padding: 1rem; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
+  .analysis-item .label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); margin-bottom: 0.4rem; }
+  .analysis-item .detail { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+
+  .challenge-select { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin: 2rem 0; }
+  .challenge-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; cursor: pointer; transition: all 0.2s; text-align: center; min-width: 200px; flex: 1; max-width: 300px; }
+  .challenge-card:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .challenge-card .title { font-weight: 600; margin-bottom: 0.25rem; }
+  .challenge-card .desc { font-size: 0.8rem; color: var(--text-dim); }
+
+  .sel-count { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); text-align: center; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>CPIA // Spot the C&C</h1>
+    <p>Identify command-and-control traffic from network connection data</p>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const scenarios = [
+  {
+    title: "Corporate Network - Outbound Connections",
+    desc: "Analyse 90 minutes of outbound connection logs",
+    scenario: "You have been given a summary of outbound connections from the corporate network over a 90-minute window. The SOC's anomaly detection has flagged this period. Identify which connections you believe are C&C traffic.",
+    columns: ["Time", "Src IP", "Dst IP", "Dst Port", "Proto", "Bytes Out", "Bytes In", "Duration", "Notes"],
+    rows: [
+      { data: ["10:00:02", "10.0.1.44", "142.250.187.206", "443", "TCP/TLS", "2,340", "48,221", "4.2s", "google.com"], cnc: false },
+      { data: ["10:00:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "312", "284", "0.8s", "update.io"], cnc: true },
+      { data: ["10:01:12", "10.0.1.44", "151.101.1.69", "443", "TCP/TLS", "1,890", "124,500", "12.1s", "reddit.com"], cnc: false },
+      { data: ["10:01:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "308", "291", "0.9s", "update.io"], cnc: true },
+      { data: ["10:02:15", "10.0.2.30", "13.107.42.14", "443", "TCP/TLS", "4,200", "31,800", "3.4s", "outlook.com"], cnc: false },
+      { data: ["10:02:31", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "315", "279", "0.7s", "update.io"], cnc: true },
+      { data: ["10:03:22", "10.0.1.44", "142.250.187.206", "443", "TCP/TLS", "1,100", "22,400", "2.8s", "google.com"], cnc: false },
+      { data: ["10:03:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "310", "285", "0.8s", "update.io"], cnc: true },
+      { data: ["10:04:05", "10.0.2.15", "10.0.0.2", "53", "UDP", "64", "128", "0.02s", "DNS query"], cnc: false },
+      { data: ["10:04:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "318", "4,892", "1.2s", "update.io"], cnc: true },
+      { data: ["10:05:10", "10.0.1.44", "52.96.166.130", "443", "TCP/TLS", "8,400", "2,100", "5.1s", "office365.com"], cnc: false },
+      { data: ["10:05:31", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "312", "288", "0.8s", "update.io"], cnc: true },
+      { data: ["10:06:44", "10.0.3.10", "93.184.216.34", "80", "TCP/HTTP", "420", "15,670", "1.9s", "example.com"], cnc: false },
+      { data: ["10:06:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "314", "280", "0.7s", "update.io"], cnc: true },
+      { data: ["10:07:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "309", "283", "0.8s", "update.io"], cnc: true },
+      { data: ["10:08:01", "10.0.2.30", "20.190.159.4", "443", "TCP/TLS", "3,600", "67,200", "8.7s", "microsoftonline.com"], cnc: false },
+      { data: ["10:08:30", "10.0.1.88", "185.243.115.12", "443", "TCP/TLS", "311", "286", "0.9s", "update.io"], cnc: true },
+    ],
+    analysis: [
+      { label: "BEACONING PATTERN", detail: "10.0.1.88 connects to 185.243.115.12 every ~60 seconds with clockwork regularity. Human browsing is irregular; automated beaconing is not." },
+      { label: "PAYLOAD CONSISTENCY", detail: "Bytes out is consistently 308-318 bytes, bytes in is consistently 279-291 bytes. This uniformity suggests automated check-in/response, not human-generated traffic. The one exception (4,892 bytes in at 10:04:30) likely indicates a command was sent to the bot." },
+      { label: "CONNECTION DURATION", detail: "All C&C connections are 0.7-1.2 seconds. Legitimate HTTPS connections vary widely (2-12+ seconds). Short, uniform duration is another beacon indicator." },
+      { label: "SINGLE DESTINATION", detail: "All suspicious connections go to the same IP (185.243.115.12) on the same port. The domain 'update.io' is generic and designed to blend in." },
+      { label: "DETECTION APPROACH", detail: "Statistical analysis of connection intervals (jitter analysis), payload size consistency, and destination frequency would flag this. JA3 fingerprinting of the TLS handshake could further confirm if the client implementation matches known malware." }
+    ]
+  },
+  {
+    title: "DNS Query Analysis",
+    desc: "Identify C&C communications hidden in DNS",
+    scenario: "The DNS resolver logs show the last 30 minutes of queries. One or more internal hosts appear to be using DNS for C&C. Identify the suspicious queries.",
+    columns: ["Time", "Src IP", "Query Type", "Query", "Response", "TTL"],
+    rows: [
+      { data: ["14:00:03", "10.0.1.44", "A", "www.google.com", "142.250.187.206", "300"], cnc: false },
+      { data: ["14:00:15", "10.0.2.15", "TXT", "a7f2c9e1b3d8.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:00:22", "10.0.1.44", "A", "outlook.office365.com", "52.96.166.130", "60"], cnc: false },
+      { data: ["14:01:15", "10.0.2.15", "TXT", "b8e3d0f2a4c9.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:01:30", "10.0.3.10", "A", "intranet.corp.local", "10.0.0.50", "3600"], cnc: false },
+      { data: ["14:02:15", "10.0.2.15", "TXT", "c9f4e1a3b5d0.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:02:44", "10.0.1.44", "AAAA", "www.github.com", "::ffff:140.82.121.3", "60"], cnc: false },
+      { data: ["14:03:15", "10.0.2.15", "TXT", "d0a5f2b4c6e1.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:03:50", "10.0.2.30", "MX", "corp.local", "mail.corp.local", "3600"], cnc: false },
+      { data: ["14:04:15", "10.0.2.15", "TXT", "e1b6a3c5d7f2.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:04:22", "10.0.1.44", "A", "api.slack.com", "3.120.159.150", "300"], cnc: false },
+      { data: ["14:05:15", "10.0.2.15", "TXT", "f2c7b4d6e8a3.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+      { data: ["14:05:55", "10.0.3.10", "A", "updates.ubuntu.com", "91.189.91.39", "600"], cnc: false },
+      { data: ["14:06:15", "10.0.2.15", "TXT", "a3d8c5e7f9b4.cmd.ns1.x-cdn-lb.net", "v=check1 p=sleep", "30"], cnc: true },
+      { data: ["14:07:02", "10.0.1.44", "A", "cdn.jsdelivr.net", "104.16.85.20", "300"], cnc: false },
+      { data: ["14:07:15", "10.0.2.15", "TXT", "b4e9d6f8a0c5.cmd.ns1.x-cdn-lb.net", "v=check1 p=none", "30"], cnc: true },
+    ],
+    analysis: [
+      { label: "QUERY PATTERN", detail: "10.0.2.15 sends TXT queries every 60 seconds to subdomains of x-cdn-lb.net. The domain name mimics CDN infrastructure but is an attacker-controlled nameserver." },
+      { label: "HIGH-ENTROPY SUBDOMAINS", detail: "Each query has a 12-character hex subdomain (a7f2c9e1b3d8, b8e3d0f2a4c9, etc.) under .cmd.ns1. These are not human-readable and change each request, suggesting encoded bot identifiers or data." },
+      { label: "TXT RECORD ABUSE", detail: "TXT records can contain arbitrary text data, making them ideal for C&C responses. The responses contain commands: 'v=check1 p=none' (no pending commands) and 'v=check1 p=sleep' (sleep command). The format mimics SPF/DKIM records to avoid casual inspection." },
+      { label: "LOW TTL", detail: "All C&C responses have a TTL of 30 seconds, ensuring the bot must re-query frequently and always gets fresh commands. Legitimate DNS typically has TTLs of 60-3600+ seconds." },
+      { label: "DETECTION APPROACH", detail: "Monitor for: single hosts making high-volume TXT queries, queries to domains with high-entropy subdomains, unusually low TTLs from external domains, and query regularity/beaconing patterns." }
+    ]
+  }
+];
+
+let currentScenario = null;
+let selectedRows = new Set();
+let checked = false;
+
+function renderMenu() {
+  document.getElementById('app').innerHTML = `
+    <div style="text-align: center; padding: 2rem 0;">
+      <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Analyse connection data and identify C&C traffic patterns</p>
+      <div class="challenge-select">
+        ${scenarios.map((s, i) => `
+          <div class="challenge-card" onclick="loadScenario(${i})">
+            <div class="title">${s.title}</div>
+            <div class="desc">${s.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function loadScenario(idx) {
+  currentScenario = idx;
+  selectedRows = new Set();
+  checked = false;
+  renderScenario();
+}
+
+function toggleRow(idx) {
+  if (checked) return;
+  if (selectedRows.has(idx)) selectedRows.delete(idx);
+  else selectedRows.add(idx);
+  renderScenario();
+}
+
+function renderScenario() {
+  const s = scenarios[currentScenario];
+  const cncCount = s.rows.filter(r => r.cnc).length;
+
+  document.getElementById('app').innerHTML = `
+    <div class="scenario">
+      <h3>// ${s.title.toUpperCase()}</h3>
+      <p>${s.scenario}</p>
+    </div>
+    <div class="instructions">Click rows you believe are C&C traffic to select them (click again to deselect). When you've identified all suspicious connections, click "Check Analysis".</div>
+    <div class="sel-count">${selectedRows.size} selected / ${cncCount} C&C connections to find</div>
+    <div class="table-wrap">
+      <table class="traffic-table">
+        <thead><tr>${s.columns.map(c => `<th>${c}</th>`).join('')}<th>Flag</th></tr></thead>
+        <tbody>
+          ${s.rows.map((r, i) => {
+            let cls = selectedRows.has(i) ? 'selected' : '';
+            if (checked) {
+              cls = '';
+              if (selectedRows.has(i) && r.cnc) cls = 'correct-row';
+              else if (selectedRows.has(i) && !r.cnc) cls = 'incorrect-row';
+              else if (!selectedRows.has(i) && r.cnc) cls = 'missed-row';
+            }
+            return `<tr class="${cls}" onclick="toggleRow(${i})">
+              ${r.data.map(d => `<td>${d}</td>`).join('')}
+              <td>${checked ? (r.cnc ? '&#9888; C&C' : '') : (selectedRows.has(i) ? '&#9654;' : '')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${checked ? `
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background: rgba(0,212,170,0.4);"></div> Correctly identified</div>
+        <div class="legend-item"><div class="legend-dot" style="background: rgba(255,71,87,0.3);"></div> False positive</div>
+        <div class="legend-item"><div class="legend-dot" style="background: rgba(255,165,2,0.3);"></div> Missed C&C</div>
+      </div>
+      <div class="result-panel">
+        <h3>// ANALYSIS BREAKDOWN</h3>
+        ${s.analysis.map(a => `
+          <div class="analysis-item">
+            <div class="label">${a.label}</div>
+            <div class="detail">${a.detail}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="renderMenu()">Back</button>
+      ${!checked ? `<button class="btn btn-primary" onclick="checkAnalysis()" ${selectedRows.size === 0 ? 'disabled' : ''}>Check Analysis</button>` :
+        `<button class="btn btn-primary" onclick="loadScenario(${currentScenario})">Retry</button>`}
+    </div>
+  `;
+}
+
+function checkAnalysis() {
+  checked = true;
+  const s = scenarios[currentScenario];
+  const cncIndices = s.rows.map((r, i) => r.cnc ? i : -1).filter(i => i !== -1);
+  const correctHits = cncIndices.filter(i => selectedRows.has(i)).length;
+  const falsePositives = [...selectedRows].filter(i => !s.rows[i].cnc).length;
+  renderScenario();
+}
+
+renderMenu();
+</script>
+</body>
+</html>

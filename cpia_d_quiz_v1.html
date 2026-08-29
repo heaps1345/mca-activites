@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIA Module D - Knowledge Check</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #131825;
+    --surface-hover: #1a2035;
+    --border: #1e2a42;
+    --accent: #00d4aa;
+    --accent-dim: #00d4aa22;
+    --danger: #ff4757;
+    --danger-dim: #ff475722;
+    --warning: #ffa502;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --correct: #00d4aa;
+    --incorrect: #ff4757;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .question-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    margin-bottom: 1rem;
+  }
+
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .option:hover:not(.disabled) {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+  }
+
+  .option.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: rgba(0, 212, 170, 0.1);
+  }
+
+  .option.incorrect {
+    border-color: var(--incorrect);
+    background: rgba(255, 71, 87, 0.1);
+  }
+
+  .option.disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  .option.disabled.correct {
+    opacity: 1;
+  }
+
+  .option-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.8rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .option.correct .option-letter {
+    background: var(--correct);
+    color: var(--bg);
+  }
+
+  .option.incorrect .option-letter {
+    background: var(--incorrect);
+    color: var(--bg);
+  }
+
+  .explanation {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    display: none;
+  }
+
+  .explanation.show { display: block; }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-hover);
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+  }
+
+  .results {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  .results h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .score-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 1.5rem 0;
+  }
+
+  .score-display.low { color: var(--danger); }
+  .score-display.mid { color: var(--warning); }
+
+  .results p {
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+
+  .section-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin: 2rem 0;
+    text-align: center;
+  }
+
+  .section-score {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .section-score .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-score .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .start-screen {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  .start-screen h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .start-screen p {
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .start-screen .btn {
+    margin-top: 2rem;
+  }
+
+  .mode-select {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .mode-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-width: 180px;
+  }
+
+  .mode-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .mode-btn .title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .mode-btn .desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>CPIA // Module D</h1>
+    <p>Network Intrusion Analysis - Knowledge Check</p>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    section: "D1", q: "A SPAN port mirrors traffic from one switch port to another for analysis. What is the primary limitation of SPAN-based capture compared to a network TAP?",
+    options: ["SPAN ports cannot capture VLAN-tagged traffic","SPAN ports may drop packets under high load as mirroring is lower priority than switching","SPAN ports require external power sources to operate","SPAN ports only capture inbound traffic, never outbound"],
+    correct: 1,
+    explanation: "SPAN port mirroring is handled by the switch CPU as a lower-priority task. Under heavy traffic load, the switch will prioritise its switching function and may drop mirrored packets, resulting in incomplete captures. TAPs are passive and see all traffic regardless of load."
+  },
+  {
+    section: "D1", q: "You need to capture traffic on a fibre optic link between two core switches. Which capture method is most appropriate?",
+    options: ["Configure a SPAN port on one of the switches","Deploy an aggregating TAP on the fibre link","Use a standard copper network TAP","Install Wireshark directly on one of the switches"],
+    correct: 1,
+    explanation: "Aggregating TAPs are specifically designed for fibre optic networks. They combine multiple streams (TX/RX on separate fibres) into a single monitoring output. Standard copper TAPs won't work on fibre, and SPAN ports introduce the packet-drop risk."
+  },
+  {
+    section: "D1", q: "After completing a network intrusion investigation, which of the following is the MOST important step regarding your capture infrastructure?",
+    options: ["Archive the SPAN port configuration for future use","Remove SPAN ports and secure/remove TAPs from the network","Format the capture device to destroy evidence","Leave the capture infrastructure in place for ongoing monitoring"],
+    correct: 1,
+    explanation: "SPAN ports and TAPs introduced for an investigation should be removed after use to preserve network security and integrity. Leaving them in place creates additional attack surface and potential for unauthorised traffic interception."
+  },
+  {
+    section: "D2", q: "During an investigation, you need to correlate a suspect's network activity with their assigned IP address at a specific time. Which log source would you check first?",
+    options: ["DNS logs","DHCP logs","Proxy logs","Firewall logs"],
+    correct: 1,
+    explanation: "DHCP logs record which IP address was leased to which MAC address/hostname at what time. This is essential for tying network activity (captured by IP) back to a specific host, particularly in environments with dynamic addressing."
+  },
+  {
+    section: "D2", q: "A Windows Security Event Log shows Event ID 4625 followed by Event ID 4624 from the same source. What does this sequence most likely indicate?",
+    options: ["A failed login followed by a successful login - possible brute force success","A successful login followed by a logout","Two failed login attempts from the same source","A Kerberos ticket renewal"],
+    correct: 0,
+    explanation: "Event ID 4625 is a failed logon attempt and 4624 is a successful logon. This sequence from the same source suggests an attacker may have successfully guessed or cracked credentials after one or more failed attempts."
+  },
+  {
+    section: "D2", q: "You discover that syslog entries from a network device show timestamps 3 hours ahead of all other log sources. What is the primary concern?",
+    options: ["The device has been compromised and logs have been tampered with","Timeline correlation across log sources will be inaccurate without adjustment","The syslog server is dropping messages","The device is in a different VLAN"],
+    correct: 1,
+    explanation: "Accurate timestamps are critical for correlating events across multiple log sources. A time offset (likely a timezone or NTP misconfiguration) means you must adjust all entries from that device before building a timeline, or you risk missequencing events."
+  },
+  {
+    section: "D3", q: "You run 'arp -a' on a workstation and notice the gateway MAC address has changed since your last check. What attack should you suspect?",
+    options: ["DNS cache poisoning","ARP poisoning for a man-in-the-middle attack","IP address spoofing","ICMP redirect attack"],
+    correct: 1,
+    explanation: "ARP poisoning involves an attacker sending forged ARP replies to associate their MAC address with the gateway's IP. This causes the victim to send traffic to the attacker instead of the real gateway, enabling man-in-the-middle interception."
+  },
+  {
+    section: "D3", q: "A firewall is allowing outbound NetBIOS (ports 137-139) and SMB (port 445) traffic to the internet. What is the primary risk?",
+    options: ["Internal DNS resolution will fail","Internal file shares and credentials could be exposed to external attackers","The firewall will experience high CPU usage","VPN tunnels will be disrupted"],
+    correct: 1,
+    explanation: "NetBIOS and SMB should never be permitted outbound to the internet. These protocols can leak internal hostnames, share names, user accounts, and in some cases NTLM hashes. This is a classic firewall misconfiguration finding."
+  },
+  {
+    section: "D3", q: "An attacker is using HTTP tunnelling to bypass a corporate proxy. Which characteristic of the traffic would be MOST useful for detection?",
+    options: ["The traffic uses port 80","The HTTP headers contain a valid User-Agent string","Sustained connections with unusual data volumes or encoding in HTTP request/response bodies","The destination IP resolves to a valid domain name"],
+    correct: 2,
+    explanation: "HTTP tunnelling wraps non-HTTP data inside HTTP requests and responses. The telltale signs are unusual payload sizes, encoded/encrypted content in request bodies, abnormally long-lived connections, and patterns that don't match normal web browsing behaviour."
+  },
+  {
+    section: "D4", q: "You capture traffic on port 80 but the payload does not contain valid HTTP headers or methods. Using the protocol identification approach, what is your next step?",
+    options: ["Assume the traffic is malicious and block it immediately","Examine the encapsulating protocol and check for known protocol structures in the payload","Report the port as misconfigured","Ignore it as a false positive"],
+    correct: 1,
+    explanation: "Port numbers are not definitive indicators of protocol. The D4 identification approach says to examine the encapsulating protocol, look for common values and known protocol structures in the payload to determine what is actually being transmitted, regardless of the port."
+  },
+  {
+    section: "D4", q: "When examining a captured IP packet header, the high-order nibble of byte 0 is '4' and the low-order nibble is '5'. What does the low-order nibble tell you?",
+    options: ["The IP version is 5","The packet has 5 options set","The Internet Header Length is 5 words (20 bytes), indicating no IP options","The TTL value is 5"],
+    correct: 2,
+    explanation: "The low-order nibble of byte 0 in an IP header is the IHL (Internet Header Length) field, measured in 32-bit words. A value of 5 means 5 x 4 bytes = 20 bytes, which is the minimum IP header size with no options present."
+  },
+  {
+    section: "D4", q: "Protocol anomaly detection compares observed behaviour against RFC specifications. What is the main weakness of this approach?",
+    options: ["It cannot detect any attacks","It generates no alerts","Malicious traffic that complies with the RFC specification will go undetected","It only works with TCP protocols"],
+    correct: 2,
+    explanation: "Protocol anomaly detection flags deviations from RFC standards. However, many attacks use perfectly valid protocol behaviour (e.g., a port scan uses legitimate SYN packets). If the traffic technically complies with the specification, anomaly detection won't flag it."
+  },
+  {
+    section: "D6", q: "You suspect network traffic is XOR-encoded with a single-byte key. What is the most efficient approach to recover the key?",
+    options: ["Brute force all 256 possible key values and check for readable plaintext","Use a rainbow table to look up the key","Attempt to decrypt with AES-256 first","Contact the sender and request the key"],
+    correct: 0,
+    explanation: "Single-byte XOR only has 256 possible keys (0x00-0xFF). Brute forcing all values and checking each output for readable plaintext, known headers, or expected file signatures is trivial and fast. This is why single-byte XOR is considered weak obfuscation."
+  },
+  {
+    section: "D6", q: "During flow analysis, you identify traffic with the following pattern: one source IP, multiple destination IPs, incrementally increasing destination ports, small packet sizes, and all packets have the SYN flag set. What does this fingerprint indicate?",
+    options: ["A DDoS attack","A port scan from the source IP","Normal web browsing behaviour","A DNS zone transfer"],
+    correct: 1,
+    explanation: "This is the classic fingerprint of a TCP port scan: single source to multiple destinations (or single destination with incrementing ports), SYN-only flags, and small uniform packet sizes. The incrementing ports indicate a sequential scan rather than a randomised one."
+  },
+  {
+    section: "D6", q: "ECB (Electronic Codebook) mode encryption is considered weak because:",
+    options: ["It uses a key that is too short","Identical plaintext blocks produce identical ciphertext blocks, revealing patterns","It cannot encrypt data larger than 128 bits","It requires too much computational power"],
+    correct: 1,
+    explanation: "ECB mode encrypts each block independently with the same key. Identical plaintext blocks always produce identical ciphertext blocks, which means patterns in the plaintext (such as repeated data structures or image regions) are preserved in the ciphertext."
+  },
+  {
+    section: "D7", q: "Which C&C architecture is MOST resilient against takedown because it has no central point of failure?",
+    options: ["Centralised C&C","Distributed (P2P) C&C","Hybrid C&C","IRC-based C&C"],
+    correct: 1,
+    explanation: "Distributed/P2P C&C has no single server to take down. Bots communicate directly with peers, making the infrastructure highly resilient. Centralised C&C has an obvious single point of failure, and hybrid architectures still have some centralised elements."
+  },
+  {
+    section: "D7", q: "DNS-based C&C detection looks for specific patterns in DNS traffic. Which of the following is the strongest indicator of DNS-based C&C?",
+    options: ["High volumes of DNS queries to well-known public DNS servers","Frequent queries to algorithmically generated domain names (DGA) with high entropy","A single DNS query for a company's own domain","DNS queries using TCP instead of UDP"],
+    correct: 1,
+    explanation: "Domain Generation Algorithms (DGA) produce large numbers of random-looking domain names that bots query to find their C&C server. These domains have high character entropy and are queried in rapid succession, which is a strong anomaly indicator."
+  },
+  {
+    section: "D8", q: "An analyst notices that a single internal host is uploading significantly more data to an external IP than any other host on the network. Which detection method identified this?",
+    options: ["Signature-based detection","Behavioural analysis of traffic volumes","Watermarking","Antivirus scanning"],
+    correct: 1,
+    explanation: "Behavioural analysis detects anomalous patterns such as unusual upload volumes. By baselining normal data transfer patterns and identifying statistical outliers, analysts can spot potential data exfiltration even when the traffic uses legitimate protocols."
+  },
+  {
+    section: "D8", q: "An attacker is exfiltrating data using DNS tunnelling. What characteristic of the DNS traffic would alert an analyst?",
+    options: ["DNS queries using port 53","Unusually long subdomain labels or high query volumes to a single domain","DNS responses containing A records","DNS queries to the organisation's internal DNS server"],
+    correct: 1,
+    explanation: "DNS tunnelling encodes data in DNS query subdomains (e.g., encoded-data.evil.com). This produces abnormally long subdomain strings and/or very high query volumes to a single external domain, both of which stand out against normal DNS baselines."
+  },
+  {
+    section: "D9", q: "A web server's access log shows thousands of requests per second from hundreds of different source IPs, all requesting the same URL. What type of attack is this?",
+    options: ["SQL injection","Distributed Denial of Service (DDoS)","Cross-site scripting","Directory traversal"],
+    correct: 1,
+    explanation: "Multiple source IPs generating high-volume requests to the same resource is the hallmark of a DDoS attack. The distributed nature (many sources) distinguishes it from a simple DoS (single source)."
+  },
+  {
+    section: "D9", q: "In a SYN flood attack, what happens to the target server's resources?",
+    options: ["The server's disk space fills up with log files","The server's connection table fills with half-open connections waiting for the final ACK","The server's DNS cache is poisoned","The server's ARP table overflows"],
+    correct: 1,
+    explanation: "A SYN flood exploits the TCP three-way handshake. The attacker sends SYN packets but never completes the handshake with the final ACK. Each half-open connection consumes server resources (memory in the connection table) until the server can't accept legitimate connections."
+  },
+  {
+    section: "D11", q: "Windows Event ID 4672 is logged. What has occurred?",
+    options: ["A user account was deleted","A failed login attempt","Special privileges were assigned to a new logon (administrator rights)","A scheduled task was created"],
+    correct: 2,
+    explanation: "Event ID 4672 is logged when a logon is assigned special privileges (typically administrator or equivalent). This is a key indicator for privilege escalation investigations - it shows when elevated rights were granted."
+  },
+  {
+    section: "D11", q: "An attacker has used 'schtasks' to create a scheduled task running under the SYSTEM account. Which Windows Event ID would record this task creation?",
+    options: ["Event ID 4624","Event ID 4625","Event ID 106","Event ID 4672"],
+    correct: 2,
+    explanation: "Event ID 106 records the registration of a new scheduled task. Attackers use schtasks or 'at' commands to create tasks running as SYSTEM to escalate privileges. Event ID 140 (task updated) and 141 (task removed) are also relevant for tracking task manipulation."
+  },
+  {
+    section: "D11", q: "During an investigation, you find that an attacker ran 'ipconfig', 'netstat', 'tasklist', and 'net user /domain' on a compromised host. What phase of the attack does this represent?",
+    options: ["Initial exploitation","Internal reconnaissance","Data exfiltration","Covering tracks"],
+    correct: 1,
+    explanation: "These commands are classic internal reconnaissance: ipconfig reveals network config, netstat shows active connections, tasklist reveals running processes, and 'net user /domain' enumerates domain accounts. The attacker is learning about the environment before moving laterally."
+  },
+  {
+    section: "D13", q: "An IDS alerts on 'possible port scan' from an internal IP. Investigation reveals it is the organisation's vulnerability scanner running its scheduled weekly scan. This is an example of:",
+    options: ["A true positive - the IDS correctly identified scanning","A false positive - legitimate activity triggered a malicious alert","A false negative - the IDS missed an actual attack","A true negative - the IDS correctly allowed the traffic"],
+    correct: 1,
+    explanation: "This is a false positive: the IDS correctly identified scanning behaviour, but the activity was legitimate (authorised vulnerability scanning). This is why scheduled scan windows should be whitelisted in IDS rules to reduce alert fatigue."
+  }
+];
+
+let currentQuestion = 0;
+let answers = [];
+let selectedOption = null;
+let answered = false;
+let mode = 'all'; // 'all' or section-specific
+let filteredQuestions = [];
+let shuffledIndices = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getSections() {
+  return [...new Set(questions.map(q => q.section))].sort();
+}
+
+function startQuiz(section) {
+  mode = section;
+  if (section === 'all') {
+    filteredQuestions = [...questions];
+  } else {
+    filteredQuestions = questions.filter(q => q.section === section);
+  }
+  shuffledIndices = shuffle(filteredQuestions.map((_, i) => i));
+  filteredQuestions = shuffledIndices.map(i => filteredQuestions[i]);
+  currentQuestion = 0;
+  answers = [];
+  selectedOption = null;
+  answered = false;
+  renderQuestion();
+}
+
+function renderStart() {
+  const sections = getSections();
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="start-screen">
+      <h2>Network Intrusion Analysis</h2>
+      <p>${questions.length} questions across ${sections.length} skill areas</p>
+      <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.5rem;">Select a mode to begin</p>
+      <div class="mode-select">
+        <div class="mode-btn" onclick="startQuiz('all')">
+          <div class="title">All Sections</div>
+          <div class="desc">${questions.length} questions, randomised</div>
+        </div>
+      </div>
+      <div class="mode-select" style="margin-top: 0.75rem;">
+        ${sections.map(s => {
+          const count = questions.filter(q => q.section === s).length;
+          return `<div class="mode-btn" onclick="startQuiz('${s}')">
+            <div class="title">${s}</div>
+            <div class="desc">${count} question${count > 1 ? 's' : ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderQuestion() {
+  const app = document.getElementById('app');
+  const q = filteredQuestions[currentQuestion];
+  const progress = ((currentQuestion) / filteredQuestions.length) * 100;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  app.innerHTML = `
+    <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+    <div class="question-counter">Question ${currentQuestion + 1} of ${filteredQuestions.length}</div>
+    <div class="section-tag">${q.section}</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options">
+      ${q.options.map((opt, i) => `
+        <div class="option" id="opt-${i}" onclick="selectOption(${i})">
+          <div class="option-letter">${letters[i]}</div>
+          <div>${opt}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="explanation" id="explanation">${q.explanation}</div>
+    <div class="actions">
+      <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()" disabled>Check Answer</button>
+    </div>
+  `;
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  selectedOption = idx;
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('submit-btn').disabled = false;
+}
+
+function submitAnswer() {
+  if (answered) {
+    // Next question
+    currentQuestion++;
+    selectedOption = null;
+    answered = false;
+    if (currentQuestion >= filteredQuestions.length) {
+      renderResults();
+    } else {
+      renderQuestion();
+    }
+    return;
+  }
+
+  answered = true;
+  const q = filteredQuestions[currentQuestion];
+  const isCorrect = selectedOption === q.correct;
+  answers.push({ section: q.section, correct: isCorrect });
+
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.add('disabled');
+    el.classList.remove('selected');
+    if (i === q.correct) el.classList.add('correct');
+    if (i === selectedOption && !isCorrect) el.classList.add('incorrect');
+  });
+
+  document.getElementById('explanation').classList.add('show');
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+}
+
+function renderResults() {
+  const app = document.getElementById('app');
+  const correct = answers.filter(a => a.correct).length;
+  const total = answers.length;
+  const pct = Math.round((correct / total) * 100);
+
+  const sections = getSections();
+  const sectionScores = sections.map(s => {
+    const sAnswers = answers.filter(a => a.section === s);
+    if (sAnswers.length === 0) return null;
+    const sCorrect = sAnswers.filter(a => a.correct).length;
+    return { section: s, correct: sCorrect, total: sAnswers.length };
+  }).filter(Boolean);
+
+  let scoreClass = '';
+  if (pct < 50) scoreClass = 'low';
+  else if (pct < 75) scoreClass = 'mid';
+
+  let message = '';
+  if (pct >= 90) message = 'Excellent. Solid across the board.';
+  else if (pct >= 75) message = 'Good foundation. Review the sections you dropped marks on.';
+  else if (pct >= 50) message = 'Needs work. Focus on the weak areas below.';
+  else message = 'Significant gaps. Revisit the material before attempting again.';
+
+  app.innerHTML = `
+    <div class="results">
+      <h2>Results</h2>
+      <div class="score-display ${scoreClass}">${pct}%</div>
+      <p>${correct}/${total} correct - ${message}</p>
+      <div class="section-breakdown">
+        ${sectionScores.map(s => `
+          <div class="section-score">
+            <div class="label">${s.section}</div>
+            <div class="value" style="color: ${(s.correct/s.total) >= 0.75 ? 'var(--correct)' : (s.correct/s.total) >= 0.5 ? 'var(--warning)' : 'var(--danger)'}">${s.correct}/${s.total}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="actions" style="justify-content: center;">
+        <button class="btn btn-secondary" onclick="renderStart()">Back to Menu</button>
+        <button class="btn btn-primary" onclick="startQuiz('${mode}')">Retry</button>
+      </div>
+    </div>
+  `;
+}
+
+renderStart();
+</script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIA Module D - Protocol Identification Exercise</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0e17; --surface: #131825; --surface-hover: #1a2035;
+    --border: #1e2a42; --accent: #00d4aa; --accent-dim: #00d4aa22;
+    --danger: #ff4757; --warning: #ffa502;
+    --text: #e2e8f0; --text-dim: #64748b; --correct: #00d4aa; --incorrect: #ff4757;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  .challenge-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .challenge-box h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); margin-bottom: 0.75rem; }
+
+  .hex-dump {
+    background: #080c14; border: 1px solid var(--border); border-radius: 6px;
+    padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    line-height: 1.8; overflow-x: auto; margin-bottom: 1.5rem; color: #8892b0;
+  }
+  .hex-dump .offset { color: var(--text-dim); }
+  .hex-dump .highlight { color: var(--accent); font-weight: 700; }
+  .hex-dump .highlight2 { color: #ffa502; font-weight: 700; }
+  .hex-dump .highlight3 { color: #ff6b9d; font-weight: 700; }
+
+  .context-info { background: var(--surface); border-left: 3px solid var(--warning); padding: 1rem 1.25rem; border-radius: 0 6px 6px 0; margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; color: var(--text-dim); }
+  .context-info strong { color: var(--text); }
+
+  .steps { margin-bottom: 1.5rem; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 0.75rem; }
+  .step-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; cursor: pointer; }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.75rem;
+    min-width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; background: var(--border); flex-shrink: 0;
+  }
+  .step.active .step-num { background: var(--accent); color: var(--bg); }
+  .step-title { font-weight: 600; font-size: 0.9rem; }
+  .step-content { display: none; padding-top: 0.5rem; }
+  .step.active .step-content { display: block; }
+
+  .step-question { font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-dim); line-height: 1.5; }
+  .step-options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .step-option {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.75rem 1rem; cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+  }
+  .step-option:hover:not(.disabled) { border-color: var(--accent); background: var(--accent-dim); }
+  .step-option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .step-option.correct { border-color: var(--correct); background: rgba(0,212,170,0.1); }
+  .step-option.incorrect { border-color: var(--incorrect); background: rgba(255,71,87,0.1); }
+  .step-option.disabled { cursor: default; opacity: 0.5; }
+  .step-option.disabled.correct { opacity: 1; }
+
+  .step-feedback { margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; line-height: 1.5; display: none; }
+  .step-feedback.show { display: block; }
+  .step-feedback.correct-fb { background: rgba(0,212,170,0.1); border: 1px solid var(--correct); color: var(--text); }
+  .step-feedback.incorrect-fb { background: rgba(255,71,87,0.1); border: 1px solid var(--incorrect); color: var(--text); }
+
+  .final-answer { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+  .final-answer h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); margin-bottom: 1rem; }
+  .final-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 600px) { .final-options { grid-template-columns: 1fr; } }
+  .final-option {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; cursor: pointer; transition: all 0.2s; text-align: center; font-weight: 600;
+  }
+  .final-option:hover:not(.disabled) { border-color: var(--accent); }
+  .final-option.correct { border-color: var(--correct); background: rgba(0,212,170,0.15); }
+  .final-option.incorrect { border-color: var(--incorrect); background: rgba(255,71,87,0.15); }
+  .final-option.disabled { cursor: default; opacity: 0.5; }
+  .final-option.disabled.correct { opacity: 1; }
+
+  .btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+
+  .progress-dots { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+  .dot.active { background: var(--accent); }
+  .dot.done { background: var(--correct); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>CPIA // Protocol Identification</h1>
+    <p>Apply the 5-step approach to identify unknown protocols from packet data</p>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const exercises = [
+  {
+    title: "Capture 1: Unknown Traffic on Port 80",
+    context: "Traffic captured on port 80 between internal host 10.0.1.44 and external host 93.184.216.34. The firewall shows this as HTTP but the IDS has flagged it as anomalous.",
+    hexDump: `<span class="offset">0000</span>  <span class="highlight">45</span> 00 00 3c 1c 46 40 00  40 <span class="highlight2">06</span> b1 e6 0a 00 01 2c
+<span class="offset">0010</span>  5d b8 d8 22 <span class="highlight3">00 50</span> c0 d8  a1 b2 c3 d4 00 00 00 00
+<span class="offset">0020</span>  a0 02 ff ff fe 30 00 00  02 04 05 b4 04 02 08 0a
+<span class="offset">0030</span>  00 0a 22 f8 00 00 00 00  01 03 03 07
+<span class="offset">0040</span>  53 53 48 2d 32 2e 30 2d  4f 70 65 6e 53 53 48 5f
+<span class="offset">0050</span>  38 2e 39 0d 0a`,
+    steps: [
+      {
+        title: "Search for Common Values",
+        question: "Look at byte 0. The high-order nibble is '4'. What does this tell us?",
+        options: ["IPv4 packet", "IPv6 packet", "ARP frame", "The packet is 4 bytes long"],
+        correct: 0,
+        feedback: "Correct. The high nibble of byte 0 = 4 indicates IPv4. The low nibble '5' means IHL = 5 words (20 bytes), so no IP options are present."
+      },
+      {
+        title: "Examine the Encapsulating Protocol",
+        question: "Byte 9 (protocol field) contains 0x06. What transport protocol is encapsulating the payload?",
+        options: ["UDP (0x11)", "TCP (0x06)", "ICMP (0x01)", "GRE (0x2F)"],
+        correct: 1,
+        feedback: "Correct. Protocol field 0x06 = TCP. This tells us to look for TCP header structures after the IP header."
+      },
+      {
+        title: "Compare Port Numbers with Default Services",
+        question: "The destination port is 0x0050 (port 80). What service is normally associated with this port?",
+        options: ["SSH (22)", "HTTP (80)", "HTTPS (443)", "DNS (53)"],
+        correct: 1,
+        feedback: "Correct. Port 80 is HTTP. But remember: the port number is not definitive. We need to check the actual payload content."
+      },
+      {
+        title: "Determine the Target's Function",
+        question: "Look at the ASCII payload starting at offset 0x0040. You can see 'SSH-2.0-OpenSSH_8.9'. What does this tell us about the actual traffic?",
+        options: [
+          "This is normal HTTP traffic with an SSH user-agent",
+          "This is SSH traffic running on port 80, not HTTP at all",
+          "The server is responding with an error page about SSH",
+          "This is an HTTP redirect to an SSH server"
+        ],
+        correct: 1,
+        feedback: "Correct. The SSH version banner ('SSH-2.0-OpenSSH_8.9') is the first thing an SSH server sends. This is SSH traffic disguised on port 80 to evade firewall rules that block port 22."
+      },
+      {
+        title: "Check Known Protocol Structures",
+        question: "The 'SSH-2.0-' prefix followed by a version string matches which known protocol structure?",
+        options: [
+          "HTTP response header",
+          "SSH protocol version exchange (RFC 4253)",
+          "TLS ClientHello",
+          "FTP banner"
+        ],
+        correct: 1,
+        feedback: "Correct. RFC 4253 specifies that SSH connections begin with a version exchange string in the format 'SSH-protoversion-softwareversion'. This confirms the traffic is SSH, not HTTP."
+      }
+    ],
+    finalQuestion: "Based on your analysis, what is the actual protocol and what is the security concern?",
+    finalOptions: [
+      "Normal HTTP traffic, no concern",
+      "SSH over port 80 -- firewall/proxy evasion",
+      "HTTPS with a misconfigured certificate",
+      "FTP over a non-standard port"
+    ],
+    finalCorrect: 1,
+    finalExplanation: "This is SSH tunnelled over port 80 to bypass firewall rules. The port says HTTP but the payload is clearly SSH (version banner). This is a classic firewall evasion technique and should be flagged as a policy violation or potential indicator of compromise."
+  },
+  {
+    title: "Capture 2: Unusual DNS Activity",
+    context: "High-volume DNS traffic from internal host 10.0.2.15 to the internal DNS resolver 10.0.0.2. The queries are TXT record lookups. Volume is significantly above baseline for this host.",
+    hexDump: `<span class="offset">0000</span>  <span class="highlight">45</span> 00 00 6a 4f 2a 40 00  40 <span class="highlight2">11</span> 8c 1e 0a 00 02 0f
+<span class="offset">0010</span>  0a 00 00 02 d4 31 <span class="highlight3">00 35</span>  00 56 fe 49 aa bb 01 00
+<span class="offset">0020</span>  00 01 00 00 00 00 00 00  <span class="highlight">34 65 66 32 61 37 63 39</span>
+<span class="offset">0030</span>  <span class="highlight">62 31 64 38 66 33 61 35  63 37 65 39 32 66 34 38</span>
+<span class="offset">0040</span>  <span class="highlight">31 62 36 64 33 65 37 61  39 66 32 63 35 64 38 31</span>
+<span class="offset">0050</span>  04 64 61 74 61 03 6e 73  31 0c 65 76 69 6c 2d 72
+<span class="offset">0060</span>  65 73 6f 6c 76 65 72 03  6e 65 74 00 00 10 00 01`,
+    steps: [
+      {
+        title: "Search for Common Values",
+        question: "Byte 0 high nibble is '4', low nibble is '5'. Byte 9 is 0x11. What transport protocol?",
+        options: ["TCP (0x06)", "UDP (0x11)", "ICMP (0x01)", "SCTP (0x84)"],
+        correct: 1,
+        feedback: "Correct. 0x11 = 17 = UDP. DNS typically runs over UDP, which is consistent with the port number."
+      },
+      {
+        title: "Compare Port Numbers",
+        question: "The destination port is 0x0035 (port 53). This matches which service?",
+        options: ["HTTP", "SSH", "DNS", "SMTP"],
+        correct: 2,
+        feedback: "Correct. Port 53 is DNS. Unlike the previous exercise, the port and actual protocol match here. The concern isn't the protocol mismatch but the content."
+      },
+      {
+        title: "Examine the DNS Query Structure",
+        question: "Looking at offset 0x0020-0x0050, there's a very long label of hex characters (4ef2a7c9b1d8f3a5c7e92f481b6d3e7a9f2c5d81). What is unusual about this DNS query?",
+        options: [
+          "The query is for an A record, which is normal",
+          "The subdomain label is abnormally long and contains what appears to be encoded/hex data",
+          "The DNS query ID is invalid",
+          "The query uses TCP instead of UDP"
+        ],
+        correct: 1,
+        feedback: "Correct. Normal DNS subdomains are human-readable (like 'www' or 'mail'). A 40+ character hex string as a subdomain is a strong indicator of data being encoded into DNS queries -- this is the hallmark of DNS tunnelling."
+      },
+      {
+        title: "Identify the Domain",
+        question: "The domain being queried is [hex-subdomain].data.ns1.evil-resolver.net with record type 0x0010 (TXT). Combined with the hex subdomain, what technique is this?",
+        options: [
+          "Normal DNS resolution for a CDN",
+          "DNS-based data exfiltration (DNS tunnelling)",
+          "DNSSEC validation",
+          "DNS load balancing"
+        ],
+        correct: 1,
+        feedback: "Correct. TXT record queries to an external domain with encoded data in the subdomain is classic DNS tunnelling. Data is encoded into the subdomain labels and sent as queries. Responses (TXT records) can carry data back."
+      },
+      {
+        title: "Assess the Threat",
+        question: "What makes DNS tunnelling particularly difficult to detect at the firewall level?",
+        options: [
+          "DNS uses encryption by default",
+          "DNS traffic to the internal resolver is typically allowed without inspection",
+          "DNS packets are too small to carry meaningful data",
+          "Firewalls cannot parse UDP traffic"
+        ],
+        correct: 1,
+        feedback: "Correct. Internal hosts query the internal DNS resolver, which then forwards to external servers. The firewall sees internal-to-internal DNS traffic (allowed) and resolver-to-external DNS (also allowed). The encoded payload passes through both hops unexamined."
+      }
+    ],
+    finalQuestion: "What is the protocol and what detection approach would you recommend?",
+    finalOptions: [
+      "Malformed DNS, block all DNS traffic",
+      "DNS tunnelling -- monitor for high-entropy subdomains, unusual TXT query volumes, and queries to uncommon domains",
+      "Normal DNS, no action needed",
+      "DNS amplification attack, rate-limit responses"
+    ],
+    finalCorrect: 1,
+    finalExplanation: "This is DNS tunnelling used for data exfiltration. Detection should focus on statistical anomalies: unusually long subdomain labels, high query volumes from a single host, TXT record query spikes, and queries to domains not in the organisation's normal baseline. This ties directly into D6 (traffic flow analysis) and D8 (exfiltration detection)."
+  },
+  {
+    title: "Capture 3: Periodic Outbound Traffic",
+    context: "An internal host 10.0.1.77 is making regular outbound connections every 60 seconds to 185.100.87.202 on port 443. The connections are short-lived with small payloads. This was flagged by anomaly-based detection.",
+    hexDump: `<span class="offset">0000</span>  <span class="highlight">45</span> 00 00 f8 ab cd 40 00  40 <span class="highlight2">06</span> 12 34 0a 00 01 4d
+<span class="offset">0010</span>  b9 64 57 ca c8 34 <span class="highlight3">01 bb</span>  00 00 a1 01 00 00 b2 02
+<span class="offset">0020</span>  50 18 ff ff 1a 2b 00 00
+<span class="offset">0030</span>  <span class="highlight">16 03 01</span> 00 c7 01 00 00  c3 <span class="highlight">03 03</span> 5f 8a 2c 19 b7
+<span class="offset">0040</span>  a3 44 21 e8 f1 90 cc 3d  88 71 52 6e 4b f5 a0 22
+<span class="offset">0050</span>  d1 33 7f 9a 11 c4 e8 55  67 f2 a8 20 3e 1b 5c 98
+<span class="offset">0060</span>  ...
+<span class="offset">0100</span>  <span class="highlight2">00 00</span> 12 00 00 00 0e 00  0c 00 00 09 75 70 64 61
+<span class="offset">0110</span>  74 65 2e 69 6f`,
+    steps: [
+      {
+        title: "Search for Common Values",
+        question: "IPv4 (byte 0 = 0x45), TCP (byte 9 = 0x06). The destination port is 0x01BB. What port is this?",
+        options: ["Port 80 (HTTP)", "Port 443 (HTTPS)", "Port 8080 (HTTP Proxy)", "Port 22 (SSH)"],
+        correct: 1,
+        feedback: "Correct. 0x01BB = 443, which is HTTPS/TLS. This is consistent with encrypted web traffic."
+      },
+      {
+        title: "Check Known Protocol Structures",
+        question: "At offset 0x0030, you see bytes '16 03 01'. In TLS, 0x16 is the content type for Handshake, 0x0301 is the version. What does '03 01' represent?",
+        options: ["TLS 1.0", "TLS 1.1", "TLS 1.2", "TLS 1.3"],
+        correct: 0,
+        feedback: "Correct. TLS version 0x0301 = TLS 1.0 (0x0300 = SSL 3.0, 0x0301 = TLS 1.0, 0x0302 = TLS 1.1, 0x0303 = TLS 1.2/1.3). Note: TLS 1.3 still uses 0x0303 in the record layer for compatibility but negotiates 1.3 in the handshake."
+      },
+      {
+        title: "Examine the TLS Handshake",
+        question: "Byte 0x0035 is 0x01 (ClientHello) followed by 0x0303 (the supported version). At offset 0x0100+, you can see the SNI (Server Name Indication): 'update.io'. Combined with the 60-second interval, what is suspicious?",
+        options: [
+          "TLS 1.0 is outdated but the traffic is normal",
+          "The regular 60-second beacon interval with small payloads to a generic domain suggests C&C communication",
+          "The SNI field is encrypted, which is unusual",
+          "Port 443 should not be used for outbound connections"
+        ],
+        correct: 1,
+        feedback: "Correct. Regular interval beaconing (every 60 seconds) with small, consistent payloads is a classic C&C pattern. The generic domain name 'update.io' is designed to look legitimate. The traffic is technically valid TLS, making it harder to detect."
+      },
+      {
+        title: "Analyse the Traffic Pattern",
+        question: "The connections are short-lived with small payloads in both directions. What is the most likely purpose?",
+        options: [
+          "Software update checks",
+          "C&C heartbeat/beacon -- checking in for commands",
+          "DNS over HTTPS (DoH)",
+          "Certificate revocation checking (OCSP)"
+        ],
+        correct: 1,
+        feedback: "Correct. This pattern -- regular intervals, small payloads, short connections -- is a C&C beacon. The bot connects to the C&C server, sends a check-in (small outbound payload), and receives either a 'sleep' command or instructions (small inbound payload). Legitimate update checks are typically less regular and less frequent."
+      },
+      {
+        title: "Determine Detection Strategy",
+        question: "Since this is valid TLS traffic on port 443, which detection method is most effective?",
+        options: [
+          "Deep packet inspection of the encrypted payload",
+          "Statistical analysis of connection timing, frequency, and flow metadata (JA3 fingerprinting, beacon detection)",
+          "Block all traffic to port 443",
+          "Antivirus scan of the TLS certificates"
+        ],
+        correct: 1,
+        feedback: "Correct. You can't inspect the encrypted payload, but you can analyse metadata: connection intervals (regular beaconing), JA3/JA3S fingerprints (malware TLS implementations often have distinctive fingerprints), destination reputation, payload sizes, and connection duration patterns."
+      }
+    ],
+    finalQuestion: "What is the traffic and which CPIA knowledge areas does it span?",
+    finalOptions: [
+      "Normal HTTPS browsing, no concern",
+      "C&C beaconing over TLS -- spans D4 (protocol analysis), D6 (flow analysis/fingerprinting), and D7 (C&C detection)",
+      "TLS vulnerability exploitation",
+      "Data exfiltration via HTTPS"
+    ],
+    finalCorrect: 1,
+    finalExplanation: "This is C&C beaconing wrapped in legitimate TLS on port 443. The protocol itself is valid (not anomalous per D4), but flow analysis (D6) reveals the regular beacon pattern, and the overall behaviour matches C&C detection patterns (D7). Detection relies on metadata and statistical analysis rather than payload inspection."
+  }
+];
+
+let currentExercise = 0;
+let currentStep = 0;
+let stepAnswered = [];
+
+function renderMenu() {
+  document.getElementById('app').innerHTML = `
+    <div style="text-align: center; padding: 2rem 0;">
+      <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Work through packet captures using the 5-step protocol identification approach from D4</p>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; max-width: 500px; margin: 0 auto;">
+        ${exercises.map((e, i) => `
+          <div class="final-option" style="text-align: left; padding: 1.25rem; cursor: pointer;" onclick="startExercise(${i})">
+            <div style="font-weight: 600; margin-bottom: 0.25rem;">${e.title}</div>
+            <div style="font-size: 0.8rem; color: var(--text-dim); font-weight: 400;">${e.context.substring(0, 80)}...</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function startExercise(idx) {
+  currentExercise = idx;
+  currentStep = 0;
+  stepAnswered = new Array(exercises[idx].steps.length).fill(false);
+  renderExercise();
+}
+
+function renderExercise() {
+  const ex = exercises[currentExercise];
+  document.getElementById('app').innerHTML = `
+    <div class="progress-dots">
+      ${ex.steps.map((_, i) => `<div class="dot ${i === currentStep ? 'active' : ''} ${stepAnswered[i] ? 'done' : ''}"></div>`).join('')}
+    </div>
+    <div class="challenge-box">
+      <h3>// ${ex.title.toUpperCase()}</h3>
+      <p style="font-size: 0.9rem; color: var(--text-dim); line-height: 1.5;">${ex.context}</p>
+    </div>
+    <div class="hex-dump">${ex.hexDump}</div>
+    <div class="steps">
+      ${ex.steps.map((step, i) => `
+        <div class="step ${i === currentStep ? 'active' : ''}" id="step-${i}">
+          <div class="step-header" onclick="activateStep(${i})">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-title">${step.title}</div>
+          </div>
+          <div class="step-content">
+            <div class="step-question">${step.question}</div>
+            <div class="step-options" id="step-opts-${i}">
+              ${step.options.map((opt, j) => `
+                <div class="step-option" id="step-${i}-opt-${j}" onclick="answerStep(${i}, ${j})">${opt}</div>
+              `).join('')}
+            </div>
+            <div class="step-feedback" id="step-fb-${i}"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div id="final-section" style="display: none;">
+      <div class="final-answer">
+        <h3>// FINAL IDENTIFICATION</h3>
+        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">${ex.finalQuestion}</p>
+        <div class="final-options" id="final-opts">
+          ${ex.finalOptions.map((opt, i) => `
+            <div class="final-option" id="final-opt-${i}" onclick="answerFinal(${i})">${opt}</div>
+          `).join('')}
+        </div>
+        <div class="step-feedback" id="final-fb" style="margin-top: 1rem;"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="renderMenu()">Back to Menu</button>
+    </div>
+  `;
+}
+
+function activateStep(idx) {
+  if (idx <= currentStep || stepAnswered[idx]) {
+    document.querySelectorAll('.step').forEach((el, i) => {
+      el.classList.toggle('active', i === idx);
+    });
+  }
+}
+
+function answerStep(stepIdx, optIdx) {
+  if (stepAnswered[stepIdx]) return;
+  stepAnswered[stepIdx] = true;
+
+  const step = exercises[currentExercise].steps[stepIdx];
+  const isCorrect = optIdx === step.correct;
+
+  document.querySelectorAll(`#step-opts-${stepIdx} .step-option`).forEach((el, i) => {
+    el.classList.add('disabled');
+    if (i === step.correct) el.classList.add('correct');
+    if (i === optIdx && !isCorrect) el.classList.add('incorrect');
+  });
+
+  const fb = document.getElementById(`step-fb-${stepIdx}`);
+  fb.textContent = step.feedback;
+  fb.classList.add('show', isCorrect ? 'correct-fb' : 'incorrect-fb');
+
+  // Auto-advance after delay
+  setTimeout(() => {
+    if (currentStep < exercises[currentExercise].steps.length - 1) {
+      currentStep++;
+      const nextStep = document.getElementById(`step-${currentStep}`);
+      document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+      nextStep.classList.add('active');
+      document.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === currentStep);
+        if (stepAnswered[i]) d.classList.add('done');
+      });
+    } else {
+      // Show final question
+      document.getElementById('final-section').style.display = 'block';
+      document.getElementById('final-section').scrollIntoView({ behavior: 'smooth' });
+    }
+  }, 1500);
+}
+
+function answerFinal(optIdx) {
+  const ex = exercises[currentExercise];
+  const isCorrect = optIdx === ex.finalCorrect;
+
+  document.querySelectorAll('#final-opts .final-option').forEach((el, i) => {
+    el.classList.add('disabled');
+    if (i === ex.finalCorrect) el.classList.add('correct');
+    if (i === optIdx && !isCorrect) el.classList.add('incorrect');
+  });
+
+  const fb = document.getElementById('final-fb');
+  fb.textContent = ex.finalExplanation;
+  fb.classList.add('show', isCorrect ? 'correct-fb' : 'incorrect-fb');
+}
+
+renderMenu();
+</script>
+</body>
+</html>

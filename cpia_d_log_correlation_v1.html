@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIA Module D - Log Correlation Challenge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0e17; --surface: #131825; --surface-hover: #1a2035;
+    --border: #1e2a42; --accent: #00d4aa; --accent-dim: #00d4aa22;
+    --danger: #ff4757; --danger-dim: #ff475722; --warning: #ffa502;
+    --text: #e2e8f0; --text-dim: #64748b; --correct: #00d4aa; --incorrect: #ff4757;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+  .scenario-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+  .scenario-box h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--accent); margin-bottom: 0.75rem; }
+  .scenario-box p { font-size: 0.9rem; line-height: 1.6; color: var(--text-dim); }
+  .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+  @media (max-width: 768px) { .columns { grid-template-columns: 1fr; } }
+  .column h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); margin-bottom: 1rem; }
+  .log-entry {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.75rem 1rem; margin-bottom: 0.5rem; cursor: grab; user-select: none;
+    transition: all 0.2s ease; font-size: 0.8rem;
+  }
+  .log-entry:active { cursor: grabbing; }
+  .log-entry:hover { border-color: var(--accent); background: var(--surface-hover); }
+  .log-entry.dragging { opacity: 0.4; }
+  .log-entry .source-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 3px;
+    margin-bottom: 0.4rem;
+  }
+  .log-entry .source-tag.firewall { background: #3b82f622; color: #60a5fa; }
+  .log-entry .source-tag.dhcp { background: #a855f722; color: #c084fc; }
+  .log-entry .source-tag.dns { background: #f59e0b22; color: #fbbf24; }
+  .log-entry .source-tag.proxy { background: #10b98122; color: #34d399; }
+  .log-entry .source-tag.windows { background: #ef444422; color: #f87171; }
+  .log-entry .source-tag.ids { background: #ec489922; color: #f472b6; }
+  .log-entry .source-tag.webserver { background: #06b6d422; color: #22d3ee; }
+  .log-entry .log-content { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; line-height: 1.5; color: var(--text-dim); word-break: break-all; }
+  .timeline-slot {
+    background: var(--bg); border: 2px dashed var(--border); border-radius: 6px;
+    padding: 1rem; margin-bottom: 0.5rem; min-height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; position: relative;
+  }
+  .timeline-slot.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+  .timeline-slot.filled { border-style: solid; justify-content: flex-start; }
+  .timeline-slot .slot-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--text-dim); position: absolute; top: -0.5rem; left: 0.75rem;
+    background: var(--bg); padding: 0 0.3rem;
+  }
+  .timeline-slot.correct { border-color: var(--correct); }
+  .timeline-slot.incorrect { border-color: var(--incorrect); }
+  .timeline-slot .log-entry { margin: 0; cursor: pointer; }
+  .btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+  .result-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+  .result-box h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; margin-bottom: 1rem; }
+  .result-box.pass { border-color: var(--correct); }
+  .result-box.fail { border-color: var(--incorrect); }
+  .result-box .score { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .result-box .score.pass { color: var(--correct); }
+  .result-box .score.fail { color: var(--incorrect); }
+  .narrative { font-size: 0.85rem; line-height: 1.8; color: var(--text-dim); margin-top: 1rem; }
+  .narrative strong { color: var(--text); }
+  .challenge-select { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin: 2rem 0; }
+  .challenge-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.5rem; cursor: pointer; transition: all 0.2s; text-align: center; min-width: 200px; flex: 1; max-width: 280px;
+  }
+  .challenge-card:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .challenge-card .title { font-weight: 600; margin-bottom: 0.25rem; }
+  .challenge-card .desc { font-size: 0.8rem; color: var(--text-dim); }
+  .instructions { background: var(--surface); border-left: 3px solid var(--warning); padding: 1rem 1.25rem; border-radius: 0 6px 6px 0; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>CPIA // Log Correlation Challenge</h1>
+    <p>Reconstruct the intrusion timeline from multiple log sources</p>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const challenges = [
+  {
+    id: 'lateral',
+    title: 'Lateral Movement',
+    desc: 'Trace an attacker moving through a corporate network',
+    scenario: 'The SOC has been alerted to suspicious activity on the corporate network. Multiple log sources have been collected covering a 45-minute window. Your task is to arrange the log entries in the correct chronological order to reconstruct the attack timeline.',
+    logs: [
+      { id: 'a', source: 'firewall', tag: 'Firewall', content: '14:32:18 ALLOW TCP 203.0.113.45:44821 -> 10.0.1.50:443 HTTPS Inbound', order: 1 },
+      { id: 'b', source: 'ids', tag: 'IDS', content: '14:32:22 [ALERT] ET EXPLOIT Possible SQL Injection Attempt 203.0.113.45 -> 10.0.1.50:443', order: 2 },
+      { id: 'c', source: 'webserver', tag: 'Web Server', content: '14:32:23 10.0.1.50 access.log: 203.0.113.45 "POST /api/login HTTP/1.1" 200 -- param: username=admin\' OR 1=1--', order: 3 },
+      { id: 'd', source: 'windows', tag: 'Windows Event', content: '14:35:41 Event ID 4624 - Successful Logon. Account: svc_webapp, Source: 10.0.1.50, Logon Type: 3 (Network)', order: 4 },
+      { id: 'e', source: 'dns', tag: 'DNS', content: '14:36:02 Query: 10.0.1.50 -> dc01.corp.local A record lookup for fileserver.corp.local', order: 5 },
+      { id: 'f', source: 'windows', tag: 'Windows Event', content: '14:37:15 Event ID 4672 - Special privileges assigned to new logon. Account: svc_webapp, Privileges: SeDebugPrivilege', order: 6 },
+      { id: 'g', source: 'firewall', tag: 'Firewall', content: '14:38:44 ALLOW TCP 10.0.1.50:49221 -> 10.0.2.30:445 SMB Internal', order: 7 },
+      { id: 'h', source: 'windows', tag: 'Windows Event', content: '14:39:01 Event ID 4625 - Failed Logon. Account: administrator, Source: 10.0.1.50, Target: 10.0.2.30, Failure: Bad Password', order: 8 },
+      { id: 'i', source: 'windows', tag: 'Windows Event', content: '14:42:33 Event ID 4624 - Successful Logon. Account: administrator, Source: 10.0.1.50, Target: 10.0.2.30, Logon Type: 3', order: 9 },
+      { id: 'j', source: 'proxy', tag: 'Proxy', content: '14:45:18 10.0.2.30 POST https://paste.ee/api/submit 4.2MB ALLOW - User-Agent: PowerShell/5.1', order: 10 },
+    ],
+    narrative: 'The attacker performed <strong>SQL injection</strong> against the web application on 10.0.1.50 at 14:32, gaining access via the svc_webapp service account. They performed <strong>internal DNS reconnaissance</strong> to locate the file server, then received <strong>elevated privileges (SeDebugPrivilege)</strong> via Event 4672. They <strong>moved laterally via SMB</strong> to the file server at 10.0.2.30, initially failing authentication before succeeding with the administrator account. Finally, they <strong>exfiltrated 4.2MB of data</strong> via a paste site using PowerShell, detected in the proxy logs.'
+  },
+  {
+    id: 'phishing',
+    title: 'Phishing to C&C',
+    desc: 'Track a phishing email through to command and control',
+    scenario: 'A user reported their machine behaving strangely after opening an email attachment. Logs have been pulled from multiple sources. Reconstruct the timeline of the attack from initial delivery to established C&C.',
+    logs: [
+      { id: 'a', source: 'firewall', tag: 'Email Log', content: '09:14:32 RECV FROM=<hr-updates@hr-n0tify.com> TO=<j.smith@corp.local> SUBJ="Urgent: Benefits Update" ATTACH=Benefits_2026.xlsm SIZE=342KB', order: 1 },
+      { id: 'b', source: 'windows', tag: 'Windows Event', content: '09:17:45 Event ID 4688 - Process Created. User: j.smith, Process: EXCEL.EXE, Parent: explorer.exe', order: 2 },
+      { id: 'c', source: 'windows', tag: 'Windows Event', content: '09:17:58 Event ID 4688 - Process Created. User: j.smith, Process: cmd.exe, Parent: EXCEL.EXE', order: 3 },
+      { id: 'd', source: 'windows', tag: 'Windows Event', content: '09:18:02 Event ID 4688 - Process Created. User: j.smith, Process: powershell.exe, Parent: cmd.exe, CmdLine: -enc SQBFAFgAIAAoAE4AZQB3AC0A...', order: 4 },
+      { id: 'e', source: 'dns', tag: 'DNS', content: '09:18:05 Query: 10.0.1.88 -> A record: cdn-static-assets.xyz (resolved: 185.243.115.12)', order: 5 },
+      { id: 'f', source: 'proxy', tag: 'Proxy', content: '09:18:06 10.0.1.88 GET https://cdn-static-assets.xyz/update.dat 892KB ALLOW', order: 6 },
+      { id: 'g', source: 'ids', tag: 'IDS/AV', content: '09:18:14 [ALERT] Suspicious: C:\\Users\\j.smith\\AppData\\Local\\Temp\\svchost.exe - Unsigned binary masquerading as system process', order: 7 },
+      { id: 'h', source: 'dns', tag: 'DNS', content: '09:19:00+ Repeated queries every 60s: 10.0.1.88 -> TXT record: a3f7x9.cdn-static-assets.xyz (high entropy subdomain)', order: 8 },
+      { id: 'i', source: 'firewall', tag: 'Firewall', content: '09:19:02+ ALLOW TCP 10.0.1.88 -> 185.243.115.12:443 HTTPS Outbound - Persistent connection, periodic small payloads', order: 9 },
+      { id: 'j', source: 'dhcp', tag: 'DHCP', content: '08:02:14 DHCP Lease: MAC=A4:5E:60:B2:C1:03 Hostname=WKSTN-JSMITH IP=10.0.1.88 Lease=8hrs', order: 0 },
+    ],
+    narrative: 'The DHCP log confirms <strong>10.0.1.88 was assigned to WKSTN-JSMITH</strong> at 08:02. A <strong>phishing email with a macro-enabled Excel attachment</strong> arrived at 09:14. At 09:17 the user opened it, triggering a <strong>macro execution chain: Excel spawned cmd.exe, which spawned encoded PowerShell</strong>. The PowerShell reached out to a suspicious domain to <strong>download a second-stage payload</strong> (update.dat), which dropped as a fake svchost.exe. The IDS flagged the unsigned binary. Within a minute, <strong>DNS-based C&C beaconing began</strong> with high-entropy TXT record queries every 60 seconds, alongside a <strong>persistent HTTPS connection</strong> to the C&C server.'
+  },
+  {
+    id: 'exfil',
+    title: 'DNS Exfiltration',
+    desc: 'Identify covert data exfiltration via DNS tunnelling',
+    scenario: 'Network monitoring flagged unusual DNS query volumes from a single host. Multiple log sources have been collected. Piece together how the attacker established persistence and began exfiltrating data via DNS.',
+    logs: [
+      { id: 'a', source: 'firewall', tag: 'Firewall', content: '11:22:05 ALLOW TCP 198.51.100.77:55123 -> 10.0.3.10:22 SSH Inbound', order: 1 },
+      { id: 'b', source: 'windows', tag: 'Auth Log', content: '11:22:06 sshd: Failed password for root from 198.51.100.77 port 55123', order: 2 },
+      { id: 'c', source: 'windows', tag: 'Auth Log', content: '11:22:07-11:24:58 sshd: 847 failed password attempts for multiple users from 198.51.100.77', order: 3 },
+      { id: 'd', source: 'windows', tag: 'Auth Log', content: '11:24:59 sshd: Accepted password for dbbackup from 198.51.100.77 port 55891', order: 4 },
+      { id: 'e', source: 'ids', tag: 'IDS', content: '11:25:14 [ALERT] Brute force SSH detected: 198.51.100.77 -> 10.0.3.10:22 (847 attempts in 173 seconds)', order: 5 },
+      { id: 'f', source: 'windows', tag: 'Auth Log', content: '11:26:33 crontab: EDIT (dbbackup) - Added entry: */5 * * * * /tmp/.sync/beacon.sh', order: 6 },
+      { id: 'g', source: 'dns', tag: 'DNS', content: '11:31:00 Query: 10.0.3.10 -> TXT 5a47ef2c9b1d.data.ns1.evil-resolver.net (64-char hex subdomain)', order: 7 },
+      { id: 'h', source: 'dns', tag: 'DNS', content: '11:31:00-12:45:00 10.0.3.10: 893 TXT queries to *.data.ns1.evil-resolver.net, avg subdomain length 58 chars', order: 8 },
+      { id: 'i', source: 'firewall', tag: 'Firewall', content: '11:31:00+ ALLOW UDP 10.0.3.10:* -> 10.0.0.2:53 DNS (volume: 4.7MB total encoded in queries over 74 minutes)', order: 9 },
+      { id: 'j', source: 'proxy', tag: 'DB Log', content: '11:27:44 dbbackup executed: SELECT * FROM customers; -- 23,847 rows returned (12.3MB)', order: 10 },
+    ],
+    narrative: 'The attacker launched an <strong>SSH brute force attack</strong> (847 attempts in under 3 minutes) against the database server, eventually compromising the <strong>dbbackup service account</strong>. The IDS detected the brute force but the alert came after the successful login. The attacker immediately <strong>dumped the customer database</strong> (23,847 rows) and <strong>installed a cron-based persistence mechanism</strong> running every 5 minutes. Data exfiltration began via <strong>DNS tunnelling</strong>, encoding stolen data in long hexadecimal subdomains sent as TXT queries to an attacker-controlled nameserver. The firewall allowed it because it was standard DNS traffic to the internal resolver. <strong>4.7MB was exfiltrated</strong> over 74 minutes.'
+  }
+];
+
+let currentChallenge = null;
+let slots = [];
+let availableLogs = [];
+
+function renderMenu() {
+  document.getElementById('app').innerHTML = `
+    <div style="text-align:center; padding: 2rem 0;">
+      <p style="color: var(--text-dim); margin-bottom: 0.5rem;">Choose a scenario</p>
+      <div class="challenge-select">
+        ${challenges.map(c => `
+          <div class="challenge-card" onclick="loadChallenge('${c.id}')">
+            <div class="title">${c.title}</div>
+            <div class="desc">${c.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function loadChallenge(id) {
+  currentChallenge = challenges.find(c => c.id === id);
+  slots = new Array(currentChallenge.logs.length).fill(null);
+  availableLogs = shuffleArray([...currentChallenge.logs]);
+  render();
+}
+
+function render() {
+  const c = currentChallenge;
+  document.getElementById('app').innerHTML = `
+    <div class="scenario-box">
+      <h3>// SCENARIO: ${c.title.toUpperCase()}</h3>
+      <p>${c.scenario}</p>
+    </div>
+    <div class="instructions">Drag log entries from the left panel into the timeline slots on the right. Place them in the order you believe the events occurred. Click a placed entry to return it to the pool.</div>
+    <div class="columns">
+      <div>
+        <h3>// LOG ENTRIES</h3>
+        <div id="log-pool">
+          ${availableLogs.filter(l => !slots.includes(l.id)).map(l => `
+            <div class="log-entry" draggable="true" ondragstart="dragStart(event, '${l.id}')" id="log-${l.id}">
+              <div class="source-tag ${l.source}">${l.tag}</div>
+              <div class="log-content">${l.content}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div>
+        <h3>// TIMELINE (earliest to latest)</h3>
+        <div id="timeline">
+          ${slots.map((s, i) => {
+            const log = s ? c.logs.find(l => l.id === s) : null;
+            return `
+              <div class="timeline-slot ${s ? 'filled' : ''}" id="slot-${i}"
+                   ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+                   ondrop="drop(event, ${i})">
+                <span class="slot-label">${i + 1}</span>
+                ${log ? `
+                  <div class="log-entry" onclick="removeFromSlot(${i})" style="cursor:pointer; width:100%;">
+                    <div class="source-tag ${log.source}">${log.tag}</div>
+                    <div class="log-content">${log.content}</div>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="renderMenu()">Back</button>
+      <button class="btn btn-secondary" onclick="resetChallenge()">Reset</button>
+      <button class="btn btn-primary" onclick="checkAnswer()" ${slots.some(s => s === null) ? 'disabled' : ''}>Check Timeline</button>
+    </div>
+    <div id="result"></div>
+  `;
+}
+
+let draggedId = null;
+
+function dragStart(e, id) {
+  draggedId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = document.getElementById('log-' + id);
+    if (el) el.classList.add('dragging');
+  }, 0);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function drop(e, slotIndex) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (draggedId && slots[slotIndex] === null) {
+    // Remove from any existing slot
+    const existingSlot = slots.indexOf(draggedId);
+    if (existingSlot !== -1) slots[existingSlot] = null;
+    slots[slotIndex] = draggedId;
+    render();
+  }
+  draggedId = null;
+}
+
+function removeFromSlot(index) {
+  slots[index] = null;
+  render();
+}
+
+function resetChallenge() {
+  slots = new Array(currentChallenge.logs.length).fill(null);
+  availableLogs = shuffleArray([...currentChallenge.logs]);
+  render();
+}
+
+function checkAnswer() {
+  const c = currentChallenge;
+  const sortedLogs = [...c.logs].sort((a, b) => a.order - b.order);
+  let correct = 0;
+
+  slots.forEach((id, i) => {
+    const slotEl = document.getElementById('slot-' + i);
+    const expectedId = sortedLogs[i].id;
+    if (id === expectedId) {
+      slotEl.classList.add('correct');
+      correct++;
+    } else {
+      slotEl.classList.add('incorrect');
+    }
+  });
+
+  const total = slots.length;
+  const pct = Math.round((correct / total) * 100);
+  const pass = pct >= 80;
+
+  document.getElementById('result').innerHTML = `
+    <div class="result-box ${pass ? 'pass' : 'fail'}">
+      <div class="score ${pass ? 'pass' : 'fail'}">${correct}/${total} correct</div>
+      <h3 style="color: var(--accent); margin-bottom: 0.5rem;">// ATTACK NARRATIVE</h3>
+      <div class="narrative">${c.narrative}</div>
+    </div>
+  `;
+
+  // Disable the check button
+  document.querySelector('.btn-primary').disabled = true;
+}
+
+renderMenu();
+</script>
+</body>
+</html>

