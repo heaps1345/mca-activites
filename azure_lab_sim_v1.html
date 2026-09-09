@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Security Lab — SC-900 Scenario</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0f1318;
+    --surface: #181d25;
+    --surface-raised: #1e2530;
+    --border: #2a3140;
+    --text: #d4dae4;
+    --text-muted: #7a8599;
+    --accent: #3b82f6;
+    --accent-dim: #2563eb;
+    --success: #22c55e;
+    --success-bg: rgba(34,197,94,0.1);
+    --error: #ef4444;
+    --error-bg: rgba(239,68,68,0.1);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245,158,11,0.1);
+    --ms-blue: #0078d4;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .lab-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  /* Header */
+  .lab-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .lab-header .azure-icon {
+    width: 40px; height: 40px;
+    background: var(--ms-blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 1.1rem; color: #fff;
+    flex-shrink: 0;
+  }
+  .lab-header h1 {
+    font-size: 1.25rem; font-weight: 600; color: #fff;
+  }
+  .lab-header p {
+    font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    background: var(--surface);
+    border-radius: 6px;
+    height: 8px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Scenario briefing */
+  .briefing {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .briefing h2 {
+    font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem;
+  }
+  .briefing p {
+    font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;
+  }
+  .briefing .tag {
+    display: inline-block;
+    background: rgba(59,130,246,0.15);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-top: 0.5rem;
+  }
+
+  /* Step panel */
+  .step-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .step-panel.active { display: block; }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .step-panel h3 {
+    font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem;
+  }
+  .step-context {
+    font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;
+  }
+
+  /* Simulated portal chrome */
+  .portal-sim {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .portal-titlebar {
+    background: #1b1f2a;
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .portal-titlebar .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ms-blue);
+  }
+  .portal-body {
+    padding: 1.25rem;
+  }
+
+  /* Form elements inside portal */
+  .field-group {
+    margin-bottom: 1rem;
+  }
+  .field-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .field-group select, .field-group input[type="text"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+  }
+  .field-group select:focus, .field-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Choice cards */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .choice-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .choice-card:hover {
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.05);
+  }
+  .choice-card.selected {
+    border-color: var(--accent);
+    background: rgba(59,130,246,0.08);
+  }
+  .choice-card.correct {
+    border-color: var(--success);
+    background: var(--success-bg);
+  }
+  .choice-card.incorrect {
+    border-color: var(--error);
+    background: var(--error-bg);
+  }
+  .choice-card.disabled {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .choice-card h4 {
+    font-size: 0.9rem; font-weight: 500; color: #fff; margin-bottom: 4px;
+  }
+  .choice-card p {
+    font-size: 0.8rem; color: var(--text-muted);
+  }
+
+  /* Feedback panel */
+  .feedback {
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    display: none;
+    font-size: 0.88rem;
+  }
+  .feedback.show { display: block; }
+  .feedback.success {
+    background: var(--success-bg);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--success);
+  }
+  .feedback.error {
+    background: var(--error-bg);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--error);
+  }
+  .feedback .error-code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    margin-top: 6px;
+    padding: 8px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    color: #fca5a5;
+  }
+  .feedback strong { color: #fff; }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-dim); }
+  .btn-primary:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  .btn-row {
+    display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;
+  }
+
+  /* Terminal output */
+  .terminal {
+    background: #0a0d12;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--success);
+    line-height: 1.7;
+    margin-top: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .terminal .cmd { color: var(--accent); }
+  .terminal .warn { color: var(--warning); }
+  .terminal .err { color: var(--error); }
+
+  /* Score panel */
+  .score-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    display: none;
+  }
+  .score-panel.active { display: block; }
+  .score-big {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 1rem 0 0.5rem;
+  }
+  .score-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+  .score-breakdown {
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .score-row .label { color: var(--text-muted); }
+  .score-row .val { font-weight: 500; }
+  .score-row .val.pass { color: var(--success); }
+  .score-row .val.fail { color: var(--error); }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .lab-container { padding: 1rem; }
+    .lab-header h1 { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="lab-container">
+
+  <div class="lab-header">
+    <div class="azure-icon">Az</div>
+    <div>
+      <h1>Secure Access Provisioning Lab</h1>
+      <p>SC-900 Scenario-Based Exercise</p>
+    </div>
+  </div>
+
+  <div class="progress-label">Step <span id="stepCurrent">0</span> of <span id="stepTotal">6</span></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <!-- BRIEFING -->
+  <div class="briefing" id="briefing">
+    <h2>Scenario Briefing</h2>
+    <p>Contoso Healthcare has onboarded a new clinical development team (4 members) who need access to an Azure subscription hosting a patient records application. Your job: provision their identities, assign least-privilege access, enforce security policies, enable threat protection, and set up secure remote access to a backend VM.</p>
+    <p style="margin-top:0.75rem; color:var(--text);">You'll work through this as if you're the Security Administrator for the tenant.</p>
+    <div>
+      <span class="tag">Entra ID</span>
+      <span class="tag">RBAC</span>
+      <span class="tag">Conditional Access</span>
+      <span class="tag">Defender for Cloud</span>
+      <span class="tag">Bastion</span>
+      <span class="tag">SC-900</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startLab()">Begin Lab</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: Create users & group -->
+  <div class="step-panel" id="step1">
+    <div class="step-number">Step 1 of 6</div>
+    <h3>Provision Identities in Entra ID</h3>
+    <p class="step-context">The four new team members need accounts. You need to create a security group and add them. How should the group be configured?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> Microsoft Entra ID &gt; Groups &gt; New Group</div>
+      <div class="portal-body">
+        <div class="field-group">
+          <label>Group name</label>
+          <input type="text" value="ClinicalDev-Team" readonly>
+        </div>
+        <div class="choices" id="choices1">
+          <div class="choice-card" onclick="selectChoice(1, 0, this)">
+            <h4>Microsoft 365 group, Dynamic membership</h4>
+            <p>Auto-populates based on user attributes. Includes a shared mailbox and calendar.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(1, 1, this)">
+            <h4>Security group, Assigned membership</h4>
+            <p>Manually add members. Used for RBAC role assignments and Conditional Access targeting.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(1, 2, this)">
+            <h4>Security group, Dynamic membership</h4>
+            <p>Auto-populates based on user attributes like department. Used for RBAC and CA.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(1, 3, this)">
+            <h4>Distribution group</h4>
+            <p>For email distribution only. Cannot be used for access control.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback1"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next1" disabled onclick="goStep(2)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: RBAC -->
+  <div class="step-panel" id="step2">
+    <div class="step-number">Step 2 of 6</div>
+    <h3>Assign RBAC Role</h3>
+    <p class="step-context">The ClinicalDev-Team group needs access to the "PatientRecords-RG" resource group. They need to deploy and manage application resources but should not be able to manage access for others. Which role?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> PatientRecords-RG &gt; Access control (IAM) &gt; Add role assignment</div>
+      <div class="portal-body">
+        <div class="choices" id="choices2">
+          <div class="choice-card" onclick="selectChoice(2, 0, this)">
+            <h4>Owner</h4>
+            <p>Full access including the ability to assign roles to others.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(2, 1, this)">
+            <h4>Contributor</h4>
+            <p>Create and manage all resource types. Cannot grant access to others.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(2, 2, this)">
+            <h4>Reader</h4>
+            <p>View all resources but cannot make changes.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(2, 3, this)">
+            <h4>User Access Administrator</h4>
+            <p>Manage user access to Azure resources. No resource management.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback2"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next2" disabled onclick="goStep(3)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Conditional Access -->
+  <div class="step-panel" id="step3">
+    <div class="step-number">Step 3 of 6</div>
+    <h3>Configure Conditional Access Policy</h3>
+    <p class="step-context">The security team requires MFA and compliant devices for all access to the patient records environment. A colleague drafted a policy but it has a problem. Which configuration is correct?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> Entra ID &gt; Protection &gt; Conditional Access &gt; New Policy</div>
+      <div class="portal-body">
+        <div class="choices" id="choices3">
+          <div class="choice-card" onclick="selectChoice(3, 0, this)">
+            <h4>Target: All users | Grant: Require MFA OR compliant device</h4>
+            <p>Applies to everyone. Satisfying either control is enough.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(3, 1, this)">
+            <h4>Target: ClinicalDev-Team | Grant: Require MFA AND compliant device</h4>
+            <p>Scoped to the team. Both controls must be satisfied.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(3, 2, this)">
+            <h4>Target: ClinicalDev-Team | Grant: Require MFA OR compliant device</h4>
+            <p>Scoped to the team. Satisfying either control is enough.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(3, 3, this)">
+            <h4>Target: All users | Grant: Require MFA AND compliant device | Exclude: Global Admins</h4>
+            <p>Broad policy with break-glass exclusion. Both controls required.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback3"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next3" disabled onclick="goStep(4)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Error diagnosis (530035) -->
+  <div class="step-panel" id="step4">
+    <div class="step-number">Step 4 of 6</div>
+    <h3>Troubleshoot Access Failure</h3>
+    <p class="step-context">After deploying the CA policy, a team member (graeme@mcacloud.uk) reports they can sign in but see "You don't have access to this" with error 530035. The troubleshooting details show <strong>Device state: Unregistered</strong>. What's the most likely cause?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> Sign-in logs &gt; graeme@mcacloud.uk &gt; Error 530035</div>
+      <div class="portal-body">
+        <div class="terminal">
+          <span class="cmd">Error Code:</span> 530035<br>
+          <span class="cmd">Failure reason:</span> Access policy does not allow token issuance<br>
+          <span class="cmd">Authentication:</span> <span style="color:var(--success)">Success</span><br>
+          <span class="cmd">Conditional Access:</span> <span class="err">Failure</span><br>
+          <span class="cmd">Device state:</span> <span class="warn">Unregistered</span><br>
+          <span class="cmd">MFA satisfied:</span> <span style="color:var(--success)">Yes</span>
+        </div>
+        <div class="choices" id="choices4" style="margin-top:1rem;">
+          <div class="choice-card" onclick="selectChoice(4, 0, this)">
+            <h4>MFA registration is incomplete</h4>
+            <p>The user hasn't finished setting up their authenticator app.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(4, 1, this)">
+            <h4>The CA policy requires a compliant device but this device is unregistered</h4>
+            <p>The device isn't Entra joined or registered, so the compliant device grant control fails.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(4, 2, this)">
+            <h4>The user's account is disabled</h4>
+            <p>The account exists but has been blocked from sign-in.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(4, 3, this)">
+            <h4>The user isn't licensed for Azure AD P1</h4>
+            <p>Conditional Access requires at least Azure AD P1/P2 licensing.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback4"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next4" disabled onclick="goStep(5)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Defender for Cloud -->
+  <div class="step-panel" id="step5">
+    <div class="step-number">Step 5 of 6</div>
+    <h3>Enable Microsoft Defender for Cloud</h3>
+    <p class="step-context">The subscription needs threat protection. You're enabling Defender for Cloud. Which plan configuration is appropriate for a subscription running VMs with a patient records web app?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> Defender for Cloud &gt; Environment settings &gt; PatientRecords-Sub</div>
+      <div class="portal-body">
+        <div class="choices" id="choices5">
+          <div class="choice-card" onclick="selectChoice(5, 0, this)">
+            <h4>Enable Foundational CSPM only (free tier)</h4>
+            <p>Secure score and basic recommendations. No workload protection or advanced threat detection.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(5, 1, this)">
+            <h4>Enable Defender for Servers (Plan 2) and Defender for App Service</h4>
+            <p>Workload protection for VMs (file integrity, JIT, adaptive controls) and web app threat detection.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(5, 2, this)">
+            <h4>Enable all Defender plans across every resource type</h4>
+            <p>Maximum coverage: Servers, App Service, SQL, Storage, Key Vault, DNS, Containers, etc.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(5, 3, this)">
+            <h4>Enable Defender for Storage and Defender for Key Vault only</h4>
+            <p>Protects data at rest and secrets management. No server or app protection.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback5"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next5" disabled onclick="goStep(6)">Continue</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: Bastion -->
+  <div class="step-panel" id="step6">
+    <div class="step-number">Step 6 of 6</div>
+    <h3>Deploy Azure Bastion for Secure Access</h3>
+    <p class="step-context">The backend VM has no public IP. The team needs RDP/SSH access for maintenance. You're deploying Azure Bastion. What's the correct network configuration?</p>
+
+    <div class="portal-sim">
+      <div class="portal-titlebar"><span class="dot"></span> PatientRecords-VNet &gt; Subnets &gt; Deploy Bastion</div>
+      <div class="portal-body">
+        <div class="choices" id="choices6">
+          <div class="choice-card" onclick="selectChoice(6, 0, this)">
+            <h4>Create subnet "BastionSubnet" with /27 prefix, deploy Bastion Standard SKU</h4>
+            <p>Dedicated subnet with correct minimum size. Standard SKU supports native client and IP-based connections.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(6, 1, this)">
+            <h4>Create subnet "AzureBastionSubnet" with /26 prefix, deploy Bastion Standard SKU</h4>
+            <p>Correctly named dedicated subnet with recommended size. Standard SKU for full features.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(6, 2, this)">
+            <h4>Create subnet "AzureBastionSubnet" with /28 prefix, deploy Bastion Basic SKU</h4>
+            <p>Correctly named subnet but smaller prefix. Basic SKU with limited features.</p>
+          </div>
+          <div class="choice-card" onclick="selectChoice(6, 3, this)">
+            <h4>Deploy Bastion into the existing default subnet, assign a public IP to the VM</h4>
+            <p>No dedicated subnet. The VM gets a public IP for direct access alongside Bastion.</p>
+          </div>
+        </div>
+        <div class="feedback" id="feedback6"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="next6" disabled onclick="showScore()">Finish Lab</button>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="score-panel" id="scorePanel">
+    <div class="step-number">Lab Complete</div>
+    <div class="score-big" id="scoreBig">0%</div>
+    <div class="score-label" id="scoreLabel">Calculating...</div>
+    <div class="score-breakdown" id="scoreBreakdown"></div>
+    <div class="btn-row" style="justify-content:center; margin-top:1.5rem;">
+      <button class="btn btn-primary" onclick="resetLab()">Retry Lab</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STEPS = {
+  1: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> A Security group with Assigned membership is the right call here. It can be targeted by RBAC role assignments and Conditional Access policies. With only 4 members, dynamic membership adds unnecessary complexity. M365 groups bring collaboration features (mailbox, Teams) you don't need for access control.",
+    failMsgs: {
+      0: "<strong>Not quite.</strong> M365 groups are for collaboration (shared mailbox, calendar, Teams). They can be used for some access control, but Security groups are purpose-built for RBAC and Conditional Access. Also, dynamic membership is overkill for 4 known users.",
+      2: "<strong>Close.</strong> Security group is correct, but Dynamic membership is unnecessary for 4 known team members. Dynamic rules are useful at scale when you can match on attributes like department, but here you know exactly who the members are. Assigned keeps it simple and explicit.",
+      3: "<strong>No.</strong> Distribution groups are for email distribution only. They cannot be used as security principals for RBAC assignments or Conditional Access policy targeting."
+    },
+    stepName: "Entra ID Group Provisioning"
+  },
+  2: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> Contributor grants full resource management (deploy, configure, delete) without the ability to assign roles to others. This follows least-privilege: they can do their development work but can't escalate access.",
+    failMsgs: {
+      0: "<strong>Too much access.</strong> Owner includes everything Contributor does PLUS the ability to assign RBAC roles. The team doesn't need to manage access for others. This violates least-privilege.",
+      2: "<strong>Insufficient.</strong> Reader is view-only. The team needs to deploy and manage application resources, not just look at them.",
+      3: "<strong>Wrong scope.</strong> User Access Administrator lets you manage RBAC assignments but doesn't grant resource management. The team needs to manage resources, not access."
+    },
+    stepName: "RBAC Assignment"
+  },
+  3: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> Scoping to ClinicalDev-Team targets only the users who need this policy. Requiring both MFA AND a compliant device provides defence in depth: something you know (MFA) and something you have (managed device). Using OR would let someone bypass one control entirely.",
+    failMsgs: {
+      0: "<strong>Two problems.</strong> First, 'All users' is too broad and could lock out admins or service accounts. Second, OR means a user can satisfy the policy with just MFA on an unmanaged personal device, bypassing the device compliance requirement entirely.",
+      2: "<strong>Scope is right, but OR is wrong.</strong> Using OR means a user on an unmanaged personal device can get in by just completing MFA. The security team specifically required both MFA and compliant devices. AND enforces both.",
+      3: "<strong>Good thinking on the break-glass exclusion, but the scope is too broad.</strong> Applying to All users affects every account in the tenant, including service principals and other teams. Scope to the specific group. The break-glass exclusion is a real-world best practice though."
+    },
+    stepName: "Conditional Access Policy"
+  },
+  4: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> The sign-in logs confirm: authentication succeeded and MFA was satisfied, but Conditional Access failed. The device is Unregistered, meaning it's not Entra joined or registered. Because the CA policy requires a compliant device (AND), the unregistered device fails that grant control, producing error 530035. The fix: Entra join or register the device then ensure it passes compliance policy in Intune.",
+    failMsgs: {
+      0: "<strong>Read the logs again.</strong> MFA satisfied = Yes. The user completed MFA successfully. The failure is in the Conditional Access evaluation, not the authentication step.",
+      2: "<strong>No.</strong> If the account were disabled, authentication would fail. The logs show Authentication: Success. The user got in but was blocked by policy, not by account state.",
+      3: "<strong>Licensing isn't the issue here.</strong> If the tenant lacked P1 licensing, Conditional Access policies couldn't be created at all. The policy exists and is evaluating (it's returning a specific CA failure). The problem is the device state not meeting the policy's grant controls."
+    },
+    stepName: "Troubleshooting (Error 530035)"
+  },
+  5: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> Defender for Servers Plan 2 covers the VMs running the application (file integrity monitoring, JIT VM access, adaptive application controls, vulnerability assessment). Defender for App Service adds threat detection for the web layer. This matches the workload without paying for plans covering resource types you're not using.",
+    failMsgs: {
+      0: "<strong>Not enough.</strong> Foundational CSPM gives you a Secure Score and basic hygiene recommendations, but no workload protection. For a patient records application, you need active threat detection, not just posture assessment.",
+      2: "<strong>Works but wasteful.</strong> Enabling every plan protects everything, but you'd be paying for Defender for SQL, Containers, DNS, etc. when the scenario only mentions VMs and a web app. Right-size your protection to your actual workloads. In an exam context, least-privilege and cost-effectiveness matter.",
+      3: "<strong>Wrong workloads.</strong> Defender for Storage and Key Vault protect data and secrets, but the scenario specifically calls out VMs and a web application. You'd have no server-level threat detection or web app protection."
+    },
+    stepName: "Defender for Cloud"
+  },
+  6: {
+    correct: 1,
+    successMsg: "<strong>Correct.</strong> Azure Bastion requires a dedicated subnet named exactly 'AzureBastionSubnet'. The minimum prefix is /26 (Microsoft's documented requirement). Standard SKU provides full features including native client support, IP-based connections, and shareable links. The VM keeps no public IP, maintaining the security boundary.",
+    failMsgs: {
+      0: "<strong>Wrong subnet name.</strong> The subnet MUST be named 'AzureBastionSubnet' exactly. Any other name and the Bastion deployment will fail. Azure enforces this naming convention.",
+      2: "<strong>Right name, wrong size.</strong> /28 is too small. Azure Bastion requires a minimum of /26 (64 addresses). The service needs address space for its instances and scaling. The deployment would fail validation with a /28 prefix.",
+      3: "<strong>Defeats the purpose.</strong> Bastion's entire value is providing secure RDP/SSH without exposing VMs via public IPs. Deploying into the default subnet isn't supported (it needs its own dedicated subnet), and assigning a public IP to the VM creates the exact attack surface Bastion is designed to eliminate."
+    },
+    stepName: "Azure Bastion Deployment"
+  }
+};
+
+let scores = {};
+let currentStep = 0;
+
+function startLab() {
+  document.getElementById('briefing').style.display = 'none';
+  goStep(1);
+}
+
+function goStep(n) {
+  // Hide all
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('step' + i).classList.remove('active');
+  }
+  document.getElementById('step' + n).classList.add('active');
+  currentStep = n;
+  document.getElementById('stepCurrent').textContent = n;
+  document.getElementById('progressFill').style.width = ((n - 1) / 6 * 100) + '%';
+}
+
+function selectChoice(step, idx, el) {
+  const data = STEPS[step];
+  const container = document.getElementById('choices' + step);
+  const feedback = document.getElementById('feedback' + step);
+  const cards = container.querySelectorAll('.choice-card');
+
+  // Disable all
+  cards.forEach(c => c.classList.add('disabled'));
+
+  if (idx === data.correct) {
+    el.classList.add('correct');
+    feedback.className = 'feedback show success';
+    feedback.innerHTML = data.successMsg;
+    scores[step] = true;
+  } else {
+    el.classList.add('incorrect');
+    cards[data.correct].classList.add('correct');
+    feedback.className = 'feedback show error';
+    feedback.innerHTML = data.failMsgs[idx];
+    if (step === 4) {
+      feedback.innerHTML += '<div class="error-code">Azure Portal Error 530035: ConditionalAccessPolicy — DeviceComplianceRequired — Device state does not meet policy requirements.</div>';
+    }
+    scores[step] = false;
+  }
+
+  document.getElementById('next' + step).disabled = false;
+}
+
+function showScore() {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('step' + i).classList.remove('active');
+  }
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('stepCurrent').textContent = '6';
+
+  const panel = document.getElementById('scorePanel');
+  panel.classList.add('active');
+
+  let correct = 0;
+  let breakdown = '';
+  for (let i = 1; i <= 6; i++) {
+    const passed = scores[i] === true;
+    if (passed) correct++;
+    breakdown += `<div class="score-row">
+      <span class="label">${STEPS[i].stepName}</span>
+      <span class="val ${passed ? 'pass' : 'fail'}">${passed ? 'Correct' : 'Incorrect'}</span>
+    </div>`;
+  }
+
+  const pct = Math.round((correct / 6) * 100);
+  document.getElementById('scoreBig').textContent = pct + '%';
+  document.getElementById('scoreLabel').textContent = correct + ' of 6 correct';
+  document.getElementById('scoreBreakdown').innerHTML = breakdown;
+}
+
+function resetLab() {
+  scores = {};
+  currentStep = 0;
+  document.getElementById('scorePanel').classList.remove('active');
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('stepCurrent').textContent = '0';
+
+  // Reset all choices
+  for (let i = 1; i <= 6; i++) {
+    const cards = document.getElementById('choices' + i).querySelectorAll('.choice-card');
+    cards.forEach(c => {
+      c.classList.remove('correct', 'incorrect', 'selected', 'disabled');
+    });
+    document.getElementById('feedback' + i).className = 'feedback';
+    document.getElementById('feedback' + i).innerHTML = '';
+    document.getElementById('next' + i).disabled = true;
+    document.getElementById('step' + i).classList.remove('active');
+  }
+
+  document.getElementById('briefing').style.display = 'block';
+}
+</script>
+</body>
+</html>
