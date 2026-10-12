@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 4: Conditional Access Policy (Report-Only) + Named Location + PIM Role Activation</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #888; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 4 of 6</span>
+    <span class="badge badge-domain">Domain 2 - Authentication and Access Management</span>
+    <span class="badge badge-licence">P1 / P2 Licence</span>
+  </div>
+  <h1>Conditional Access Policy (Report-Only) + Named Location + PIM Role Activation</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Create a Conditional Access policy in report-only mode</li><li>Understand CA policy conditions and grant controls</li><li>Create a named location for use in CA policies</li><li>Activate a PIM-eligible role assignment</li><li>Review the PIM audit log</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in with your student account</li><li>Your instructor has made you <strong>PIM-eligible</strong> for a role (e.g. Security Reader)</li><li>Entra ID P1 licence is available in the tenant (included in the M365 E5 dev tenant)</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Create a Named Location</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Protection > Conditional Access > Named locations</span></li><li>Click <strong>+ IP ranges location</strong></li><li>Name it <code>Lab - Trusted Office Range</code></li><li>Add an IP range - use <code>192.168.1.0/24</code> as a fictional office range</li><li>Check <strong>Mark as trusted location</strong></li><li>Click <strong>Create</strong></li><li><div class="tip"><strong>Exam tip:</strong> Named locations can be IP ranges or countries. Trusted locations bypass MFA when used in CA policy conditions. Country-based locations use the IP-to-country mapping at sign-in time.</div></li></ol></div><div class="section"><h3>📋 Part 2 - Create a Conditional Access Policy in Report-Only Mode</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Protection > Conditional Access > Policies > + New policy</span></li><li>Name the policy <code>LAB - Require MFA for All Users (Report Only)</code></li><li>Under <strong>Users</strong>, select <strong>All users</strong></li><li>Under <strong>Target resources</strong>, select <strong>All cloud apps</strong></li><li>Under <strong>Conditions > Locations</strong>, set Configure to <strong>Yes</strong>, include <strong>Any location</strong>, exclude <strong>All trusted locations</strong></li><li>Under <strong>Grant</strong>, select <strong>Require multifactor authentication</strong> and click <strong>Select</strong></li><li>Under <strong>Enable policy</strong>, select <strong>Report-only</strong></li><li>Click <strong>Create</strong></li><li><div class="tip"><strong>Exam tip:</strong> Report-only mode logs what the policy WOULD have done without enforcing it. Always pilot with report-only and review the sign-in logs before turning a policy On.</div></li></ol></div><div class="section"><h3>📋 Part 3 - Review the Policy in Sign-In Logs</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Monitoring & health > Sign-in logs</span></li><li>Find a recent sign-in entry and click on it</li><li>Click the <strong>Conditional Access</strong> tab</li><li>Find your lab policy in the list - it should show as <strong>Report-only: Would have applied</strong> or similar</li><li>Review the <strong>Conditions matched</strong> and <strong>Grant controls applied</strong> columns</li><li><div class="tip"><strong>Exam tip:</strong> The sign-in log CA tab shows all policies that evaluated for that sign-in, their result, and why. This is the primary troubleshooting tool for CA issues in the exam.</div></li></ol></div><div class="section"><h3>📋 Part 4 - Activate a PIM Role</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Identity Governance > Privileged Identity Management > My roles</span></li><li>Click <strong>Entra ID roles</strong> and find your eligible role assignment</li><li>Click <strong>Activate</strong> next to the role</li><li>Set the <strong>Duration</strong> to 1 hour</li><li>Enter a <strong>Reason</strong>: <code>SC-300 lab exercise</code></li><li>Click <strong>Activate</strong> and wait for confirmation</li><li>Return to <strong>My roles > Active assignments</strong> and confirm the role is now active</li><li><div class="tip"><strong>Exam tip:</strong> PIM activation can require MFA, an approval, or a justification - all are configurable in the role settings. Know which of these are enforced by which PIM policy settings.</div></li></ol></div><div class="section"><h3>📋 Part 5 - Review PIM Audit Log</h3><ol><li>Navigate to <span class="nav-path">PIM > Entra ID roles > Audit history</span></li><li>Find your activation event in the log</li><li>Review the <strong>Requestor</strong>, <strong>Action</strong>, <strong>Resource</strong>, and <strong>Time</strong> fields</li><li>Note that PIM audit logs are available for 30 days in the portal and can be exported to Log Analytics for longer retention</li><li>Deactivate your role when finished: <strong>PIM > My roles > Active assignments > Deactivate</strong></li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I created a named location with a trusted IP range</label></li><li><label><input type="checkbox"> I created a CA policy targeting all users and all apps requiring MFA, set to report-only</label></li><li><label><input type="checkbox"> I found my policy in the sign-in logs and read its evaluation result</label></li><li><label><input type="checkbox"> I activated a PIM-eligible role and confirmed it appeared in Active assignments</label></li><li><label><input type="checkbox"> I found my PIM activation in the audit log and deactivated the role</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>Covers SC-300 objectives: 'Plan, implement, and manage Conditional Access policies' and 'Plan and implement Privileged Identity Management' under Domain 2. CA and PIM together account for a significant portion of the exam. Know the difference between report-only, enabled, and disabled policy states, and understand all PIM activation controls.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
