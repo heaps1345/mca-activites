@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-900 Lab: Microsoft Purview End to End</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface-2: #f0f2f6;
+    --border: #e2e6ed;
+    --fg: #1a1d23;
+    --fg-2: #4a5162;
+    --fg-3: #8b92a5;
+    --accent: #0f62fe;
+    --accent-light: #e8f0ff;
+    --success: #198038;
+    --success-light: #defbe6;
+    --warning: #b45309;
+    --warning-light: #fef3c7;
+    --danger: #da1e28;
+    --danger-light: #fff1f1;
+    --info: #0043ce;
+    --info-light: #edf5ff;
+    --nav-bg: #1a1d23;
+    --nav-fg: #e2e6ed;
+    --tag-bg: #e8f0ff;
+    --tag-fg: #0043ce;
+    --mono: 'JetBrains Mono', monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d0f14; --surface: #161921; --surface-2: #1e2130;
+      --border: #2a2f3d; --fg: #e8eaf0; --fg-2: #9aa3b8; --fg-3: #5c6478;
+      --accent: #4589ff; --accent-light: #0d2045;
+      --success: #42be65; --success-light: #071d0e;
+      --warning: #f59e0b; --warning-light: #1c1200;
+      --danger: #ff6b6b; --danger-light: #2a0a0a;
+      --info: #4589ff; --info-light: #071030;
+      --nav-bg: #0d0f14; --nav-fg: #9aa3b8;
+      --tag-bg: #0d2045; --tag-fg: #4589ff;
+      color-scheme: dark;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--fg); font-size: 15px; line-height: 1.6; }
+
+  .lab-nav {
+    background: var(--nav-bg); color: var(--nav-fg);
+    padding: 0 24px; display: flex; align-items: center; gap: 0;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .lab-nav::-webkit-scrollbar { display: none; }
+  .nav-brand {
+    font-size: 13px; font-weight: 600; color: #fff;
+    white-space: nowrap; padding: 14px 0; margin-right: 24px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .nav-links { display: flex; gap: 0; flex-shrink: 0; }
+  .nav-link {
+    font-size: 13px; color: var(--nav-fg); text-decoration: none;
+    padding: 14px 14px; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s; cursor: pointer;
+  }
+  .nav-link:hover { color: #fff; }
+  .nav-link.active { color: #fff; border-bottom-color: var(--accent); }
+  .nav-time { margin-left: auto; font-size: 12px; color: var(--fg-3); white-space: nowrap; flex-shrink: 0; padding-left: 16px; }
+
+  .lab-wrap { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .lab-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .lab-title { font-size: clamp(24px, 4vw, 32px); font-weight: 700; line-height: 1.2; color: var(--fg); margin-bottom: 12px; }
+  .lab-subtitle { font-size: 16px; color: var(--fg-2); max-width: 580px; }
+  .lab-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; margin-bottom: 32px; }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; color: var(--fg-2);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+  }
+
+  .progress-bar-wrap { margin-bottom: 32px; }
+  .progress-label { font-size: 12px; color: var(--fg-3); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; transition: width 0.4s ease; }
+
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 40px; }
+  .overview-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .oc-icon { font-size: 20px; margin-bottom: 8px; }
+  .oc-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3); margin-bottom: 3px; }
+  .oc-value { font-size: 13px; font-weight: 600; color: var(--fg); }
+
+  .lab-section { margin-bottom: 48px; scroll-margin-top: 60px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .section-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--fg); }
+  .section-tag { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; background: var(--tag-bg); color: var(--tag-fg); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
+
+  .why-box { background: var(--info-light); border-left: 3px solid var(--info); border-radius: 0 8px 8px 0; padding: 14px 16px; margin-bottom: 20px; font-size: 14px; color: var(--fg); }
+  .why-box strong { color: var(--info); display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 5px; }
+
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step { display: grid; grid-template-columns: 40px 1fr; gap: 0 16px; position: relative; }
+  .step:not(:last-child) .step-line { position: absolute; left: 19px; top: 38px; bottom: 0; width: 2px; background: var(--border); }
+  .step-dot { width: 40px; height: 38px; display: flex; align-items: flex-start; padding-top: 10px; justify-content: center; flex-shrink: 0; position: relative; z-index: 1; }
+  .step-dot-inner { width: 20px; height: 20px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .step-body { padding-bottom: 24px; }
+  .step-title { font-size: 14px; font-weight: 600; color: var(--fg); padding-top: 8px; margin-bottom: 6px; }
+  .step-desc { font-size: 14px; color: var(--fg-2); line-height: 1.6; }
+  .step-desc p { margin-bottom: 8px; }
+  .step-desc p:last-child { margin-bottom: 0; }
+
+  .nav-path { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin: 10px 0; font-family: var(--mono); font-size: 12px; color: var(--fg-2); }
+  .nav-path span { color: var(--fg-3); }
+  .nav-path strong { color: var(--accent); font-weight: 500; }
+  .value-tag { display: inline-block; font-family: var(--mono); font-size: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--fg); }
+
+  .alert { display: flex; gap: 10px; border-radius: 8px; padding: 12px 14px; font-size: 13px; margin: 12px 0; line-height: 1.5; }
+  .alert-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .alert-success { background: var(--success-light); color: var(--success); }
+  .alert-warning { background: var(--warning-light); color: var(--warning); }
+  .alert-danger { background: var(--danger-light); color: var(--danger); }
+  .alert-info { background: var(--info-light); color: var(--info); }
+
+  .data-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 0; }
+  thead tr { background: var(--surface-2); }
+  th { font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg-3); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--fg-2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+
+  .checkpoint { background: var(--success-light); border: 1px solid var(--success); border-radius: 8px; padding: 14px 16px; margin-top: 20px; display: flex; gap: 10px; align-items: flex-start; }
+  .checkpoint-icon { font-size: 18px; flex-shrink: 0; }
+  .checkpoint-body strong { display: block; font-size: 13px; font-weight: 700; color: var(--success); margin-bottom: 4px; }
+  .checkpoint-body p { font-size: 13px; color: var(--fg-2); line-height: 1.5; }
+
+  .checklist { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--fg-2); cursor: pointer; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); transition: background 0.15s; user-select: none; }
+  .check-item:hover { background: var(--surface-2); }
+  .check-item.done { color: var(--fg-3); }
+  .check-item.done .check-label { text-decoration: line-through; }
+  .check-box { width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border); background: var(--bg); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s; }
+  .check-item.done .check-box { background: var(--success); border-color: var(--success); }
+  .check-tick { display: none; color: #fff; font-size: 11px; font-weight: 700; }
+  .check-item.done .check-tick { display: block; }
+
+  .summary-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 48px; }
+  .summary-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+  @media (max-width: 480px) {
+    .lab-wrap { padding: 24px 16px 60px; }
+    .lab-nav { padding: 0 16px; }
+    .section-tag { display: none; }
+    .nav-time { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="lab-nav">
+  <div class="nav-brand">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect width="18" height="18" rx="4" fill="#0f62fe" opacity="0.9"/><path d="M4 9h10M9 4v10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+    MCA Lab Sheet
+  </div>
+  <div class="nav-links">
+    <a class="nav-link active" onclick="scrollTo('intro')">Overview</a>
+    <a class="nav-link" onclick="scrollTo('part1')">Labels</a>
+    <a class="nav-link" onclick="scrollTo('part2')">DLP</a>
+    <a class="nav-link" onclick="scrollTo('part3')">Retention</a>
+    <a class="nav-link" onclick="scrollTo('part4')">eDiscovery</a>
+    <a class="nav-link" onclick="scrollTo('part5')">Audit</a>
+    <a class="nav-link" onclick="scrollTo('wrap')">Wrap-up</a>
+  </div>
+  <div class="nav-time">~40 min</div>
+</nav>
+
+<div class="lab-wrap">
+
+  <div id="intro">
+    <div class="lab-eyebrow">SC-900 - Day 4 - Hands-On Lab</div>
+    <h1 class="lab-title">Microsoft Purview: Data Protection End to End</h1>
+    <p class="lab-subtitle">You will classify a document, stop it leaving the organisation, set a retention rule, run a legal search, and read the audit trail - all in one tenant.</p>
+    <div class="lab-meta">
+      <span class="meta-chip">&#128336; 30-40 minutes</span>
+      <span class="meta-chip">&#128196; mcacloud.uk tenant</span>
+      <span class="meta-chip">&#127919; SC-900 exam aligned</span>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>Lab progress</span><span id="prog-pct">0%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+
+  <div class="overview-grid">
+    <div class="overview-card"><div class="oc-icon">&#127991;</div><div class="oc-label">Part 1</div><div class="oc-value">Sensitivity Labels</div></div>
+    <div class="overview-card"><div class="oc-icon">&#128683;</div><div class="oc-label">Part 2</div><div class="oc-value">DLP Policy</div></div>
+    <div class="overview-card"><div class="oc-icon">&#128197;</div><div class="oc-label">Part 3</div><div class="oc-value">Retention</div></div>
+    <div class="overview-card"><div class="oc-icon">&#128269;</div><div class="oc-label">Part 4</div><div class="oc-value">eDiscovery</div></div>
+    <div class="overview-card"><div class="oc-icon">&#128203;</div><div class="oc-label">Part 5</div><div class="oc-value">Audit Logs</div></div>
+  </div>
+
+  <!-- PART 1 -->
+  <div class="lab-section" id="part1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <div class="section-title">Sensitivity Labels</div>
+      <div class="section-tag">~10 min</div>
+    </div>
+    <div class="why-box"><strong>Why this matters</strong>Without labels, a file marked "Confidential" is just words in a filename. Sensitivity Labels bake the classification into the file itself - the label travels with the document wherever it goes, enforces encryption, and can block certain actions. Labels classify. Think of it as a tamper-evident seal that Microsoft 365 actually enforces.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Open the Purview portal</div>
+          <div class="step-desc"><p>Go to <strong><a href="https://purview.microsoft.com/priva/settings/account?tid=b9fe7077-a535-4c26-bac4-d5f9fa45995e" target="_blank">purview.microsoft.com</a></strong> and sign in with your mcacloud.uk account.</p><div class="nav-path">Home <span>&#8594;</span> <strong>Information Protection</strong></div><p>This is the hub for all classification and labelling. The left menu shows Labels, Label policies, Auto-labelling, and DLP.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">2</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Create a new Sensitivity Label</div>
+          <div class="step-desc">
+            <p>Click <strong>Labels</strong> then <strong>+ Create a label</strong>. Fill in:</p>
+            <div class="data-table-wrap"><table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>
+              <tr><td>Name</td><td><span class="value-tag">MCA Confidential</span></td></tr>
+              <tr><td>Display name</td><td><span class="value-tag">MCA Confidential</span></td></tr>
+              <tr><td>Description for users</td><td><span class="value-tag">Internal use only - do not share externally</span></td></tr>
+            </tbody></table></div>
+            <p>Click <strong>Next</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">3</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Configure encryption and visual marking</div>
+          <div class="step-desc">
+            <p>On <strong>Scope</strong>, check <strong>Items</strong>. Click <strong>Next</strong>.</p>
+            <p>On <strong>Protection settings</strong>, tick <strong>Apply or remove encryption</strong>. Click <strong>Next</strong>.</p>
+            <p>On <strong>Encryption</strong>: assign permissions now, never expires, 7 days offline. Click <strong>Assign permissions</strong>, add your account with <strong>Co-Author</strong> rights, click <strong>Save</strong>.</p>
+            <p>On <strong>Content marking</strong>, toggle on <strong>Add a header</strong>. Set header text to <span class="value-tag">CONFIDENTIAL - MCA INTERNAL</span> in red.</p>
+            <p>Click through remaining pages and click <strong>Create label</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">4</div></div>
+        <div class="step-body">
+          <div class="step-title">Publish the label via a policy</div>
+          <div class="step-desc">
+            <p>Click <strong>Label policies</strong> then <strong>Publish label</strong>. Select <strong>MCA Confidential</strong>. Choose <strong>All users and groups</strong>. Name the policy <span class="value-tag">MCA Confidential Policy</span> and submit.</p>
+            <div class="alert alert-warning"><span class="alert-icon">&#9201;</span><span>Label policies take <strong>up to 24 hours</strong> to appear in Office apps. They're visible in the portal immediately.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checkpoint"><div class="checkpoint-icon">&#9989;</div><div class="checkpoint-body"><strong>Checkpoint 1</strong><p>MCA Confidential label listed under Labels. MCA Confidential Policy listed under Label policies. Encryption and red header are configured.</p></div></div>
+    <div class="checklist" id="checks-1">
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">MCA Confidential label created and visible in Labels list</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Encryption configured with Co-Author permissions</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Label policy published to all users</span></div>
+    </div>
+  </div>
+
+  <!-- PART 2 -->
+  <div class="lab-section" id="part2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <div class="section-title">Data Loss Prevention Policy</div>
+      <div class="section-tag">~10 min</div>
+    </div>
+    <div class="why-box"><strong>Why this matters</strong>A label classifies. DLP enforces. Without DLP a user could label something Confidential and still email it to their personal Gmail. DLP catches that and blocks it. The two work together: labels classify, DLP enforces.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Navigate to DLP policies</div>
+          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Data Loss Prevention</strong> <span>&#8594;</span> <strong>Policies</strong></div><p>Click <strong>+ Create policy</strong>.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">2</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Use the UK Financial Data template</div>
+          <div class="step-desc"><p>Select <strong>Financial</strong> then <strong>UK Financial Data</strong>. This pre-loads sensitive information types like UK bank account numbers, sort codes and credit cards. Name the policy <span class="value-tag">MCA - Block UK Financial Data</span>.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">3</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Set locations and action</div>
+          <div class="step-desc">
+            <p>Enable Exchange, SharePoint, OneDrive, and Teams. Click <strong>Next</strong>.</p>
+            <p>Choose <strong>Create or customise advanced DLP rules</strong>. Edit the <strong>High volume</strong> rule - set action to <strong>Block everyone</strong> and enable <strong>Notify users with a policy tip</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">4</div></div>
+        <div class="step-body">
+          <div class="step-title">Set to Test mode</div>
+          <div class="step-desc">
+            <p>Select <strong>Test it out first</strong> with policy tips enabled. Click <strong>Submit</strong>.</p>
+            <div class="alert alert-info"><span class="alert-icon">&#128161;</span><span>In a real deployment you run Test mode for 2-4 weeks, review matches, then flip to On. This avoids blocking legitimate work on day one.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checkpoint"><div class="checkpoint-icon">&#9989;</div><div class="checkpoint-body"><strong>Checkpoint 2</strong><p>DLP policy listed with status <strong>Test</strong>. Monitoring Exchange, SharePoint, OneDrive and Teams for UK financial data. Logging matches and showing policy tips.</p></div></div>
+    <div class="checklist" id="checks-2">
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">DLP policy created using UK Financial Data template</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Policy covers Exchange, SharePoint, OneDrive and Teams</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Running in Test mode with policy tips enabled</span></div>
+    </div>
+  </div>
+
+  <!-- PART 3 -->
+  <div class="lab-section" id="part3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <div class="section-title">Retention Policy</div>
+      <div class="section-tag">~8 min</div>
+    </div>
+    <div class="why-box"><strong>Why this matters</strong>Organisations must keep certain records for defined periods - GDPR, FCA rules, HMRC. Retention policies automate this. They also enforce deletion when you should NOT keep data beyond a certain point. This protects you both ways.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Navigate to Data Lifecycle Management</div>
+          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Data Lifecycle Management</strong> <span>&#8594;</span> <strong>Microsoft 365</strong> <span>&#8594;</span> <strong>Retention policies</strong></div><p>Click <strong>+ New retention policy</strong>.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">2</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Configure the policy</div>
+          <div class="step-desc">
+            <p>Name it <span class="value-tag">MCA - 7 Year Email Retention</span>. Choose <strong>Static</strong> scope. Enable <strong>Exchange mailboxes</strong> only.</p>
+            <p>Set retention period to <strong>7 years</strong>, starting from when items were created. At the end of the period: <strong>Delete items automatically</strong>.</p>
+            <div class="alert alert-info"><span class="alert-icon">&#128161;</span><span>Key exam distinction: a <strong>Retention Policy</strong> is broad (whole mailbox). A <strong>Retention Label</strong> is granular (specific item). If both exist and conflict, the most restrictive wins.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checkpoint"><div class="checkpoint-icon">&#9989;</div><div class="checkpoint-body"><strong>Checkpoint 3</strong><p>All Exchange email will be retained for 7 years from creation, then auto-deleted. A user deleting an email early just hides it - Purview keeps the copy.</p></div></div>
+    <div class="checklist" id="checks-3">
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">7-year retention policy created for Exchange mailboxes</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Policy set to delete automatically at end of retention period</span></div>
+    </div>
+  </div>
+
+  <!-- PART 4 -->
+  <div class="lab-section" id="part4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <div class="section-title">eDiscovery and Legal Hold</div>
+      <div class="section-tag">~8 min</div>
+    </div>
+    <div class="why-box"><strong>Why this matters</strong>HR flags an employee for misconduct. Legal need all their emails and Teams messages as evidence - fast - without them being able to delete anything. The Legal Hold overrides everything, including retention policies and user deletions. The data is frozen until the hold is removed.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Create an eDiscovery case</div>
+          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>eDiscovery</strong> <span>&#8594;</span> <strong>Standard</strong></div><p>Click <strong>+ Create a case</strong>. Name it <span class="value-tag">MCA Investigation 001</span>. Click <strong>Save</strong>.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">2</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Apply a Legal Hold</div>
+          <div class="step-desc">
+            <p>Open the case. Click <strong>Hold</strong> tab then <strong>+ Create</strong>. Name it <span class="value-tag">MCA Hold 001</span>.</p>
+            <p>Add your own mailbox as the test subject. Leave the query blank (hold everything). Click <strong>Create this hold</strong>.</p>
+            <div class="alert alert-danger"><span class="alert-icon">&#9888;</span><span>A Legal Hold is <strong>indefinite by default</strong>. It supersedes any retention policy or user deletion. On the exam: <strong>Legal Hold always wins</strong>.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">3</div></div>
+        <div class="step-body">
+          <div class="step-title">Run a Content Search</div>
+          <div class="step-desc"><p>Click the <strong>Searches</strong> tab, then <strong>+ New search</strong>. Name it <span class="value-tag">MCA Search 001</span>. Add your mailbox as the location. Enter <span class="value-tag">confidential</span> as the keyword. Click <strong>Submit</strong>. When complete, click <strong>Review sample</strong> to see matched items.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="checkpoint"><div class="checkpoint-icon">&#9989;</div><div class="checkpoint-body"><strong>Checkpoint 4</strong><p>Live case with a Legal Hold protecting the mailbox. Even if the user deletes emails now, the held copies are preserved in the compliance store.</p></div></div>
+    <div class="checklist" id="checks-4">
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">eDiscovery case created</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Legal Hold applied to a mailbox</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Content search run and results visible</span></div>
+    </div>
+  </div>
+
+  <!-- PART 5 -->
+  <div class="lab-section" id="part5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <div class="section-title">Audit Logs</div>
+      <div class="section-tag">~5 min</div>
+    </div>
+    <div class="why-box"><strong>Why this matters</strong>Everything you've done in this lab has been logged. If someone bypasses a DLP policy, changes a retention setting, or accesses a file they shouldn't - it's in the audit log. Audit Standard: 90 days. Audit Premium: 1 year. ISO 27001 and PCI DSS often require a minimum of 1 year.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
+        <div class="step-body">
+          <div class="step-title">Search your own activity</div>
+          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Audit</strong></div><p>Set date range to Today. In the <strong>Users</strong> field enter your own account. Leave Activities blank. Click <strong>Search</strong>.</p></div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-dot"><div class="step-dot-inner">2</div></div>
+        <div class="step-body">
+          <div class="step-title">Inspect a record</div>
+          <div class="step-desc">
+            <p>Click any result. Check these fields:</p>
+            <div class="data-table-wrap"><table><thead><tr><th>Field</th><th>What it tells you</th></tr></thead><tbody>
+              <tr><td>Date</td><td>Exact timestamp of the action</td></tr>
+              <tr><td>User</td><td>Who did it (UPN)</td></tr>
+              <tr><td>Activity</td><td>What they did</td></tr>
+              <tr><td>IP address</td><td>Where they were</td></tr>
+              <tr><td>Item</td><td>What they did it to</td></tr>
+            </tbody></table></div>
+            <p>This record is immutable. An attacker with admin access cannot delete audit logs - they are write-only from the portal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="checkpoint"><div class="checkpoint-icon">&#9989;</div><div class="checkpoint-body"><strong>Checkpoint 5</strong><p>Your own activity is logged, timestamped, attributed to your account, and cannot be tampered with via the portal.</p></div></div>
+    <div class="checklist" id="checks-5">
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Audit log search run for your own account today</span></div>
+      <div class="check-item" onclick="toggle(this)"><div class="check-box"><span class="check-tick">&#10003;</span></div><span class="check-label">Individual record inspected and fields identified</span></div>
+    </div>
+  </div>
+
+  <!-- WRAP UP -->
+  <div class="lab-section" id="wrap">
+    <div class="section-header">
+      <div class="section-num" style="background:var(--success);">&#10003;</div>
+      <div class="section-title">Lab Complete - Exam Cheat Sheet</div>
+    </div>
+    <div class="summary-section">
+      <h2>What you built and why it matters</h2>
+      <div class="data-table-wrap"><table>
+        <thead><tr><th>Tool</th><th>What it does</th><th>Exam trigger</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Sensitivity Label</strong></td><td>Classifies and protects a file. Travels with it. Enforces encryption and markings.</td><td>"classify", "protect content", "encrypt a file"</td></tr>
+          <tr><td><strong>DLP Policy</strong></td><td>Detects sensitive data and blocks or warns before it leaves the org.</td><td>"prevent data leaving", "block email", "policy tip"</td></tr>
+          <tr><td><strong>Retention Policy</strong></td><td>Keeps or deletes content at location level on a schedule.</td><td>"keep for X years", "all email"</td></tr>
+          <tr><td><strong>Retention Label</strong></td><td>Keep or delete a specific item. Overrides a policy if more restrictive.</td><td>"specific document", "records management"</td></tr>
+          <tr><td><strong>Legal Hold</strong></td><td>Freezes content indefinitely. Overrides everything.</td><td>"court case", "preserve evidence"</td></tr>
+          <tr><td><strong>eDiscovery</strong></td><td>Searches across M365 for specific content.</td><td>"search mailboxes", "find all messages"</td></tr>
+          <tr><td><strong>Audit</strong></td><td>Immutable log of who did what. 90 days Standard, 1 year Premium.</td><td>"who accessed", "admin log", "90 days"</td></tr>
+        </tbody>
+      </table></div>
+      <div class="alert alert-success" style="margin-top:20px;">
+        <span class="alert-icon">&#127919;</span>
+        <div><strong>The one thing to remember:</strong> Labels classify. DLP enforces. Retention keeps or deletes. Legal Hold overrides everything. Audit proves it all happened.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function scrollTo(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    const map = { intro:0, part1:1, part2:2, part3:3, part4:4, part5:5, wrap:6 };
+    document.querySelectorAll('.nav-link').forEach((l,i) => l.classList.toggle('active', i === map[id]));
+  }
+  function toggle(el) {
+    el.classList.toggle('done');
+    updateProgress();
+  }
+  function updateProgress() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.done');
+    const pct = all.length ? Math.round((done.length / all.length) * 100) : 0;
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + '%';
+    try {
+      const state = [];
+      all.forEach(el => state.push(el.classList.contains('done') ? 1 : 0));
+      localStorage.setItem('sc900-purview-lab', JSON.stringify(state));
+    } catch(e) {}
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem('sc900-purview-lab') || '[]');
+    document.querySelectorAll('.check-item').forEach((el,i) => { if (saved[i]) el.classList.add('done'); });
+    updateProgress();
+  } catch(e) {}
+  window.addEventListener('scroll', () => {
+    const sections = ['intro','part1','part2','part3','part4','part5','wrap'];
+    let current = 0;
+    sections.forEach((id,i) => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 120) current = i; });
+    document.querySelectorAll('.nav-link').forEach((l,i) => l.classList.toggle('active', i === current));
+  }, { passive: true });
+</script>
+</body>
+</html>
