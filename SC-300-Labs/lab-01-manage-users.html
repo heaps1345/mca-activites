@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 1: Create and Manage Users - Including Bulk CSV Import</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #27ae60; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 1 of 6</span>
+    <span class="badge badge-domain">Domain 1 - Manage User Identities</span>
+    <span class="badge badge-licence">Free Licence</span>
+  </div>
+  <h1>Create and Manage Users - Including Bulk CSV Import</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Create individual user accounts in Entra ID</li><li>Assign licences and roles to users</li><li>Perform a bulk user import using a CSV file</li><li>Disable and delete a user account</li><li>Restore a recently deleted user from the recycle bin</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in to <strong>portal.azure.com</strong> or <strong>entra.microsoft.com</strong> with your student account</li><li>Your account has been assigned the <strong>User Administrator</strong> role by your instructor</li><li>You have a text editor available (Notepad, VS Code) to create the CSV file</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Create a Single User</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Users > All Users > + New User > Create new user</span></li><li>Set <strong>User principal name</strong> to <code>testuser01@mcacloud.uk</code> (replace with your tenant domain if different)</li><li>Set <strong>Display name</strong> to <code>Test User 01</code></li><li>Under <strong>Password</strong>, note the auto-generated password or set your own</li><li>Click <strong>Properties</strong> tab and set <strong>Job title</strong> to <code>Lab Test Account</code> and <strong>Department</strong> to <code>Labs</code></li><li>Click <strong>Review + create</strong> then <strong>Create</strong></li><li>Confirm the user appears in the <strong>All Users</strong> list</li></ol></div><div class="section"><h3>📋 Part 2 - Assign a Role to the User</h3><ol><li>Click on <strong>Test User 01</strong> to open their profile</li><li>Navigate to <span class="nav-path">Assigned roles > + Add assignments</span></li><li>Search for and select <strong>Reports Reader</strong></li><li>Click <strong>Add</strong> and confirm the role appears under Assigned roles</li><li><div class="tip"><strong>Exam tip:</strong> Know the difference between Entra ID roles (like Reports Reader) and Azure RBAC roles. SC-300 tests both but they are managed separately.</div></li></ol></div><div class="section"><h3>📋 Part 3 - Bulk Import via CSV</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Users > All Users > Bulk operations > Bulk create</span></li><li>Click <strong>Download sample CSV</strong> to get the template</li><li>Open the CSV in a text editor and add two rows below the header:</li><li><code>version:v1.0,,,,,,,,</code> (leave row 1 as-is)</li><li>Row 2: <code>testbulk01@mcacloud.uk,testbulk01,Test Bulk 01,True,,,,,</code></li><li>Row 3: <code>testbulk02@mcacloud.uk,testbulk02,Test Bulk 02,True,,,,,</code></li><li>Save the file and upload it using the <strong>Upload your CSV file</strong> button</li><li>Click <strong>Submit</strong> and monitor the <strong>Bulk operation results</strong> - wait for status to show <strong>Completed</strong></li><li><div class="tip"><strong>Exam tip:</strong> The bulk import requires the version row at the top. A common exam distractor is a CSV without it - that will always fail.</div></li></ol></div><div class="section"><h3>📋 Part 4 - Disable and Delete a User</h3><ol><li>Return to <strong>All Users</strong> and find <strong>Test User 01</strong></li><li>Click the user, then click <strong>Edit properties</strong></li><li>Under <strong>Settings</strong>, set <strong>Block sign in</strong> to <strong>Yes</strong> and save</li><li>Return to All Users, select <strong>Test User 01</strong> and click <strong>Delete</strong> - confirm deletion</li><li><div class="tip"><strong>Exam tip:</strong> Deleted users are retained for 30 days and can be restored. After 30 days they are permanently gone.</div></li></ol></div><div class="section"><h3>📋 Part 5 - Restore a Deleted User</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Users > Deleted users</span></li><li>Select <strong>Test User 01</strong> and click <strong>Restore</strong></li><li>Confirm the user reappears in <strong>All Users</strong></li><li>Delete all test accounts you created (testuser01, testbulk01, testbulk02) to keep the tenant tidy</li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I created a user manually and confirmed they appeared in All Users</label></li><li><label><input type="checkbox"> I assigned a role to a user and verified it under Assigned roles</label></li><li><label><input type="checkbox"> I built a valid CSV file and completed a bulk import with at least 2 users</label></li><li><label><input type="checkbox"> I blocked sign-in on a user account</label></li><li><label><input type="checkbox"> I deleted and then successfully restored a user from Deleted users</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>This lab covers SC-300 objective: 'Manage user accounts' under Domain 1. Expect 2-4 questions on user creation, bulk operations, and deletion/restore. Know that soft-deleted users persist for 30 days and that blocking sign-in does not delete the account.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
