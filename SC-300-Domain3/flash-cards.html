@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SC-300 Domain 3 Flash Cards</title>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #E8E8F0; min-height: 100vh; }
+  h1 { color: #E05C00; font-size: 1.6rem; margin-bottom: 8px; }
+  h2 { color: #E05C00; font-size: 1.1rem; margin-bottom: 16px; opacity: 0.85; }
+  .badge { display: inline-block; background: #E05C00; color: #fff; font-size: 0.7rem;
+           font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 18px; letter-spacing: 1px; text-transform: uppercase; }
+  .btn { display: inline-block; padding: 10px 28px; border: none; border-radius: 6px; cursor: pointer;
+         font-size: 1rem; font-weight: 600; transition: all .15s; }
+  .btn-primary { background: #E05C00; color: #fff; }
+  .btn-primary:hover { background: #c44f00; }
+  .btn-secondary { background: #2A2A4E; color: #E8E8F0; border: 1px solid #444; }
+  .btn-secondary:hover { background: #3A3A5E; }
+  .score-box { background: #2A2A4E; border: 2px solid #E05C00; border-radius: 10px;
+               padding: 20px 30px; text-align: center; font-size: 2rem; font-weight: 700; color: #E05C00; margin-top: 16px; }
+  footer { margin-top: 40px; font-size: 0.75rem; opacity: 0.4; text-align: center; }
+
+  .container { max-width: 780px; margin: 40px auto; padding: 0 20px; }
+  .progress { color: #aaa; font-size: 0.9rem; margin-bottom: 24px; }
+  .card-wrap { perspective: 1000px; width: 100%; height: 280px; cursor: pointer; margin-bottom: 24px; }
+  .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform .45s; border-radius: 12px; }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px;
+           display: flex; align-items: center; justify-content: center; padding: 30px; text-align: center; font-size: 1.15rem; line-height: 1.55; }
+  .front { background: #2A2A4E; border: 2px solid #E05C00; color: #E8E8F0; }
+  .back  { background: #E05C00; color: #fff; transform: rotateY(180deg); }
+  .hint  { font-size: 0.8rem; opacity: .6; margin-top: 30px; }
+  .nav   { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">SC-300 · Domain 3</span>
+  <h1>Flash Cards</h1>
+  <h2>Workload Identities</h2>
+  <div class="progress" id="prog"></div>
+  <div class="card-wrap" onclick="flip()">
+    <div class="card" id="card">
+      <div class="face front" id="front-text"></div>
+      <div class="face back"  id="back-text"></div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-secondary" onclick="prev()">← Prev</button>
+    <button class="btn btn-primary"   onclick="flip()">Flip</button>
+    <button class="btn btn-secondary" onclick="next()">Next →</button>
+  </div>
+  <div class="hint">Click the card or press Flip to reveal the answer</div>
+  <footer>MCA · SC-300 · Domain 3 · Workload Identities</footer>
+</div>
+<script>
+const cards = [{"q": "What is the difference between a Service Principal and a Managed Identity?", "a": "Both represent an application identity in Entra. Service Principal requires you to manage credentials (client secret or certificate). Managed Identity (System or User Assigned) is managed by Azure \u2014 no credentials to store or rotate; only works with Azure-hosted workloads."}, {"q": "What is the difference between System-Assigned and User-Assigned Managed Identity?", "a": "System-Assigned: tied to one Azure resource; deleted when the resource is deleted. User-Assigned: standalone resource that can be assigned to multiple Azure resources; lifecycle is independent of any single resource."}, {"q": "What are App Registrations vs Enterprise Applications in Entra?", "a": "App Registration (application object) is the global definition \u2014 lives in the tenant where the app is registered; holds config, credentials, API permissions. Enterprise Application (service principal) is the local instance \u2014 lives in every tenant that consents to the app; holds assignment, SSO settings, and provisioning config."}, {"q": "What is the Microsoft Graph API and how is it authenticated?", "a": "Microsoft Graph is the unified REST API for Microsoft 365 and Entra data. Authenticated via OAuth 2.0 bearer tokens from Entra. Two permission types:\n\u2022 Delegated \u2014 acts as the signed-in user (requires user sign-in)\n\u2022 Application \u2014 acts as itself with no user (requires admin consent, used by background services)"}, {"q": "What is Workload Identity Federation?", "a": "Allows external workloads (GitHub Actions, Kubernetes, AWS, etc.) to get Entra tokens without storing a secret or certificate. The external OIDC token is exchanged for an Entra access token via a federated credential configured on the App Registration or User-Assigned Managed Identity."}, {"q": "What is the difference between OAuth 2.0 Delegated and Application permissions?", "a": "Delegated: the app acts on behalf of a signed-in user; the effective permissions are the intersection of what the user has and what the app is granted. Application: the app acts as itself with no user context; has all granted permissions regardless of any user \u2014 requires admin consent."}, {"q": "What are Entra ID Application Permissions vs. Entra Roles?", "a": "Application permissions (OAuth scopes) control what a service principal can do via Graph API or other APIs. Entra roles (like Global Admin, Application Admin) control what a user or SP can do in the Entra admin plane \u2014 directory operations. These are separate authorization systems."}, {"q": "What is the principle of least privilege for workload identities?", "a": "Grant only the minimum permissions the workload needs:\n\u2022 Prefer Managed Identity over service principals (no credential management)\n\u2022 Prefer delegated over application permissions where a user context exists\n\u2022 Use specific Graph scopes (e.g., User.Read.All) not Directory.ReadWrite.All\n\u2022 Rotate client secrets; prefer certificates or federated credentials"}, {"q": "What does the Application Administrator role allow vs Cloud Application Administrator?", "a": "Application Administrator: full management of all app registrations and enterprise apps including those using directory sync. Cloud Application Administrator: same but cannot manage on-premises Application Proxy connector. Neither can grant Global Admin consent \u2014 that requires Privileged Role Administrator or Global Admin."}, {"q": "How do you monitor service principal sign-in activity?", "a": "Entra audit logs and sign-in logs (Service principal sign-ins blade). Can be routed to Log Analytics, Storage, or Event Hub. Key queries: sign-ins with risky SP, credential expiry via Graph (keyCredentials / passwordCredentials expiration dates), Workload Identity Risk events in Identity Protection."}];
+let idx = 0;
+function show() {
+  const c = cards[idx];
+  document.getElementById('front-text').textContent = c.q;
+  document.getElementById('back-text').textContent  = c.a;
+  document.getElementById('prog').textContent = `Card ${idx+1} of ${cards.length}`;
+  document.getElementById('card').classList.remove('flipped');
+}
+function flip() { document.getElementById('card').classList.toggle('flipped'); }
+function next() { idx = (idx+1) % cards.length; show(); }
+function prev() { idx = (idx-1+cards.length) % cards.length; show(); }
+show();
+</script>
+</body>
+</html>
