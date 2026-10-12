@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 5: Register an Application and Configure API Permissions</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #27ae60; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 5 of 6</span>
+    <span class="badge badge-domain">Domain 3 - Manage Workload Identities</span>
+    <span class="badge badge-licence">Free Licence</span>
+  </div>
+  <h1>Register an Application and Configure API Permissions</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Register a new application in Entra ID</li><li>Configure redirect URIs</li><li>Add and grant API permissions (delegated and application)</li><li>Create a client secret</li><li>Understand the difference between delegated and application permissions</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in with your student account with <strong>Application Administrator</strong> role</li><li>Basic understanding of OAuth 2.0 concepts (covered in Domain 3 slides)</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Register the Application</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Applications > App registrations > + New registration</span></li><li>Set <strong>Name</strong> to <code>SC300-Lab-App</code></li><li>Under <strong>Supported account types</strong>, select <strong>Accounts in this organizational directory only (Single tenant)</strong></li><li>Under <strong>Redirect URI</strong>, select <strong>Web</strong> and enter <code>https://localhost/callback</code></li><li>Click <strong>Register</strong></li><li>Note the <strong>Application (client) ID</strong> and <strong>Directory (tenant) ID</strong> - these are what a developer needs to authenticate</li><li><div class="tip"><strong>Exam tip:</strong> The Application ID is public and used in auth requests. The client secret is private and must be protected. Never put a secret in source code.</div></li></ol></div><div class="section"><h3>📋 Part 2 - Add API Permissions</h3><ol><li>Click <strong>API permissions</strong> in the left menu</li><li>Click <strong>+ Add a permission > Microsoft Graph</strong></li><li>Select <strong>Delegated permissions</strong> and search for <code>User.Read</code> - add it</li><li>Click <strong>+ Add a permission > Microsoft Graph</strong> again</li><li>Select <strong>Application permissions</strong> and search for <code>User.Read.All</code> - add it</li><li>Click <strong>Grant admin consent for mcacloud.uk</strong> and confirm</li><li><div class="tip"><strong>Exam tip:</strong> Delegated permissions act on behalf of a signed-in user. Application permissions act as the app itself (no user required - used for background services and daemons). Application permissions always require admin consent.</div></li></ol></div><div class="section"><h3>📋 Part 3 - Create a Client Secret</h3><ol><li>Click <strong>Certificates and secrets > + New client secret</strong></li><li>Set description to <code>Lab Secret</code> and expiry to <strong>90 days</strong></li><li>Click <strong>Add</strong></li><li>Copy the <strong>Value</strong> immediately - this is the only time it is shown in full</li><li><div class="warn"><strong>Important:</strong> If you navigate away without copying the secret value, you cannot retrieve it. You would need to delete and recreate it. This is intentional security design.</div></li><li>Note the <strong>Secret ID</strong> (this is not the secret itself - it is just an identifier)</li></ol></div><div class="section"><h3>📋 Part 4 - Review the App in Enterprise Applications</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Applications > Enterprise applications</span></li><li>Search for <code>SC300-Lab-App</code> and open it</li><li>Note this is the <strong>Service Principal</strong> - the instance of your app in this tenant</li><li>Click <strong>Permissions</strong> and confirm your consented permissions appear here</li><li><div class="tip"><strong>Exam tip:</strong> App registration = the definition. Enterprise application = the service principal (the running instance). One app registration can have service principals in many tenants.</div></li></ol></div><div class="section"><h3>📋 Part 5 - Clean Up</h3><ol><li>Return to <strong>App registrations</strong>, find <code>SC300-Lab-App</code> and click <strong>Delete</strong></li><li>Confirm deletion - this also removes the associated service principal</li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I registered an application and noted its Application ID and Tenant ID</label></li><li><label><input type="checkbox"> I added both a delegated permission (User.Read) and an application permission (User.Read.All)</label></li><li><label><input type="checkbox"> I granted admin consent for the permissions</label></li><li><label><input type="checkbox"> I created a client secret and copied its value</label></li><li><label><input type="checkbox"> I found the app's service principal in Enterprise Applications</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>Covers SC-300 objective: 'Register an application' and 'Manage permissions for workload identities' under Domain 3. App registration and permissions are heavily tested. Know delegated vs application permissions, when admin consent is required, and the relationship between app registrations and service principals.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
