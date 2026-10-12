@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SC-300 Domain 2 Flash Cards</title>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #E8E8F0; min-height: 100vh; }
+  h1 { color: #E05C00; font-size: 1.6rem; margin-bottom: 8px; }
+  h2 { color: #E05C00; font-size: 1.1rem; margin-bottom: 16px; opacity: 0.85; }
+  .badge { display: inline-block; background: #E05C00; color: #fff; font-size: 0.7rem;
+           font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 18px; letter-spacing: 1px; text-transform: uppercase; }
+  .btn { display: inline-block; padding: 10px 28px; border: none; border-radius: 6px; cursor: pointer;
+         font-size: 1rem; font-weight: 600; transition: all .15s; }
+  .btn-primary { background: #E05C00; color: #fff; }
+  .btn-primary:hover { background: #c44f00; }
+  .btn-secondary { background: #2A2A4E; color: #E8E8F0; border: 1px solid #444; }
+  .btn-secondary:hover { background: #3A3A5E; }
+  .score-box { background: #2A2A4E; border: 2px solid #E05C00; border-radius: 10px;
+               padding: 20px 30px; text-align: center; font-size: 2rem; font-weight: 700; color: #E05C00; margin-top: 16px; }
+  footer { margin-top: 40px; font-size: 0.75rem; opacity: 0.4; text-align: center; }
+
+  .container { max-width: 780px; margin: 40px auto; padding: 0 20px; }
+  .progress { color: #aaa; font-size: 0.9rem; margin-bottom: 24px; }
+  .card-wrap { perspective: 1000px; width: 100%; height: 280px; cursor: pointer; margin-bottom: 24px; }
+  .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform .45s; border-radius: 12px; }
+  .card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 12px;
+           display: flex; align-items: center; justify-content: center; padding: 30px; text-align: center; font-size: 1.15rem; line-height: 1.55; }
+  .front { background: #2A2A4E; border: 2px solid #E05C00; color: #E8E8F0; }
+  .back  { background: #E05C00; color: #fff; transform: rotateY(180deg); }
+  .hint  { font-size: 0.8rem; opacity: .6; margin-top: 30px; }
+  .nav   { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">SC-300 · Domain 2</span>
+  <h1>Flash Cards</h1>
+  <h2>Authentication & Access Management</h2>
+  <div class="progress" id="prog"></div>
+  <div class="card-wrap" onclick="flip()">
+    <div class="card" id="card">
+      <div class="face front" id="front-text"></div>
+      <div class="face back"  id="back-text"></div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-secondary" onclick="prev()">← Prev</button>
+    <button class="btn btn-primary"   onclick="flip()">Flip</button>
+    <button class="btn btn-secondary" onclick="next()">Next →</button>
+  </div>
+  <div class="hint">Click the card or press Flip to reveal the answer</div>
+  <footer>MCA · SC-300 · Domain 2 · Authentication & Access Management</footer>
+</div>
+<script>
+const cards = [{"q": "What are the three categories of Entra ID authentication methods?", "a": "1. Password-based (something you know)\n2. Possession-based: FIDO2 keys, authenticator app, hardware OATH tokens (something you have)\n3. Biometric: Windows Hello for Business (something you are)"}, {"q": "What is the Authentication Methods Policy vs Legacy MFA/SSPR Policy?", "a": "The Authentication Methods Policy is the modern, unified policy in Entra that controls which methods users can register and use for MFA, SSPR, and passwordless. Legacy policies (per-user MFA, SSPR methods) are being deprecated \u2014 Microsoft recommends migrating all settings to the Authentication Methods Policy."}, {"q": "What is Conditional Access and what are its five components?", "a": "CA is a policy engine that grants/blocks access based on signals. Five components:\n1. Assignments (users/groups, cloud apps, conditions)\n2. Conditions (sign-in risk, device platform, location, client apps)\n3. Access Controls (grant \u2014 MFA, compliant device, etc. \u2014 or Block)\n4. Session controls (app-enforced, MCAS, sign-in frequency)\n5. Named Locations (trusted IPs / countries)"}, {"q": "What is Continuous Access Evaluation (CAE)?", "a": "CAE enables near-real-time enforcement of policy changes \u2014 when a user is disabled or an IP changes, the token is revoked within seconds rather than waiting for the 1-hour access token expiry. Supported by Exchange Online, SharePoint, Teams, and Graph API."}, {"q": "What is Global Secure Access?", "a": "Microsoft's Security Service Edge (SSE) solution within Entra. Two components:\n\u2022 Entra Private Access \u2014 replaces VPN with identity-aware Zero Trust access to private apps\n\u2022 Entra Internet Access \u2014 secure web gateway (SWG) with traffic profiles for M365 and the internet"}, {"q": "What is a FIDO2 security key and why is it phishing-resistant?", "a": "FIDO2 keys use public-key cryptography \u2014 a private key never leaves the hardware device. The sign-in ceremony is bound to the specific website origin (relying party), so a phishing site can never capture the credential. Examples: YubiKey, Feitian keys, Windows Hello for Business."}, {"q": "What is the difference between SSPR and MFA registration?", "a": "SSPR (Self-Service Password Reset) lets users reset their own password without helpdesk. MFA is step-up authentication. Both use registered methods (authenticator app, phone, email) but are controlled by separate policies. Combined Registration page allows users to register for both simultaneously."}, {"q": "What is Entra ID Protection and what are the three risk types?", "a": "Identity Protection uses Microsoft threat intelligence to detect risks:\n1. User risk \u2014 probability the account is compromised (e.g., leaked credentials)\n2. Sign-in risk \u2014 probability the specific sign-in isn't the legitimate user (e.g., atypical travel)\n3. Workload identity risk \u2014 risks for service principals / managed identities"}, {"q": "What is a Conditional Access authentication strength?", "a": "Authentication strength is a CA control that requires a specific combination of authentication methods \u2014 e.g., 'Phishing-resistant MFA' (requires FIDO2 or WHfB only), 'MFA' (any combination), or custom strengths. Replaces the older 'require MFA' grant control with finer granularity."}, {"q": "What is Smart Lockout in Entra ID?", "a": "Smart Lockout protects against brute-force and password spray attacks by tracking failed sign-in attempts. After 10 failures (default) the account is locked for 60 seconds, doubling with each subsequent lockout. Familiar IP locations get additional attempts. Threshold is configurable in Entra admin center."}];
+let idx = 0;
+function show() {
+  const c = cards[idx];
+  document.getElementById('front-text').textContent = c.q;
+  document.getElementById('back-text').textContent  = c.a;
+  document.getElementById('prog').textContent = `Card ${idx+1} of ${cards.length}`;
+  document.getElementById('card').classList.remove('flipped');
+}
+function flip() { document.getElementById('card').classList.toggle('flipped'); }
+function next() { idx = (idx+1) % cards.length; show(); }
+function prev() { idx = (idx-1+cards.length) % cards.length; show(); }
+show();
+</script>
+</body>
+</html>
