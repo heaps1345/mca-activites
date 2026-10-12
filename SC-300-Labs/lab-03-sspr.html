@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 3: Configure Self-Service Password Reset (SSPR)</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #27ae60; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 3 of 6</span>
+    <span class="badge badge-domain">Domain 1 - Manage User Identities</span>
+    <span class="badge badge-licence">Free Licence</span>
+  </div>
+  <h1>Configure Self-Service Password Reset (SSPR)</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Enable SSPR for a group of users</li><li>Configure authentication methods for SSPR</li><li>Register authentication methods as an end user</li><li>Test the SSPR reset flow</li><li>Review the SSPR audit and usage reports</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in with your <strong>User Administrator</strong> or <strong>Authentication Policy Administrator</strong> student account</li><li>Access to your mobile phone or personal email to register as an authentication method</li><li>A test user account to enable SSPR on (use the one your instructor has set up for you, or create testuser01 from Lab 1)</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Enable SSPR</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Protection > Password reset</span></li><li>Under <strong>Properties</strong>, set Self service password reset enabled to <strong>Selected</strong></li><li>Click <strong>Select group</strong> and choose your student group or create a new group called <code>SSPR-Enabled</code></li><li>Click <strong>Save</strong></li><li><div class="tip"><strong>Exam tip:</strong> SSPR can be set to None, Selected (a group), or All. In production you always pilot with Selected before rolling out to All.</div></li></ol></div><div class="section"><h3>📋 Part 2 - Configure Authentication Methods</h3><ol><li>Click <strong>Authentication methods</strong> in the left menu</li><li>Set <strong>Number of methods required to reset</strong> to <strong>1</strong></li><li>Enable <strong>Mobile app notification</strong>, <strong>Email</strong>, and <strong>Mobile phone</strong></li><li>Click <strong>Save</strong></li><li><div class="tip"><strong>Exam tip:</strong> Security questions count toward SSPR but are considered weaker than app-based methods. The exam may ask which methods are more secure.</div></li></ol></div><div class="section"><h3>📋 Part 3 - Register as End User</h3><ol><li>Open a new browser tab or private window and sign in as your <strong>test user</strong></li><li>Navigate to <span class="nav-path">aka.ms/ssprsetup</span></li><li>Register your mobile phone number or email address as a reset method</li><li>Complete the registration wizard</li><li>Sign out of the test user account</li></ol></div><div class="section"><h3>📋 Part 4 - Test the Reset Flow</h3><ol><li>Navigate to <span class="nav-path">aka.ms/sspr</span> in your private window</li><li>Enter your test user email address and complete the CAPTCHA</li><li>Choose your registered method and verify your identity</li><li>Set a new password and confirm it</li><li>Sign in with the new password to confirm the reset worked</li><li><div class="warn"><strong>Note:</strong> Do not reset your own instructor-provided student account password unless you have been told you can change it.</div></li></ol></div><div class="section"><h3>📋 Part 5 - Review SSPR Reports</h3><ol><li>Return to your admin account and navigate to <strong>Password reset > Audit logs</strong></li><li>Filter by <strong>Activity: Reset password (self-service)</strong> and confirm your test reset appears</li><li>Click on the log entry and review the details - note the authentication method used</li><li>Navigate to <strong>Password reset > Usage & insights</strong> to see the SSPR dashboard</li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I enabled SSPR for a selected group</label></li><li><label><input type="checkbox"> I configured at least two authentication methods for SSPR</label></li><li><label><input type="checkbox"> I registered a reset method as an end user at aka.ms/ssprsetup</label></li><li><label><input type="checkbox"> I successfully completed a self-service password reset at aka.ms/sspr</label></li><li><label><input type="checkbox"> I found the reset event in the SSPR audit logs</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>Covers SC-300 objective: 'Implement and manage a self-service password reset policy' under Domain 1. SSPR is a frequent exam topic - know the licence requirements (free for cloud-only, P1 for writeback), the available authentication methods, and where to find usage reports.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
