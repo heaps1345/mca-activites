@@ -207,6 +207,20 @@
     <div class="overview-card"><div class="oc-icon">&#128203;</div><div class="oc-label">Part 5</div><div class="oc-value">Audit Logs</div></div>
   </div>
 
+  <div class="why-box" style="margin-bottom:32px;border-left:4px solid #e74c3c;">
+    <strong>&#9888; Before you start - Permissions required</strong>
+    <p style="margin-top:8px;">Your mcacloud.uk account must have the right roles assigned in Purview before you can complete each section. Your trainer will confirm these are in place. Here is what is needed per area:</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">
+      <tr style="background:var(--surface-2)"><th style="text-align:left;padding:6px 10px;border:1px solid var(--border)">Section</th><th style="text-align:left;padding:6px 10px;border:1px solid var(--border)">Minimum role required</th><th style="text-align:left;padding:6px 10px;border:1px solid var(--border)">Where to assign</th></tr>
+      <tr><td style="padding:6px 10px;border:1px solid var(--border)">Sensitivity Labels</td><td style="padding:6px 10px;border:1px solid var(--border)"><strong>Information Protection Admins</strong> or <strong>Compliance Administrator</strong></td><td style="padding:6px 10px;border:1px solid var(--border)">Purview &rarr; Settings &rarr; Role groups</td></tr>
+      <tr><td style="padding:6px 10px;border:1px solid var(--border)">DLP</td><td style="padding:6px 10px;border:1px solid var(--border)"><strong>DLP Compliance Management</strong> or <strong>Compliance Administrator</strong></td><td style="padding:6px 10px;border:1px solid var(--border)">Purview &rarr; Settings &rarr; Role groups</td></tr>
+      <tr><td style="padding:6px 10px;border:1px solid var(--border)">Data Lifecycle / Retention</td><td style="padding:6px 10px;border:1px solid var(--border)"><strong>Records Management</strong> or <strong>Compliance Administrator</strong></td><td style="padding:6px 10px;border:1px solid var(--border)">Purview &rarr; Settings &rarr; Role groups</td></tr>
+      <tr><td style="padding:6px 10px;border:1px solid var(--border)">eDiscovery Standard</td><td style="padding:6px 10px;border:1px solid var(--border)"><strong>eDiscovery Manager</strong> role group (individual user - no groups)</td><td style="padding:6px 10px;border:1px solid var(--border)">Purview &rarr; Settings &rarr; Role groups &rarr; eDiscovery Manager</td></tr>
+      <tr><td style="padding:6px 10px;border:1px solid var(--border)">Audit</td><td style="padding:6px 10px;border:1px solid var(--border)"><strong>View-Only Audit Logs</strong> or <strong>Audit Logs</strong> role</td><td style="padding:6px 10px;border:1px solid var(--border)">Purview &rarr; Settings &rarr; Role groups</td></tr>
+    </table>
+    <p style="margin-top:8px;font-size:13px;color:var(--fg-2)">If you see a blank page or &ldquo;You don&rsquo;t have permission&rdquo; message, your role has not been assigned yet. Tell your trainer.</p>
+  </div>
+
   <!-- PART 1 -->
   <div class="lab-section" id="part1">
     <div class="section-header">
@@ -220,7 +234,7 @@
         <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
         <div class="step-body">
           <div class="step-title">Open the Purview portal</div>
-          <div class="step-desc"><p>Go to <strong><a href="https://purview.microsoft.com/priva/settings/account?tid=b9fe7077-a535-4c26-bac4-d5f9fa45995e" target="_blank">purview.microsoft.com</a></strong> and sign in with your mcacloud.uk account.</p><div class="nav-path">Home <span>&#8594;</span> <strong>Information Protection</strong></div><p>This is the hub for all classification and labelling. The left menu shows Labels, Label policies, Auto-labelling, and DLP.</p></div>
+          <div class="step-desc"><p>Go to <strong><a href="https://purview.microsoft.com/informationprotection/solutioncatalog/solution/informationprotection?tid=b9fe7077-a535-4c26-bac4-d5f9fa45995e" target="_blank">purview.microsoft.com</a></strong> and sign in with your mcacloud.uk account.</p><div class="nav-path">Left nav <span>&#8594;</span> <strong>Solutions</strong> <span>&#8594;</span> Solution catalog <span>&#8594;</span> <strong>Information protection</strong></div><p>This is the hub for sensitivity labels. From here you can access Labels, Label policies, and Auto-labelling. DLP and Data Lifecycle Management are separate solution cards.</p></div>
         </div>
       </div>
       <div class="step">
@@ -283,7 +297,7 @@
         <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
         <div class="step-body">
           <div class="step-title">Navigate to DLP policies</div>
-          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Data Loss Prevention</strong> <span>&#8594;</span> <strong>Policies</strong></div><p>Click <strong>+ Create policy</strong>.</p></div>
+          <div class="step-desc"><div class="nav-path">Left nav <span>&#8594;</span> <strong>Solutions</strong> <span>&#8594;</span> Solution catalog <span>&#8594;</span> <strong>Data Loss Prevention</strong> <span>&#8594;</span> <strong>Policies</strong></div><p>Click <strong>+ Create policy</strong>.</p></div>
         </div>
       </div>
       <div class="step">
@@ -335,7 +349,7 @@
         <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
         <div class="step-body">
           <div class="step-title">Navigate to Data Lifecycle Management</div>
-          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Data Lifecycle Management</strong> <span>&#8594;</span> <strong>Microsoft 365</strong> <span>&#8594;</span> <strong>Retention policies</strong></div><p>Click <strong>+ New retention policy</strong>.</p></div>
+          <div class="step-desc"><div class="nav-path">Left nav <span>&#8594;</span> <strong>Solutions</strong> <span>&#8594;</span> Solution catalog <span>&#8594;</span> <strong>Data Lifecycle Management</strong> <span>&#8594;</span> <strong>Retention policies</strong></div><p>Click <strong>+ New retention policy</strong>.</p></div>
         </div>
       </div>
       <div class="step">
@@ -365,12 +379,13 @@
       <div class="section-tag">~8 min</div>
     </div>
     <div class="why-box"><strong>Why this matters</strong>HR flags an employee for misconduct. Legal need all their emails and Teams messages as evidence - fast - without them being able to delete anything. The Legal Hold overrides everything, including retention policies and user deletions. The data is frozen until the hold is removed.</div>
+    <div class="alert alert-danger" style="margin:0 0 16px 0;"><span class="alert-icon">&#9888;</span><span><strong>Permission check:</strong> You must be individually added to the <strong>eDiscovery Manager</strong> role group before this section. Go to <strong>Settings &rarr; Role groups &rarr; eDiscovery Manager</strong> and confirm your account is listed. Note: security groups cannot be added here - individual accounts only.</span></div>
     <div class="steps">
       <div class="step">
         <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
         <div class="step-body">
           <div class="step-title">Create an eDiscovery case</div>
-          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>eDiscovery</strong> <span>&#8594;</span> <strong>Standard</strong></div><p>Click <strong>+ Create a case</strong>. Name it <span class="value-tag">MCA Investigation 001</span>. Click <strong>Save</strong>.</p></div>
+          <div class="step-desc"><div class="nav-path">Left nav <span>&#8594;</span> <strong>Solutions</strong> <span>&#8594;</span> Solution catalog <span>&#8594;</span> <strong>Data Security Investigations</strong> <span>&#8594;</span> <strong>eDiscovery (Standard)</strong></div><p>Click <strong>+ Create a case</strong>. Name it <span class="value-tag">MCA Investigation 001</span>. Click <strong>Save</strong>.</p></div>
         </div>
       </div>
       <div class="step">
@@ -413,7 +428,7 @@
         <div class="step-dot"><div class="step-dot-inner">1</div></div><div class="step-line"></div>
         <div class="step-body">
           <div class="step-title">Search your own activity</div>
-          <div class="step-desc"><div class="nav-path">Purview portal <span>&#8594;</span> <strong>Audit</strong></div><p>Set date range to Today. In the <strong>Users</strong> field enter your own account. Leave Activities blank. Click <strong>Search</strong>.</p></div>
+          <div class="step-desc"><div class="nav-path">Left nav <span>&#8594;</span> <strong>Solutions</strong> <span>&#8594;</span> Solution catalog <span>&#8594;</span> <strong>Audit</strong></div><p>Set date range to Today. In the <strong>Users</strong> field enter your own account. Leave Activities blank. Click <strong>Search</strong>.</p></div>
         </div>
       </div>
       <div class="step">
