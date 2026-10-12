@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SC-300 Lab · Create an Access Package</title>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #E8E8F0; min-height: 100vh; }
+  h1 { color: #E05C00; font-size: 1.6rem; margin-bottom: 8px; }
+  h2 { color: #E05C00; font-size: 1.1rem; margin-bottom: 16px; opacity: 0.85; }
+  .badge { display: inline-block; background: #E05C00; color: #fff; font-size: 0.7rem;
+           font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 18px; letter-spacing: 1px; text-transform: uppercase; }
+  .btn { display: inline-block; padding: 10px 28px; border: none; border-radius: 6px; cursor: pointer;
+         font-size: 1rem; font-weight: 600; transition: all .15s; }
+  .btn-primary { background: #E05C00; color: #fff; }
+  .btn-primary:hover { background: #c44f00; }
+  .btn-secondary { background: #2A2A4E; color: #E8E8F0; border: 1px solid #444; }
+  .btn-secondary:hover { background: #3A3A5E; }
+  .score-box { background: #2A2A4E; border: 2px solid #E05C00; border-radius: 10px;
+               padding: 20px 30px; text-align: center; font-size: 2rem; font-weight: 700; color: #E05C00; margin-top: 16px; }
+  footer { margin-top: 40px; font-size: 0.75rem; opacity: 0.4; text-align: center; }
+
+  .container { max-width: 820px; margin: 40px auto; padding: 0 20px; }
+  .step { background: #2A2A4E; border-radius: 10px; padding: 20px 24px; margin-bottom: 14px;
+           border-left: 4px solid #444; transition: border-color .2s; }
+  .step.active { border-left-color: #E05C00; }
+  .step.done   { border-left-color: #2ecc71; opacity: .7; }
+  .step-num  { font-size: 0.75rem; color: #E05C00; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .step-title{ font-size: 1.05rem; font-weight: 600; margin: 4px 0 8px; }
+  .step-body { font-size: 0.95rem; line-height: 1.6; color: #ccc; }
+  code { background: #111127; padding: 2px 7px; border-radius: 4px; font-size: 0.88rem; color: #E05C00; }
+  .progress-bar-wrap { background: #2A2A4E; border-radius: 20px; height: 8px; margin-bottom: 28px; }
+  .progress-bar { background: #E05C00; border-radius: 20px; height: 8px; transition: width .3s; }
+  .nav { display: flex; gap: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">SC-300 · Domain 4 · Lab</span>
+  <h1>Create an Access Package</h1>
+  <h2>Identity Governance</h2>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+  <div id="steps-area"></div>
+  <div class="nav">
+    <button class="btn btn-secondary" onclick="prev()">← Back</button>
+    <button class="btn btn-primary"   onclick="next()" id="next-btn">Next Step →</button>
+  </div>
+  <footer>MCA · SC-300 · Domain 4 · Identity Governance</footer>
+</div>
+<script>
+const steps = [{"title": "Create a Catalog", "body": "In Entra admin center, go to <b>Identity governance > Entitlement management > Catalogs > New catalog</b>. Name it <code>MCA-SC300-Lab-Catalog</code>. Enable 'Enabled for external users' if needed. Create."}, {"title": "Add resources to the Catalog", "body": "Open the catalog. Go to <b>Resources > Add resources</b>. Add: a security group (create one first: <code>SC300-Lab-Group</code>) and an enterprise application (use the app you created in Lab 3a). Click Add."}, {"title": "Create an Access Package", "body": "In Entitlement Management, go to <b>Access packages > New access package</b>. Select your catalog. Name it <code>SC300 Lab Access</code>. Under <b>Resource roles</b>, add the group as 'Member' and the app as 'User'. Click Next."}, {"title": "Configure Request Policy", "body": "Under <b>Requests</b>, select 'For users in your directory'. Choose 'All members'. Set <b>Require approval = Yes</b>, approver = your admin account. Set expiration to 30 days."}, {"title": "Test the request via My Access portal", "body": "Sign in as a test user at <a href='https://myaccess.microsoft.com'>myaccess.microsoft.com</a>. Find <code>SC300 Lab Access</code> and click <b>Request</b>. Enter a business justification. As the approver, approve the request. Verify the test user is now a member of the security group."}];
+let cur = 0;
+function render() {
+  const area = document.getElementById('steps-area');
+  area.innerHTML = steps.map((s,i) => `
+    <div class="step ${i===cur?'active':i<cur?'done':''}">
+      <div class="step-num">Step ${i+1} of ${steps.length}${i<cur?' · ✓ Complete':''}</div>
+      <div class="step-title">${s.title}</div>
+      ${i<=cur ? `<div class="step-body">${s.body}</div>` : ''}
+    </div>`).join('');
+  const pct = Math.round(cur/steps.length*100);
+  document.getElementById('pbar').style.width = pct+'%';
+  document.getElementById('next-btn').textContent = cur===steps.length-1 ? '✅ Complete' : 'Next Step →';
+}
+function next() { if(cur < steps.length-1) { cur++; render(); window.scrollTo(0,0); } }
+function prev() { if(cur > 0) { cur--; render(); } }
+render();
+</script>
+</body>
+</html>
