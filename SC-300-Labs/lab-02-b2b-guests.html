@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 2: Invite and Manage B2B Guest Users</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #27ae60; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 2 of 6</span>
+    <span class="badge badge-domain">Domain 1 - Manage User Identities</span>
+    <span class="badge badge-licence">Free Licence</span>
+  </div>
+  <h1>Invite and Manage B2B Guest Users</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Invite an external user as a B2B guest</li><li>Understand the guest invitation and redemption flow</li><li>Review and configure External Collaboration Settings</li><li>Assign a guest user to a group</li><li>Remove a guest user from the tenant</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in with your <strong>User Administrator</strong> student account</li><li>A personal email address you can access (Gmail, Outlook.com, or similar) to act as the external guest</li><li>Access to that personal email inbox to redeem the invitation</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Review External Collaboration Settings</h3><ol><li>Navigate to <span class="nav-path">Entra ID > External Identities > External collaboration settings</span></li><li>Review <strong>Guest user access restrictions</strong> - note the three options (same as member users, limited directory access, most restricted)</li><li>Review <strong>Guest invite settings</strong> - confirm who can invite guests</li><li>Review <strong>Collaboration restrictions</strong> - note you can allowlist or blocklist specific domains</li><li><div class="tip"><strong>Exam tip:</strong> Know what each guest access restriction level means. SC-300 regularly tests the difference between the three access levels and what a guest can see in each.</div></li><li>Do not change any settings - note them for your understanding only</li></ol></div><div class="section"><h3>📋 Part 2 - Invite a Guest User</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Users > All Users > + New User > Invite external user</span></li><li>Enter your <strong>personal email address</strong> in the Email field</li><li>Set <strong>Display name</strong> to <code>External Guest Test</code></li><li>Add a personal message if you wish, then click <strong>Invite</strong></li><li>Confirm the guest appears in All Users with <strong>User type: Guest</strong></li></ol></div><div class="section"><h3>📋 Part 3 - Redeem the Invitation</h3><ol><li>Open your personal email inbox and find the invitation email from Microsoft</li><li>Click <strong>Accept invitation</strong> - you will be taken to a consent page</li><li>Accept the permissions request - you are now a guest in the mcacloud.uk tenant</li><li><div class="tip"><strong>Exam tip:</strong> Until a guest redeems their invitation, their account shows as <strong>PendingAcceptance</strong> in Entra ID. The exam tests this status.</div></li><li>Return to your student account and check the guest user - confirm invitation state has changed</li></ol></div><div class="section"><h3>📋 Part 4 - Assign Guest to a Group</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Groups > All Groups</span></li><li>Find or create a test group (+ New Group, Security, name it <code>Lab Test Group</code>)</li><li>Open the group and navigate to <strong>Members > + Add members</strong></li><li>Search for your guest user and add them</li><li>Confirm they appear as a member of the group</li></ol></div><div class="section"><h3>📋 Part 5 - Remove the Guest</h3><ol><li>Return to <strong>All Users</strong>, find your guest account and click <strong>Delete</strong></li><li>Confirm deletion - this removes their access to your tenant but does not delete their home account</li><li><div class="tip"><strong>Exam tip:</strong> Deleting a B2B guest from your tenant only removes their access to YOUR tenant. Their home Microsoft account is unaffected.</div></li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I reviewed the External Collaboration Settings and can describe the three guest access restriction levels</label></li><li><label><input type="checkbox"> I sent a guest invitation to a personal email address</label></li><li><label><input type="checkbox"> I redeemed the invitation from the personal email inbox</label></li><li><label><input type="checkbox"> I added the guest user to a group</label></li><li><label><input type="checkbox"> I deleted the guest from the tenant</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>Covers SC-300 objective: 'Manage external identities' under Domain 1. B2B guest management is heavily tested - know the invitation flow, redemption states, collaboration restrictions, and what happens to a guest account when deleted from your tenant.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
