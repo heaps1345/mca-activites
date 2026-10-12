@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC-300 Lab 6: Create an Access Package, Request Access, and Approve</title>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --orange: #E05C00;
+    --light-bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #e0e0e0;
+    --success: #27ae60;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--light-bg); color: var(--text); }
+
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #16213e 100%);
+    color: white;
+    padding: 2.5rem 2rem 2rem;
+  }
+  .hero-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-domain { background: var(--orange); color: white; }
+  .badge-licence { background: #8e44ad; color: white; }
+  .badge-lab { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .hero h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 1rem; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--orange);
+    display: inline-block;
+  }
+  .card ul, .card ol { padding-left: 1.25rem; }
+  .card li { margin-bottom: 0.5rem; line-height: 1.6; }
+
+  .section { margin-bottom: 1.5rem; }
+  .section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 0.75rem;
+  }
+  .section ol { padding-left: 1.25rem; }
+  .section li {
+    margin-bottom: 0.6rem;
+    line-height: 1.7;
+    padding-left: 0.25rem;
+  }
+
+  .nav-path {
+    background: #f0f4f8;
+    border-left: 3px solid var(--orange);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0 6px 6px 0;
+    font-family: monospace;
+    font-size: 0.88rem;
+    color: var(--navy);
+    margin: 0.4rem 0;
+    display: block;
+  }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 3px solid #f39c12;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+  .tip strong { color: #e67e22; }
+
+  .warn {
+    background: #ffeaea;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem 1rem;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.9rem;
+    margin: 0.75rem 0;
+  }
+
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { margin-bottom: 0.6rem; }
+  .checklist input[type=checkbox] { margin-right: 0.5rem; accent-color: var(--orange); width: 16px; height: 16px; cursor: pointer; }
+
+  .exam-link {
+    background: linear-gradient(135deg, var(--navy), #16213e);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .exam-link h2 { color: var(--orange); border-color: var(--orange); }
+  .exam-link p { color: rgba(255,255,255,0.85); font-size: 0.95rem; line-height: 1.6; margin-top: 0.5rem; }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span class="badge badge-lab">Lab 6 of 6</span>
+    <span class="badge badge-domain">Domain 4 - Plan and Automate Identity Governance</span>
+    <span class="badge badge-licence">P2 Licence</span>
+  </div>
+  <h1>Create an Access Package, Request Access, and Approve</h1>
+  <p>SC-300 Microsoft Identity and Access Administrator - Hands-On Lab</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 Learning Objectives</h2>
+    <ul><li>Create a catalogue in Entitlement Management</li><li>Add resources to the catalogue</li><li>Create an access package with a group as a resource</li><li>Configure an access policy with approval and expiry</li><li>Request the access package as an end user and approve as an admin</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>✅ Pre-Requisites</h2>
+    <ul><li>Signed in with your student account</li><li>Your account has been assigned the <strong>Identity Governance Administrator</strong> role or your instructor has set up a Catalogue owner role for you</li><li>Entra ID P2 licence available in the tenant</li><li>A test user account to request access with (create one from Lab 1 if needed)</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Lab Steps</h2>
+    <div class="section"><h3>📋 Part 1 - Create a Catalogue</h3><ol><li>Navigate to <span class="nav-path">Entra ID > Identity Governance > Entitlement Management > Catalogs > + New catalog</span></li><li>Set <strong>Name</strong> to <code>SC300 Lab Catalog</code></li><li>Set <strong>Description</strong> to <code>Lab catalogue for SC-300 hands-on exercises</code></li><li>Set <strong>Enabled</strong> to <strong>Yes</strong> and <strong>Enabled for external users</strong> to <strong>No</strong></li><li>Click <strong>Create</strong></li><li><div class="tip"><strong>Exam tip:</strong> Catalogs are containers for resources and access packages. You can delegate catalog ownership to non-admins, which is the key benefit for large organisations.</div></li></ol></div><div class="section"><h3>📋 Part 2 - Add a Resource to the Catalogue</h3><ol><li>Open <strong>SC300 Lab Catalog</strong> and click <strong>Resources > + Add resources</strong></li><li>Select <strong>Groups and Teams</strong></li><li>Search for and select <code>Lab Test Group</code> (create it if it doesn't exist: a Security group named Lab Test Group)</li><li>Click <strong>Add</strong></li></ol></div><div class="section"><h3>📋 Part 3 - Create an Access Package</h3><ol><li>Navigate to <span class="nav-path">Identity Governance > Entitlement Management > Access packages > + New access package</span></li><li>Set <strong>Name</strong> to <code>Lab Access Package</code></li><li>Set <strong>Catalog</strong> to <strong>SC300 Lab Catalog</strong></li><li>Click <strong>Next: Resource roles</strong></li><li>Click <strong>+ Add resource roles</strong>, select <strong>Groups and Teams</strong>, choose <strong>Lab Test Group</strong>, set role to <strong>Member</strong></li><li>Click <strong>Next: Requests</strong></li></ol></div><div class="section"><h3>📋 Part 4 - Configure the Request Policy</h3><ol><li>Under <strong>Who can request access</strong>, select <strong>For users in your directory</strong> > <strong>All members (excluding guests)</strong></li><li>Under <strong>Approval</strong>, set <strong>Require approval</strong> to <strong>Yes</strong></li><li>Set <strong>First approver</strong> to your student admin account</li><li>Set <strong>Request expiration</strong>: Access package assignment expires after <strong>30 days</strong></li><li>Click <strong>Next: Requestor information</strong>, skip, click <strong>Next: Lifecycle</strong>, skip, click <strong>Review + create > Create</strong></li></ol></div><div class="section"><h3>📋 Part 5 - Request Access as a User</h3><ol><li>Open a new private browser window and sign in as your <strong>test user</strong></li><li>Navigate to <span class="nav-path">myaccess.microsoft.com</span></li><li>Find <strong>Lab Access Package</strong> in the list and click <strong>Request</strong></li><li>Add a justification: <code>SC-300 lab exercise - requesting access for testing</code></li><li>Click <strong>Submit request</strong></li><li>Note the request appears as <strong>Pending approval</strong></li></ol></div><div class="section"><h3>📋 Part 6 - Approve the Request</h3><ol><li>Return to your admin account and navigate to <strong>Identity Governance > Entitlement Management > Requests</strong></li><li>Find the pending request from your test user</li><li>Click on it and select <strong>Approve</strong></li><li>Add an approver justification and click <strong>Approve</strong></li><li>Return to the private browser (test user) and refresh myaccess.microsoft.com</li><li>Confirm the access package shows as <strong>Delivered</strong></li><li>Navigate to the <strong>Lab Test Group</strong> members list and confirm the test user has been added</li><li><div class="tip"><strong>Exam tip:</strong> Access packages can grant membership to groups, Teams, SharePoint sites, and app roles. The approval flow, expiry, and access review integration are all configurable per policy.</div></li></ol></div>
+  </div>
+
+  <div class="card">
+    <h2>✔️ Validation Checklist</h2>
+    <p style="margin-bottom:1rem; color:var(--muted); font-size:0.9rem;">Tick each item to confirm you have completed the lab successfully.</p>
+    <ul class="checklist"><li><label><input type="checkbox"> I created a catalog and added a group resource to it</label></li><li><label><input type="checkbox"> I created an access package with an approval policy and 30-day expiry</label></li><li><label><input type="checkbox"> I requested access as a test user via myaccess.microsoft.com</label></li><li><label><input type="checkbox"> I approved the request from the admin account</label></li><li><label><input type="checkbox"> I confirmed the test user was added to the group after approval</label></li></ul>
+  </div>
+
+  <div class="exam-link">
+    <h2>📝 Exam Relevance</h2>
+    <p>Covers SC-300 objective: 'Plan and implement entitlement management' under Domain 4. Access packages are one of the most exam-heavy topics in Domain 4. Know catalogs, access packages, policies (who can request, approval, expiry), and the difference between Entitlement Management and Access Reviews.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  MCA Cyber Academy &nbsp;|&nbsp; SC-300 Hands-On Labs &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
