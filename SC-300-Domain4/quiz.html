@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SC-300 Domain 4 Quiz</title>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #1A1A2E; color: #E8E8F0; min-height: 100vh; }
+  h1 { color: #E05C00; font-size: 1.6rem; margin-bottom: 8px; }
+  h2 { color: #E05C00; font-size: 1.1rem; margin-bottom: 16px; opacity: 0.85; }
+  .badge { display: inline-block; background: #E05C00; color: #fff; font-size: 0.7rem;
+           font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 18px; letter-spacing: 1px; text-transform: uppercase; }
+  .btn { display: inline-block; padding: 10px 28px; border: none; border-radius: 6px; cursor: pointer;
+         font-size: 1rem; font-weight: 600; transition: all .15s; }
+  .btn-primary { background: #E05C00; color: #fff; }
+  .btn-primary:hover { background: #c44f00; }
+  .btn-secondary { background: #2A2A4E; color: #E8E8F0; border: 1px solid #444; }
+  .btn-secondary:hover { background: #3A3A5E; }
+  .score-box { background: #2A2A4E; border: 2px solid #E05C00; border-radius: 10px;
+               padding: 20px 30px; text-align: center; font-size: 2rem; font-weight: 700; color: #E05C00; margin-top: 16px; }
+  footer { margin-top: 40px; font-size: 0.75rem; opacity: 0.4; text-align: center; }
+
+  .container { max-width: 820px; margin: 40px auto; padding: 0 20px; }
+  .q-block { background: #2A2A4E; border-radius: 10px; padding: 22px 26px; margin-bottom: 18px; border-left: 4px solid #E05C00; }
+  .q-text  { font-size: 1.05rem; margin-bottom: 14px; line-height: 1.5; }
+  .option  { display: block; padding: 10px 14px; margin: 6px 0; border-radius: 6px; cursor: pointer;
+              background: #1A1A2E; border: 1px solid #444; transition: background .15s; }
+  .option:hover { background: #3A3A5E; }
+  .option.correct { background: #1a5c2a !important; border-color: #2ecc71 !important; color: #2ecc71; }
+  .option.wrong   { background: #5c1a1a !important; border-color: #e74c3c !important; color: #e74c3c; }
+  .explanation { display: none; margin-top: 10px; font-size: 0.9rem; color: #aaa; font-style: italic; }
+  .nav { text-align: center; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <span class="badge">SC-300 · Domain 4</span>
+  <h1>Practice Quiz</h1>
+  <h2>Identity Governance</h2>
+  <div id="quiz-area"></div>
+  <div class="nav">
+    <button class="btn btn-primary" onclick="submit()">Submit Answers</button>
+    <button class="btn btn-secondary" style="margin-left:12px" onclick="reset()">Reset</button>
+  </div>
+  <div id="score-area"></div>
+  <footer>MCA · SC-300 · Domain 4 · Identity Governance</footer>
+</div>
+<script>
+const qs = [{"q": "A user needs Global Administrator access for one hour to perform an emergency configuration change. They are currently Eligible for the role in PIM. What must they do?", "opts": ["Ask an existing Global Admin to assign them the role permanently", "Activate the role in PIM \u2014 complete MFA, provide justification, and wait for approval if required", "Use the Azure portal with their current permissions and escalate when blocked", "Submit a helpdesk ticket to have the role assigned"], "ans": 1, "exp": "PIM Eligible roles require explicit activation \u2014 the user goes to PIM > My roles > Eligible > Activate, completes any required MFA and justification, and optionally waits for approval. The role is then Active for the configured maximum duration."}, {"q": "An Access Review is completed and the reviewer selects 'Deny' for a user. What happens by default if Auto-apply results is enabled?", "opts": ["The user's account is disabled", "The user's access to the specific resource (group/app/role) is removed", "The user receives an email to justify their access within 7 days", "Nothing \u2014 an admin must manually process the review results"], "ans": 1, "exp": "With Auto-apply enabled, a 'Deny' decision removes the user from the reviewed resource (group membership, app assignment, or role assignment) automatically at the end of the review period. The account itself is not disabled."}, {"q": "Your organization uses an HR system as the authoritative source for new employee data. You want to automatically provision Entra accounts and send a welcome email on the employee's start date. Which Entra feature should you use?", "opts": ["Entra Connect HR-driven provisioning", "Lifecycle Workflows \u2014 Joiner workflow", "Entitlement Management \u2014 access package auto-assignment policy", "Power Automate with Entra connector"], "ans": 1, "exp": "Lifecycle Workflows (Joiner workflow) is designed exactly for this \u2014 triggered by the employeeHireDate attribute, it can create/enable the account, generate a TAP (Temporary Access Pass), send a welcome email, and add the user to groups, all before day one."}, {"q": "Which of the following best describes an Emergency Access Account (Break Glass account)?", "opts": ["A service account used by the IT team for automated maintenance tasks", "A cloud-only Global Admin excluded from all Conditional Access and MFA policies, used only when normal admin access fails", "A PIM-eligible role that can be activated without MFA in emergencies", "A federated account with a shorter token lifetime for high-risk operations"], "ans": 1, "exp": "Break glass accounts are cloud-only (non-federated), not synced from on-premises, explicitly excluded from CA policies and MFA requirements, used only when the primary admin mechanism fails (e.g., MFA system outage). Their sign-ins should be monitored with alerts."}, {"q": "A company wants to allow employees to request access to a bundle of resources (SharePoint site + security group + SaaS app) through a self-service portal with manager approval and automatic 90-day expiry. Which feature provides this?", "opts": ["Dynamic groups with membership rules", "Entitlement Management \u2014 Access Packages", "Access Reviews with auto-remediation", "PIM for Groups"], "ans": 1, "exp": "Entitlement Management Access Packages bundle multiple resources, define request/approval policies, and set expiration dates. Users request through My Access portal, managers approve, and access expires automatically \u2014 exactly this scenario."}];
+let answered = {};
+function render() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = qs.map((q,qi) => `
+    <div class="q-block">
+      <div class="q-text"><strong>Q${qi+1}.</strong> ${q.q}</div>
+      ${q.opts.map((o,oi) => `<label class="option" id="opt-${qi}-${oi}">
+        <input type="radio" name="q${qi}" value="${oi}" style="display:none" onchange="pick(${qi},${oi})"> ${o}
+      </label>`).join('')}
+      <div class="explanation" id="exp-${qi}">${q.exp}</div>
+    </div>`).join('');
+}
+function pick(qi,oi) { answered[qi] = oi; }
+function submit() {
+  let score = 0;
+  qs.forEach((q,qi) => {
+    const chosen = answered[qi];
+    q.opts.forEach((_,oi) => {
+      const el = document.getElementById(`opt-${qi}-${oi}`);
+      if(oi === q.ans) el.classList.add('correct');
+      else if(oi === chosen && chosen !== q.ans) el.classList.add('wrong');
+    });
+    document.getElementById(`exp-${qi}`).style.display = 'block';
+    if(chosen === q.ans) score++;
+  });
+  const pct = Math.round(score/qs.length*100);
+  document.getElementById('score-area').innerHTML =
+    `<div class="score-box">${score}/${qs.length} &nbsp;·&nbsp; ${pct}%<br>
+     <small style="font-size:1rem;font-weight:400;color:#E8E8F0">${pct>=80?'✅ Pass territory':'📚 Keep studying'}</small></div>`;
+}
+function reset() { answered = {}; render(); document.getElementById('score-area').innerHTML=''; }
+render();
+</script>
+</body>
+</html>
