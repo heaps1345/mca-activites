@@ -110,15 +110,12 @@ def make_iframe(url, title=""):
 
 def make_mcq(question, answers, explanation=""):
     answers_with_ids = [{"id": uid(), **a} for a in answers]
-    item = {
+    return {
         "id": uid(),
         "type": "question-multiple-choice",
         "question": question,
         "answers": answers_with_ids,
     }
-    if explanation:
-        item["explanation"] = explanation
-    return item
 
 
 # -------------------------------------------------------
