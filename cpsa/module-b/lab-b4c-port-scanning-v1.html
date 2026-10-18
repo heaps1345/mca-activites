@@ -94,23 +94,8 @@
   .footer span { color: var(--orange); }
 
   /* Port checker widget */
-  .port-checker { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
-  .port-checker h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-  .port-checker p { color: #aaa; font-size: 13px; margin-bottom: 14px; }
-  .checker-inputs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .checker-input-group { display: flex; flex-direction: column; gap: 4px; }
   .checker-input-group label { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .checker-ip { background: #1e2530; border: 1px solid #444; color: #e0e0e0; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 14px; width: 180px; }
   .checker-ip:focus { outline: none; border-color: var(--orange); }
-  .checker-btn { background: var(--orange); color: #fff; border: none; padding: 8px 20px; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; align-self: flex-end; letter-spacing: 0.5px; }
-  .checker-btn:hover { background: #c43d09; }
-  .checker-btn:disabled { background: #555; cursor: not-allowed; }
-  .port-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
-  .port-row { background: #1e2530; border-radius: 4px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; border-left: 3px solid #444; }
-  .port-row.open { border-left-color: #2ea043; }
-  .port-row.closed { border-left-color: #666; }
-  .port-row.filtered { border-left-color: #e3b341; }
-  .port-row.checking { border-left-color: var(--orange); }
   .port-row .port-label { color: #ccc; font-size: 13px; font-family: monospace; }
   .port-row .port-service { color: #888; font-size: 11px; }
   .port-row .port-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
@@ -118,7 +103,24 @@
   .port-row.closed .port-status { background: #2a2a2a; color: #888; }
   .port-row.filtered .port-status { background: #3a2e00; color: #e3b341; }
   .port-row.checking .port-status { background: #2a1500; color: var(--orange); }
-  .checker-note { color: #666; font-size: 12px; margin-top: 10px; font-style: italic; }
+
+  /* Pre-flight section */
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-note { font-size: 12px; color: #e3b341; background: rgba(227,179,65,0.08); border-left: 3px solid #e3b341; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-bottom: 14px; }
+  .preflight-target { margin-bottom: 14px; }
+  .preflight-target-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .preflight-cmd { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .preflight-cmd code { flex: 1; word-break: break-all; }
+  .copy-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .copy-btn:hover { background: #30363d; color: #fff; }
+  .copy-btn.copied { color: #3fb950; border-color: #3fb950; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
 </style>
 </head>
 <body>
@@ -147,14 +149,40 @@
 <div class="container">
 
   <!-- PORT CHECKER WIDGET -->
-  <div class="port-checker">
-    <h3>🔌 Target Connectivity Check</h3>
-    <p>Enter your target IPs and click Check to verify the expected ports are reachable before starting the lab. A port showing <strong style="color:#56d364">OPEN</strong> means the VM is running and the service is accessible.</p>
-    <div class="checker-inputs">
-      <div class="checker-input-group">
-        <label>SYNTEX-LNX01 IP</label>
-        <input class="checker-ip" id="ip-lnx" type="text" placeholder="e.g. 10.0.22.123" />
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">Run these commands in your Kali terminal to confirm the target VMs are reachable before you start. Copy the IP from the <strong>Systems tab</strong> on the left.</p>
+    <div class="preflight-note">&#9888; Both VMs must be running before you start. Check the Systems tab.</div>
+
+    <div class="preflight-target">
+      <div class="preflight-target-label">SYNTEX-LNX01 - set your IP variable first</div>
+      <div class="preflight-cmd">
+        <code>LNX_IP=<SYNTEX-LNX01_IP>  # replace with your IP from the Systems tab</code>
+        <button class="copy-btn" onclick="copyCmd(this, 'LNX_IP=<SYNTEX-LNX01_IP>  # replace with your IP from the Systems tab')">Copy</button>
       </div>
+      <div class="preflight-cmd">
+        <code>for p in 22 21 80 445 2049; do nc -zv -w2 $LNX_IP $p 2>&1; done</code>
+        <button class="copy-btn" onclick="copyCmd(this, `for p in 22 21 80 445 2049; do nc -zv -w2 $LNX_IP $p 2>&1; done`)">Copy</button>
+      </div>
+    </div>
+    <div class="preflight-target">
+      <div class="preflight-target-label">SYNTEX-DC01 - set your IP variable first</div>
+      <div class="preflight-cmd">
+        <code>DC_IP=<SYNTEX-DC01_IP>  # replace with your IP from the Systems tab</code>
+        <button class="copy-btn" onclick="copyCmd(this, 'DC_IP=<SYNTEX-DC01_IP>  # replace with your IP from the Systems tab')">Copy</button>
+      </div>
+      <div class="preflight-cmd">
+        <code>for p in 80 88 135 389 445 3389; do nc -zv -w2 $DC_IP $p 2>&1; done</code>
+        <button class="copy-btn" onclick="copyCmd(this, `for p in 80 88 135 389 445 3389; do nc -zv -w2 $DC_IP $p 2>&1; done`)">Copy</button>
+      </div>
+    </div>
+    <ul class="preflight-checklist">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-LNX01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-DC01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> nc output shows <strong>open</strong> for the key ports above</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> Kali Linux terminal is open and ready</li>
+    </ul>
+  </div>
       <div class="checker-input-group">
         <label>SYNTEX-DC01 IP</label>
         <input class="checker-ip" id="ip-dc" type="text" placeholder="e.g. 10.0.22.124" />
@@ -512,138 +540,15 @@
 // If it hangs before error, it is filtered (firewall dropping).
 // If it connects then closes, the port is open (service received WS upgrade, rejected it cleanly).
 
-const TARGETS = {
-  lnx: {
-    label: "SYNTEX-LNX01",
-    ports: [
-      { port: 22,   service: "SSH" },
-      { port: 21,   service: "FTP" },
-      { port: 80,   service: "HTTP" },
-      { port: 445,  service: "SMB" },
-      { port: 2049, service: "NFS" },
-    ]
-  },
-  dc: {
-    label: "SYNTEX-DC01",
-    ports: [
-      { port: 80,   service: "HTTP" },
-      { port: 88,   service: "Kerberos" },
-      { port: 135,  service: "RPC" },
-      { port: 389,  service: "LDAP" },
-      { port: 445,  service: "SMB" },
-      { port: 3389, service: "RDP" },
-    ]
-  }
-};
 
-function probePort(ip, port) {
-  return new Promise((resolve) => {
-    const start = Date.now();
-    let ws;
-    const FILTERED_TIMEOUT = 3000;
-
-    const timer = setTimeout(() => {
-      try { ws.close(); } catch(e) {}
-      resolve("filtered");
-    }, FILTERED_TIMEOUT);
-
-    try {
-      ws = new WebSocket("ws://" + ip + ":" + port);
-    } catch(e) {
-      clearTimeout(timer);
-      resolve("error");
-      return;
-    }
-
-    ws.onopen = () => {
-      clearTimeout(timer);
-      try { ws.close(); } catch(e) {}
-      resolve("open");
-    };
-
-    ws.onerror = () => {
-      clearTimeout(timer);
-      const elapsed = Date.now() - start;
-      // Fast error = TCP RST = port closed (host is up, nothing listening)
-      // Slow error approaching timeout = filtered
-      if (elapsed < FILTERED_TIMEOUT - 500) {
-        resolve("closed");
-      } else {
-        resolve("filtered");
-      }
-    };
-
-    ws.onclose = (e) => {
-      clearTimeout(timer);
-      // Code 1006 with fast close after open attempt = port is open (service rejected WS upgrade)
-      resolve("open");
-    };
+function copyCmd(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+  }).catch(() => {
+    btn.textContent = "Copy";
   });
 }
 
-function setPortRow(id, state, label) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = "port-row " + state;
-  el.querySelector(".port-status").textContent = label;
-}
-
-async function runPortCheck() {
-  const lnxIp = document.getElementById("ip-lnx").value.trim();
-  const dcIp  = document.getElementById("ip-dc").value.trim();
-  const btn   = document.getElementById("check-btn");
-  const note  = document.getElementById("checker-note");
-
-  if (!lnxIp && !dcIp) {
-    note.style.display = "block";
-    note.textContent = "Enter at least one IP address to check.";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = "Checking...";
-  note.style.display = "none";
-
-  const results = document.getElementById("port-results");
-  results.innerHTML = "";
-
-  // Build result rows
-  const checks = [];
-  for (const [key, target] of Object.entries(TARGETS)) {
-    const ip = key === "lnx" ? lnxIp : dcIp;
-    if (!ip) continue;
-    for (const { port, service } of target.ports) {
-      const id = "pr-" + key + "-" + port;
-      results.innerHTML += `
-        <div class="port-row checking" id="${id}">
-          <div>
-            <div class="port-label">${ip}:${port}</div>
-            <div class="port-service">${target.label} - ${service}</div>
-          </div>
-          <span class="port-status">...</span>
-        </div>`;
-      checks.push({ id, ip, port });
-    }
-  }
-
-  // Run probes (batched to avoid overwhelming the browser)
-  for (const { id, ip, port } of checks) {
-    probePort(ip, port).then(state => {
-      const labels = { open: "OPEN", closed: "CLOSED", filtered: "FILTERED", error: "ERROR" };
-      setPortRow(id, state, labels[state] || state.toUpperCase());
-    });
-    await new Promise(r => setTimeout(r, 100)); // small stagger
-  }
-
-  // Wait for all probes to settle (max 4s)
-  await new Promise(r => setTimeout(r, 4000));
-
-  btn.disabled = false;
-  btn.textContent = "Check Again";
-  note.style.display = "block";
-  note.textContent = "Note: OPEN = service responded. CLOSED = host up, port not listening. FILTERED = firewall dropping packets (or VM not started). Results use WebSocket probes - not a substitute for nmap.";
-}
 </script>
-
-</body>
-</html>
