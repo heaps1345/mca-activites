@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module A Lab Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --navy:   #1A2744;
+  --teal:   #00B4C8;
+  --amber:  #E8A020;
+  --red:    #C0392B;
+  --green:  #27AE60;
+  --white:  #FFFFFF;
+  --bg:     #F4F6F9;
+  --card:   #FFFFFF;
+  --border: #DDE3ED;
+  --text:   #1A2744;
+  --muted:  #6B7A99;
+  --code-bg:#EEF1F7;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:     #0F1520;
+    --card:   #1A2235;
+    --border: #2A3550;
+    --text:   #E8EDF5;
+    --muted:  #8A9ABB;
+    --code-bg:#0D1425;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:     #0F1520;
+  --card:   #1A2235;
+  --border: #2A3550;
+  --text:   #E8EDF5;
+  --muted:  #8A9ABB;
+  --code-bg:#0D1425;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 0 0 60px;
+}
+
+/* ---- TOP BAR ---- */
+.topbar {
+  background: var(--navy);
+  padding: 18px max(24px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 3px solid var(--teal);
+}
+.topbar-logo {
+  background: var(--teal);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .08em;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.topbar-title {
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 600;
+}
+.topbar-sub {
+  color: rgba(255,255,255,.5);
+  font-size: 13px;
+  margin-left: auto;
+}
+
+/* ---- HERO ---- */
+.hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #0D3060 100%);
+  padding: 48px max(32px, env(safe-area-inset-left, 0px)) 40px;
+  color: var(--white);
+}
+.hero-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 10px;
+}
+.hero h1 {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+.hero-desc {
+  font-size: 15px;
+  color: rgba(255,255,255,.75);
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.badge-teal  { background: rgba(0,180,200,.2);  color: var(--teal); border: 1px solid rgba(0,180,200,.4); }
+.badge-amber { background: rgba(232,160,32,.2); color: var(--amber); border: 1px solid rgba(232,160,32,.4); }
+.badge-green { background: rgba(39,174,96,.2);  color: var(--green); border: 1px solid rgba(39,174,96,.4); }
+.badge-red   { background: rgba(192,57,43,.2);  color: #E74C3C; border: 1px solid rgba(192,57,43,.4); }
+.badge-white { background: rgba(255,255,255,.1); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.25); }
+
+/* ---- CONTENT ---- */
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px max(24px, env(safe-area-inset-left, 0px));
+}
+
+/* ---- SECTION HEADER ---- */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+.section-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.section-header .count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ---- SUMMARY TABLE ---- */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 48px;
+  font-size: 14px;
+}
+.summary-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.summary-table th:first-child { border-radius: 8px 0 0 0; }
+.summary-table th:last-child  { border-radius: 0 8px 0 0; }
+.summary-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.summary-table tr:last-child td { border-bottom: none; }
+.summary-table tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .summary-table tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+}
+:root[data-theme="dark"] .summary-table tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+.status-live {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--green); font-weight: 600; font-size: 12px;
+}
+.status-live::before {
+  content: '';
+  display: block; width: 7px; height: 7px;
+  background: var(--green); border-radius: 50%;
+}
+.artifact-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--teal);
+  text-decoration: none;
+  word-break: break-all;
+}
+.artifact-link:hover { text-decoration: underline; }
+
+/* ---- LAB CARDS ---- */
+.labs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+@media (max-width: 560px) { .labs-grid { grid-template-columns: 1fr; } }
+
+.lab-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.lab-card-header {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.lab-number {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+  color: var(--white);
+  flex-shrink: 0;
+}
+.lab-card-header-text { flex: 1; min-width: 0; }
+.lab-card-header-text h3 {
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 4px;
+}
+.lab-card-header-text .lab-type {
+  font-size: 12px; color: var(--muted); font-weight: 500;
+}
+.lab-status {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.lab-card-body { padding: 18px 20px; }
+.lab-card-body p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.objectives-list {
+  list-style: none;
+  margin-bottom: 18px;
+}
+.objectives-list li {
+  font-size: 13px;
+  padding: 5px 0 5px 20px;
+  position: relative;
+  color: var(--text);
+  border-bottom: 1px dashed var(--border);
+}
+.objectives-list li:last-child { border-bottom: none; }
+.objectives-list li::before {
+  content: '✓';
+  position: absolute; left: 0;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 11px;
+  top: 7px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.field-value {
+  font-size: 13px;
+  color: var(--text);
+}
+.field-value code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--teal);
+}
+
+.url-box {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.url-box span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--teal);
+  word-break: break-all;
+  flex: 1;
+}
+.copy-btn {
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.copy-btn:hover { background: var(--teal); color: var(--navy); }
+.copy-btn:active { opacity: .8; }
+
+/* ---- COURSE STRUCTURE ---- */
+.lesson-plan {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+.lesson-plan-header {
+  background: var(--navy);
+  color: var(--white);
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lesson-plan-header .dot {
+  width: 8px; height: 8px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+.lesson-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px 80px;
+  gap: 0;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.lesson-row:last-child { border-bottom: none; }
+.lesson-row.header-row {
+  background: rgba(0,0,0,.03);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .lesson-row.header-row { background: rgba(255,255,255,.03); }
+}
+:root[data-theme="dark"] .lesson-row.header-row { background: rgba(255,255,255,.03); }
+.lesson-row > div { padding: 11px 14px; }
+.lesson-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--teal);
+  font-weight: 600;
+}
+.lesson-type-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.type-text     { background: rgba(0,180,200,.12); color: var(--teal); }
+.type-iframe   { background: rgba(232,160,32,.15); color: var(--amber); }
+.type-quiz     { background: rgba(39,174,96,.15);  color: var(--green); }
+
+@media (max-width: 600px) {
+  .lesson-row { grid-template-columns: 50px 1fr; }
+  .lesson-row > div:nth-child(3),
+  .lesson-row > div:nth-child(4) { display: none; }
+}
+
+/* ---- DEPLOY ---- */
+.deploy-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 48px;
+}
+.deploy-box h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.deploy-box h3 .icon {
+  width: 28px; height: 28px;
+  background: var(--navy);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+.code-block .comment { color: var(--muted); }
+.code-block .cmd     { color: var(--teal); }
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.info-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.info-card .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.info-card .value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--teal);
+  word-break: break-all;
+}
+
+/* ---- FUTURE MODULES ---- */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 48px;
+}
+.module-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.module-chip .letter {
+  width: 30px; height: 30px;
+  background: var(--navy);
+  color: var(--teal);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  flex-shrink: 0;
+}
+.module-chip.done .letter { background: var(--green); color: var(--white); }
+.module-chip .chip-text .chip-name { font-size: 13px; font-weight: 600; }
+.module-chip .chip-text .chip-desc { font-size: 11px; color: var(--muted); }
+.module-chip .chip-status { margin-left: auto; font-size: 11px; }
+.chip-live { color: var(--green); font-weight: 600; }
+.chip-pending { color: var(--muted); }
+
+/* ---- FOOTER ---- */
+.footer {
+  background: var(--navy);
+  color: rgba(255,255,255,.5);
+  padding: 20px max(24px, env(safe-area-inset-left, 0px));
+  font-size: 12px;
+  text-align: center;
+  margin-top: 48px;
+}
+.footer strong { color: var(--teal); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">MCA</div>
+  <div class="topbar-title">CREST CPSA - Syntex Solutions Ltd</div>
+  <div class="topbar-sub">Lab Documentation v1.0</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Module A - Soft Skills</div>
+  <h1>Lab Documentation Index</h1>
+  <p class="hero-desc">
+    Complete reference for all interactive labs created for Module A of the MCA CREST CPSA course.
+    Documents purpose, learning objectives, artifact URLs, CourseStack lesson mapping, and deployment status.
+  </p>
+  <div class="hero-meta">
+    <span class="badge badge-teal">4 Labs Complete</span>
+    <span class="badge badge-amber">1 Deploy Script Ready</span>
+    <span class="badge badge-green">All Artifacts Live</span>
+    <span class="badge badge-white">CREST CPSA Aligned</span>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- SUMMARY TABLE -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--teal)"></div>
+    <h2>Module A - Lab Summary</h2>
+    <span class="count">4 labs</span>
+  </div>
+
+  <div style="overflow-x:auto;margin-bottom:48px">
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Lab ID</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>CPSA Objective</th>
+        <th>Status</th>
+        <th>Artifact URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Lab A1</strong></td>
+        <td>Syntex Engagement Pack</td>
+        <td><span class="lesson-type-pill type-iframe">Interactive HTML</span></td>
+        <td>A2 - Engagement Packs</td>
+        <td><span class="status-live">Live</span></td>
+        <td><a href="https://claude.ai/artifact/6NaqWtw828sKyQe71bSL89" target="_blank" class="artifact-link">claude.ai/artifact/6NaqWtw828sKyQe71bSL89</a></td>
+      </tr>
+      <tr>
+        <td><strong>Lab A2</strong></td>
+        <td>Model Answer Findings Report</td>
+        <td><span class="lesson-type-pill type-iframe">Interactive HTML</span></td>
+        <td>A3 - Report Writing</td>
+        <td><span class="status-live">Live</span></td>
+        <td><a href="https://claude.ai/artifact/LSnkfC8wfqh5ZfUyDJqf5A" target="_blank" class="artifact-link">claude.ai/artifact/LSnkfC8wfqh5ZfUyDJqf5A</a></td>
+      </tr>
+      <tr>
+        <td><strong>Lab A3</strong></td>
+        <td>Student Report Template</td>
+        <td><span class="lesson-type-pill type-iframe">Fillable HTML Form</span></td>
+        <td>A3 - Report Writing</td>
+        <td><span class="status-live">Live</span></td>
+        <td><a href="https://claude.ai/artifact/GiJ8BxxyW6fmSNWX57vsBx" target="_blank" class="artifact-link">claude.ai/artifact/GiJ8BxxyW6fmSNWX57vsBx</a></td>
+      </tr>
+      <tr>
+        <td><strong>Lab A4</strong></td>
+        <td>CVSS v3.1 Scoring Worksheet</td>
+        <td><span class="lesson-type-pill type-iframe">Interactive Calculator</span></td>
+        <td>A4 - CVSS Scoring</td>
+        <td><span class="status-live">Live</span></td>
+        <td><a href="https://claude.ai/artifact/2XJeQYWxxM57kNBfULDA4o" target="_blank" class="artifact-link">claude.ai/artifact/2XJeQYWxxM57kNBfULDA4o</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- LAB CARDS -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--teal)"></div>
+    <h2>Lab Detail Cards</h2>
+    <span class="count">full specification</span>
+  </div>
+
+  <div class="labs-grid">
+
+    <!-- LAB A1 -->
+    <div class="lab-card">
+      <div class="lab-card-header">
+        <div class="lab-number" style="background:var(--teal)">A1</div>
+        <div class="lab-card-header-text">
+          <h3>Syntex Engagement Pack</h3>
+          <div class="lab-type">Interactive document review - 6 tabs</div>
+        </div>
+        <div class="lab-status"><span class="badge badge-green">Live</span></div>
+      </div>
+      <div class="lab-card-body">
+        <p>
+          A complete fictional engagement pack for the Syntex Solutions Ltd penetration test.
+          Students review all six pre-engagement documents and answer knowledge check questions
+          embedded within each document section.
+        </p>
+        <ul class="objectives-list">
+          <li>Identify the six documents that comprise a professional engagement pack</li>
+          <li>Explain the legal function of the Permission to Test Letter under CMA 1990 s.1</li>
+          <li>Distinguish the Scope of Work from the Rules of Engagement</li>
+          <li>Extract key technical details from the Network Overview (IPs, services)</li>
+          <li>Locate the emergency escalation contact and testing hours from the RoE</li>
+        </ul>
+
+        <div class="field-row">
+          <span class="field-label">CPSA Objective</span>
+          <span class="field-value">A2 - Engagement Packs and Pre-engagement</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Scenario Details</span>
+          <span class="field-value">Client: Syntex Solutions Ltd (fintech, PCI DSS regulated) - CEO: Sarah Chen - CTO: Mark Harris - Test window: Mon-Fri 09:00-17:00</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Target Systems</span>
+          <span class="field-value"><code>SYNTEX-DC01 10.0.29.131</code> (Win Server 2016 AD DC) / <code>SYNTEX-LNX01 10.1.53.39</code> (Ubuntu 20.04)</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Supplied Creds</span>
+          <span class="field-value"><code>jsmith / Password1</code> (standard domain user)</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Document Tabs</span>
+          <span class="field-value">Client Brief, Scope of Work, Rules of Engagement, Permission to Test Letter, Supplied Credentials, Network Overview</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Key Feature</span>
+          <span class="field-value">Permission to Test Letter highlighted in red as most critical document</span>
+        </div>
+
+        <div class="field-label" style="margin-bottom:6px">Artifact URL</div>
+        <div class="url-box">
+          <span id="url-a1">https://claude.ai/artifact/6NaqWtw828sKyQe71bSL89</span>
+          <button class="copy-btn" onclick="copyUrl('url-a1', this)">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Filename</span>
+          <span class="field-value"><code>syntex_engagement_pack_v1.html</code></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">CourseStack Lesson</span>
+          <span class="field-value">Chapter: Module A - Soft Skills / Lesson: "Lab A1: Engagement Pack Review" / Type: iframe</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB A2 -->
+    <div class="lab-card">
+      <div class="lab-card-header">
+        <div class="lab-number" style="background:var(--amber)">A2</div>
+        <div class="lab-card-header-text">
+          <h3>Model Answer Findings Report</h3>
+          <div class="lab-type">Annotated pentest report - 18 findings</div>
+        </div>
+        <div class="lab-status"><span class="badge badge-green">Live</span></div>
+      </div>
+      <div class="lab-card-body">
+        <p>
+          A complete model answer penetration test report for the Syntex engagement. Contains
+          18 findings across four severity levels with full evidence, CVSS vectors, remediation
+          guidance, compliance mapping, and an executive summary. Used as a reference and marking
+          guide for Lab A3.
+        </p>
+        <ul class="objectives-list">
+          <li>Identify the seven sections of a professional pentest report</li>
+          <li>Distinguish executive summary content from technical finding content</li>
+          <li>Read and interpret a CVSS v3.1 vector string</li>
+          <li>Understand the structure of a technical finding (ID, title, severity, CVSS, description, evidence, remediation)</li>
+          <li>Map findings to PCI DSS, UK GDPR, and FCA SYSC requirements</li>
+        </ul>
+
+        <div class="field-row">
+          <span class="field-label">CPSA Objective</span>
+          <span class="field-value">A3 - Reporting and Communication</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Finding Count</span>
+          <span class="field-value">18 total - 3 Critical / 7 High / 6 Medium / 2 Low</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Critical Findings</span>
+          <span class="field-value">Kerberoasting (9.9), Weak SSH Root Password (9.8), Apache Struts RCE CVE-2017-5638 (9.8)</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Report Sections</span>
+          <span class="field-value">Cover, Executive Summary, Risk Summary Table, Scope and Methodology, Technical Findings, Compliance Impact, Remediation Roadmap</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Key Feature</span>
+          <span class="field-value">Full compliance mapping table (PCI DSS v4.0, UK GDPR, FCA SYSC, CMA 1990) - collapsible finding cards with CVSS badges</span>
+        </div>
+
+        <div class="field-label" style="margin-bottom:6px">Artifact URL</div>
+        <div class="url-box">
+          <span id="url-a2">https://claude.ai/artifact/LSnkfC8wfqh5ZfUyDJqf5A</span>
+          <button class="copy-btn" onclick="copyUrl('url-a2', this)">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Filename</span>
+          <span class="field-value"><code>syntex_findings_report_v1.html</code></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">CourseStack Lesson</span>
+          <span class="field-value">Chapter: Module A - Soft Skills / Lesson: "Lab A2: Model Answer Report" / Type: iframe</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB A3 -->
+    <div class="lab-card">
+      <div class="lab-card-header">
+        <div class="lab-number" style="background:var(--green)">A3</div>
+        <div class="lab-card-header-text">
+          <h3>Student Report Template</h3>
+          <div class="lab-type">Fillable HTML form with localStorage autosave</div>
+        </div>
+        <div class="lab-status"><span class="badge badge-green">Live</span></div>
+      </div>
+      <div class="lab-card-body">
+        <p>
+          An interactive fillable report template for students to write up their Syntex findings.
+          Mirrors the structure of the model answer report (Lab A2). All fields autosave to
+          localStorage. Students fill in the executive summary, risk table, and individual findings
+          with embedded CVSS v3.1 calculator per finding.
+        </p>
+        <ul class="objectives-list">
+          <li>Practise structuring a professional pentest report from scratch</li>
+          <li>Write an executive summary targeted at a non-technical audience</li>
+          <li>Complete a risk summary table with severity ratings and CVSS scores</li>
+          <li>Document findings with evidence placeholders, description, and remediation</li>
+          <li>Calculate and record CVSS v3.1 vector strings for own findings</li>
+        </ul>
+
+        <div class="field-row">
+          <span class="field-label">CPSA Objective</span>
+          <span class="field-value">A3 - Reporting and Communication</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Form Fields</span>
+          <span class="field-value">Consultant name, date, classification, executive summary textarea, risk table rows, 5 pre-templated finding sections with embedded CVSS calculator each</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Autosave</span>
+          <span class="field-value">All fields autosave to localStorage on input - restored on page reload</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Assessment Use</span>
+          <span class="field-value">Student prints or exports completed report - compare against Lab A2 model answer for marking</span>
+        </div>
+
+        <div class="field-label" style="margin-bottom:6px">Artifact URL</div>
+        <div class="url-box">
+          <span id="url-a3">https://claude.ai/artifact/GiJ8BxxyW6fmSNWX57vsBx</span>
+          <button class="copy-btn" onclick="copyUrl('url-a3', this)">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Filename</span>
+          <span class="field-value"><code>syntex_student_report_v1.html</code></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">CourseStack Lesson</span>
+          <span class="field-value">Chapter: Module A - Soft Skills / Lesson: "Lab A3: Student Report Template" / Type: iframe</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAB A4 -->
+    <div class="lab-card">
+      <div class="lab-card-header">
+        <div class="lab-number" style="background:var(--red)">A4</div>
+        <div class="lab-card-header-text">
+          <h3>CVSS v3.1 Scoring Worksheet</h3>
+          <div class="lab-type">Interactive calculator - 6 scenarios</div>
+        </div>
+        <div class="lab-status"><span class="badge badge-green">Live</span></div>
+      </div>
+      <div class="lab-card-body">
+        <p>
+          Six finding scenarios drawn from the Syntex engagement, each requiring students to
+          select all 8 CVSS v3.1 base metrics and calculate a score. Live score calculated as
+          metrics are selected. Model answers toggle to reveal correct vector strings, scores,
+          and severity rationale.
+        </p>
+        <ul class="objectives-list">
+          <li>Select correct values for all 8 CVSS v3.1 base metrics (AV, AC, PR, UI, S, C, I, A)</li>
+          <li>Understand the Scope metric and when Scope:Changed applies (e.g. Kerberoasting)</li>
+          <li>Map vulnerability characteristics to correct Attack Vector values</li>
+          <li>Interpret the CVSS severity bands (Critical/High/Medium/Low/None)</li>
+          <li>Write correct CVSS:3.1/AV:.../... vector strings</li>
+        </ul>
+
+        <div class="field-row">
+          <span class="field-label">CPSA Objective</span>
+          <span class="field-value">A4 - Vulnerability Assessment and CVSS</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Scenarios</span>
+          <span class="field-value">6 findings: Kerberoasting (9.9 Critical), Weak SSH Root (9.8 Critical), Apache Struts RCE (9.8 Critical), SMBv1 EternalBlue (9.8 Critical), Cleartext FTP Creds (7.5 High), Self-signed Cert (5.3 Medium)</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Calculator Feature</span>
+          <span class="field-value">Live CVSS score calculated as each metric is toggled - colour-coded severity band (Critical/High/Medium/Low)</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Model Answers</span>
+          <span class="field-value">Expandable per scenario - shows correct metric selections, full vector string, score, and explanatory notes</span>
+        </div>
+
+        <div class="field-label" style="margin-bottom:6px">Artifact URL</div>
+        <div class="url-box">
+          <span id="url-a4">https://claude.ai/artifact/2XJeQYWxxM57kNBfULDA4o</span>
+          <button class="copy-btn" onclick="copyUrl('url-a4', this)">Copy</button>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">Filename</span>
+          <span class="field-value"><code>syntex_cvss_worksheet_v1.html</code></span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">CourseStack Lesson</span>
+          <span class="field-value">Chapter: Module A - Soft Skills / Lesson: "Lab A4: CVSS Scoring Worksheet" / Type: iframe</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /labs-grid -->
+
+  <!-- COURSE STRUCTURE -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--amber)"></div>
+    <h2>CourseStack Lesson Plan - Module A</h2>
+    <span class="count">11 lessons</span>
+  </div>
+
+  <div class="lesson-plan">
+    <div class="lesson-plan-header">
+      <div class="dot"></div>
+      CPSA Course ID: 32dd022a-61bb-4105-be92-71a46eadf98d - Chapter: "Module A: Soft Skills"
+    </div>
+    <div class="lesson-row header-row">
+      <div>ID</div>
+      <div>Lesson Name</div>
+      <div>Type</div>
+      <div>Pass %</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-01</div>
+      <div>Introduction and Scenario</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-02</div>
+      <div>Penetration Testing Lifecycle</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-03</div>
+      <div>Engagement Packs</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-04</div>
+      <div>Pentest Report Writing</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-05</div>
+      <div>CVSS v3.1 Scoring</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-06</div>
+      <div>Compliance Mapping</div>
+      <div><span class="lesson-type-pill type-text">text</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-07</div>
+      <div>Lab A1: Engagement Pack Review</div>
+      <div><span class="lesson-type-pill type-iframe">iframe</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-08</div>
+      <div>Lab A2: Model Answer Report</div>
+      <div><span class="lesson-type-pill type-iframe">iframe</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-09</div>
+      <div>Lab A3: Student Report Template</div>
+      <div><span class="lesson-type-pill type-iframe">iframe</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-10</div>
+      <div>Lab A4: CVSS Scoring Worksheet</div>
+      <div><span class="lesson-type-pill type-iframe">iframe</span></div>
+      <div style="color:var(--muted)">-</div>
+    </div>
+    <div class="lesson-row">
+      <div class="lesson-id">A-11</div>
+      <div>Module A: Knowledge Check (5 questions)</div>
+      <div><span class="lesson-type-pill type-quiz">quiz</span></div>
+      <div style="color:var(--green);font-weight:600">70%</div>
+    </div>
+  </div>
+
+  <!-- DEPLOY -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--green)"></div>
+    <h2>Deployment Script</h2>
+    <span class="count">ready to run</span>
+  </div>
+
+  <div class="deploy-box">
+    <h3>
+      <span class="icon">🐍</span>
+      coursestack_push_module_a_v1.py
+    </h3>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">
+      Python script that creates the Module A chapter and all 11 lessons in CourseStack via API.
+      Run from any machine with outbound HTTPS access to app.coursestack.com.
+    </p>
+
+    <div class="field-label" style="margin-bottom:6px">Install dependency</div>
+    <div class="code-block">
+      <span class="cmd">pip install requests</span>
+    </div>
+
+    <div class="field-label" style="margin-bottom:6px">Run</div>
+    <div class="code-block">
+      <span class="cmd">python3 coursestack_push_module_a_v1.py</span>
+    </div>
+
+    <div class="field-label" style="margin-bottom:6px">Expected output</div>
+    <div class="code-block">
+      <span class="comment">============================================================</span><br>
+      CourseStack Module A Push - CPSA Course<br>
+      <span class="comment">============================================================</span><br>
+      <br>
+      [chapter] Creating: Module A: Soft Skills<br>
+      &nbsp; status=201  chapter_id=xxxxxxxx-...<br>
+      <br>
+      --- Theory Lessons ---<br>
+      &nbsp; [lesson] A-01: Introduction and Scenario<br>
+      &nbsp;&nbsp;&nbsp; status=201  lesson_id=...<br>
+      &nbsp;&nbsp;&nbsp; add text item -> 201<br>
+      &nbsp; ... (6 theory lessons)<br>
+      <br>
+      --- Lab Lessons ---<br>
+      &nbsp; [lesson] Lab A1: Engagement Pack Review<br>
+      &nbsp;&nbsp;&nbsp; status=201  lesson_id=...<br>
+      &nbsp;&nbsp;&nbsp; add iframe item -> 201<br>
+      &nbsp; ... (4 lab lessons)<br>
+      <br>
+      --- Knowledge Check ---<br>
+      &nbsp; [lesson] Module A: Knowledge Check<br>
+      &nbsp;&nbsp;&nbsp; add text item -> 201<br>
+      &nbsp;&nbsp;&nbsp; add question -> 201 (x5)<br>
+      <br>
+      <span class="comment">============================================================</span><br>
+      Module A deployment complete.<br>
+      <span class="comment">============================================================</span>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="label">Course ID (CPSA)</div>
+        <div class="value">32dd022a-61bb-4105-be92-71a46eadf98d</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Base URL</div>
+        <div class="value">https://app.coursestack.com</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Auth Method</div>
+        <div class="value">HTTPBasicAuth(API_KEY, "")</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Chapters Endpoint</div>
+        <div class="value">POST /api/content/{course_id}/chapters</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Lessons Endpoint</div>
+        <div class="value">POST /api/content/{course_id}/lessons</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Items Endpoint</div>
+        <div class="value">POST /api/content/{course_id}/lessons/{lesson_id}/items</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE DECK -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--amber)"></div>
+    <h2>Module A Slide Deck</h2>
+    <span class="count">24 slides</span>
+  </div>
+
+  <div class="deploy-box" style="margin-bottom:48px">
+    <h3>
+      <span class="icon">📊</span>
+      syntex_module_a_slides_v1.pptx
+    </h3>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">
+      24-slide PowerPoint deck covering all Module A objectives. Built with pptxgenjs.
+      Visual QA completed - all 24 slides confirmed clean. Sent to Jon directly.
+    </p>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="label">Slides</div>
+        <div class="value">24 slides</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Sections</div>
+        <div class="value">6 (Cover + A1-A5 + Summary)</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Theme</div>
+        <div class="value">MCA CPSA (Cambria/Calibri, navy/teal)</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Build Script</div>
+        <div class="value">build_module_a_slides_v1.js</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Validation</div>
+        <div class="value">PASSED (scripts/office/validate.py)</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Status</div>
+        <div class="value">Delivered to Jon - 2026-10-18</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FUTURE MODULES -->
+  <div class="section-header">
+    <div class="section-dot" style="background:var(--muted)"></div>
+    <h2>Full Course - Module Map</h2>
+    <span class="count">9 modules</span>
+  </div>
+
+  <div class="modules-grid">
+    <div class="module-chip done">
+      <div class="letter">A</div>
+      <div class="chip-text">
+        <div class="chip-name">Soft Skills</div>
+        <div class="chip-desc">PT lifecycle, reports, CVSS</div>
+      </div>
+      <div class="chip-status chip-live">Done</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">B</div>
+      <div class="chip-text">
+        <div class="chip-name">Core Technical</div>
+        <div class="chip-desc">Networking, protocols, TCP/IP</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">C</div>
+      <div class="chip-text">
+        <div class="chip-name">Recon</div>
+        <div class="chip-desc">OSINT, DNS, fingerprinting</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">D</div>
+      <div class="chip-text">
+        <div class="chip-name">Scanning</div>
+        <div class="chip-desc">Nmap, enumeration, Nessus</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">E</div>
+      <div class="chip-text">
+        <div class="chip-name">Windows</div>
+        <div class="chip-desc">AD, SMB, Kerberos, privesc</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">F</div>
+      <div class="chip-text">
+        <div class="chip-name">Linux</div>
+        <div class="chip-desc">Services, privesc, hardening</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">G</div>
+      <div class="chip-text">
+        <div class="chip-name">Web Apps</div>
+        <div class="chip-desc">OWASP Top 10, Burp Suite</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">H</div>
+      <div class="chip-text">
+        <div class="chip-name">Post-Exploitation</div>
+        <div class="chip-desc">Pivoting, persistence, AV evasion</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+    <div class="module-chip">
+      <div class="letter">I</div>
+      <div class="chip-text">
+        <div class="chip-name">Mobile / IoT</div>
+        <div class="chip-desc">Android, iOS basics, embedded</div>
+      </div>
+      <div class="chip-status chip-pending">Pending</div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div class="footer">
+  <strong>My Cyber Academy</strong> - CREST CPSA Course - Syntex Solutions Ltd Scenario -
+  Module A Lab Documentation v1.0 - Generated 2026-10-18
+</div>
+
+<script>
+function copyUrl(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = ''; }, 2000);
+  }).catch(() => {
+    // fallback: select the text
+    const el = document.getElementById(id);
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+</script>
+</body>
+</html>

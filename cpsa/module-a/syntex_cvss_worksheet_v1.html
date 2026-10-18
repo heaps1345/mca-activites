@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CVSS Scoring Worksheet</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1a2e; --muted: #5a5a7a; --accent: #c8102e;
+    --accent2: #1a1a2e; --border: #d0d0e0; --input-bg: #f8f8fc;
+    --input-border: #b0b0cc; --section-bg: #f4f4f8;
+    --correct-bg: #e8f8e8; --correct-fg: #1b5e20; --correct-border: #4caf50;
+    --wrong-bg: #fff0f0; --wrong-fg: #b71c1c; --wrong-border: #ef5350;
+    --neutral-bg: #f0f4ff; --code-bg: #1a1a2e; --code-fg: #00ff41;
+    --tag-critical: #c8102e; --tag-high: #e65100; --tag-medium: #f9a825; --tag-low: #558b2f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12121f; --fg: #e8e8f0; --muted: #8888aa; --accent: #e8394a;
+      --accent2: #7070cc; --border: #2a2a3e; --input-bg: #1e1e30;
+      --input-border: #4a4a6e; --section-bg: #1a1a2e;
+      --correct-bg: #002200; --correct-fg: #88dd88; --correct-border: #4caf50;
+      --wrong-bg: #220000; --wrong-fg: #ff8888; --wrong-border: #ef5350;
+      --neutral-bg: #1a1a30; --code-bg: #0a0a14; --code-fg: #00ff41;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12121f; --fg: #e8e8f0; --muted: #8888aa; --accent: #e8394a;
+    --accent2: #7070cc; --border: #2a2a3e; --input-bg: #1e1e30;
+    --input-border: #4a4a6e; --section-bg: #1a1a2e;
+    --correct-bg: #002200; --correct-fg: #88dd88; --correct-border: #4caf50;
+    --wrong-bg: #220000; --wrong-fg: #ff8888; --wrong-border: #ef5350;
+    --neutral-bg: #1a1a30; --code-bg: #0a0a14; --code-fg: #00ff41;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+  .page { max-width: 1000px; margin: 0 auto; padding-bottom: 80px; }
+  .topbar {
+    background: var(--accent2); color: #fff; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-title { font-size: 15px; font-weight: 700; }
+  .topbar-sub { font-size: 11px; opacity: 0.7; }
+  .score-pill {
+    background: var(--accent); color: #fff; padding: 5px 16px;
+    border-radius: 20px; font-size: 13px; font-weight: 700;
+  }
+  .cover {
+    background: var(--accent2); color: #fff;
+    padding: 36px 52px 28px; margin-bottom: 0;
+  }
+  @media (max-width: 640px) { .cover { padding: 24px 16px; } .section { padding: 0 16px; } }
+  .cover-eye { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9999cc; margin-bottom: 8px; }
+  .cover h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .cover p { color: #ccccee; font-size: 14px; max-width: 620px; margin-top: 8px; }
+  .conf-bar { background: var(--accent); color: #fff; text-align: center; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 7px; font-weight: 700; }
+  .section { margin-top: 32px; padding: 0 52px; }
+  .section-hdr { display: flex; align-items: center; gap: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--accent); margin-bottom: 20px; }
+  .section-tag { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; }
+  .section-hdr h2 { font-size: 18px; font-weight: 700; }
+  .infobox { background: var(--neutral-bg); border-left: 3px solid var(--accent2); padding: 12px 16px; font-size: 13px; color: var(--muted); margin-bottom: 20px; border-radius: 0 4px 4px 0; }
+  .infobox strong { color: var(--fg); }
+
+  /* CVSS reference table */
+  .ref-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 700px) { .ref-grid { grid-template-columns: 1fr 1fr; } }
+  .ref-card { background: var(--section-bg); border: 1px solid var(--border); border-radius: 4px; padding: 12px; }
+  .ref-card h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; font-weight: 700; }
+  .ref-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; border-bottom: 1px solid var(--border); }
+  .ref-row:last-child { border: none; }
+  .ref-val { font-weight: 600; color: var(--accent); }
+
+  /* Finding scenario card */
+  .scenario { border: 1px solid var(--border); border-radius: 6px; margin: 24px 0; overflow: hidden; }
+  .scenario-hdr { background: var(--section-bg); padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; }
+  .scenario-num { background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 11px; border-radius: 2px; white-space: nowrap; margin-top: 2px; }
+  .scenario-title { font-size: 15px; font-weight: 700; }
+  .scenario-host { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .scenario-body { padding: 20px; }
+  .scenario-desc { font-size: 13px; line-height: 1.8; margin-bottom: 16px; }
+  .evidence-block { background: var(--code-bg); border-radius: 4px; padding: 12px 16px; margin: 12px 0; }
+  .evidence-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #4a8a4a; margin-bottom: 6px; font-weight: 700; }
+  .evidence-block pre { color: var(--code-fg); font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+
+  /* Scoring form */
+  .score-form { margin-top: 20px; }
+  .score-form h4 { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .cvss-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 640px) { .cvss-grid { grid-template-columns: 1fr 1fr; } }
+  .cvss-metric label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+  .cvss-metric select {
+    background: var(--input-bg); border: 1px solid var(--input-border); color: var(--fg);
+    padding: 6px 8px; border-radius: 3px; font-family: inherit; font-size: 12px; width: 100%;
+  }
+  .cvss-metric select:focus { outline: none; border-color: var(--accent); }
+  .score-row { display: flex; align-items: center; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .calc-score { font-size: 36px; font-weight: 700; min-width: 60px; }
+  .calc-sev .badge { display: inline-block; padding: 3px 12px; border-radius: 3px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-c { background: #fff0f0; color: #c8102e; border: 1px solid #c8102e; }
+  .badge-h { background: #fff5ee; color: #e65100; border: 1px solid #e65100; }
+  .badge-m { background: #fffde7; color: #f9a825; border: 1px solid #f9a825; }
+  .badge-l { background: #f1f8e9; color: #558b2f; border: 1px solid #558b2f; }
+  .badge-n { background: var(--section-bg); color: var(--muted); border: 1px solid var(--border); }
+  .vector-display { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; word-break: break-all; flex: 1; min-width: 200px; }
+  .check-btn {
+    background: var(--accent); color: #fff; border: none; padding: 9px 22px;
+    border-radius: 4px; font-size: 13px; font-weight: 700; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .check-btn:hover { opacity: 0.85; }
+  .check-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Feedback */
+  .feedback { margin-top: 14px; padding: 14px 16px; border-radius: 4px; font-size: 13px; display: none; }
+  .feedback.correct { background: var(--correct-bg); border: 1px solid var(--correct-border); color: var(--correct-fg); display: block; }
+  .feedback.wrong { background: var(--wrong-bg); border: 1px solid var(--wrong-border); color: var(--wrong-fg); display: block; }
+  .feedback strong { display: block; font-size: 14px; margin-bottom: 4px; }
+  .feedback .model-answer { margin-top: 8px; font-size: 12px; opacity: 0.85; }
+
+  /* Progress bar */
+  .progress-wrap { padding: 20px 52px 0; }
+  @media (max-width: 640px) { .progress-wrap { padding: 16px 16px 0; } }
+  .progress-bar-outer { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .progress-bar-inner { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+  .progress-label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+
+  /* Summary panel */
+  .summary-panel { background: var(--section-bg); border: 1px solid var(--border); border-radius: 6px; padding: 24px; margin: 32px 52px; }
+  @media (max-width: 640px) { .summary-panel { margin: 24px 16px; } }
+  .summary-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 500px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+  .stat-box { text-align: center; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; }
+  .stat-box .num { font-size: 28px; font-weight: 700; }
+  .stat-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .stat-correct { color: var(--correct-border); }
+  .stat-wrong { color: var(--wrong-border); }
+  .stat-score { color: var(--accent); }
+  .reset-btn {
+    background: var(--accent2); color: #fff; border: none; padding: 10px 24px;
+    border-radius: 4px; font-size: 13px; font-weight: 700; cursor: pointer;
+    margin-top: 16px; display: block; width: 100%;
+  }
+  .reset-btn:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Lab A4 - CVSS Scoring Worksheet</div>
+    <div class="topbar-sub">MCA CPSA Resolution - Module A: Soft Skills</div>
+  </div>
+  <div class="score-pill" id="scorePill">0 / 6 checked</div>
+</div>
+
+<div class="page">
+
+<div class="cover">
+  <div class="cover-eye">My Cyber Academy - CPSA Resolution</div>
+  <h1>CVSS v3.1 Scoring Worksheet</h1>
+  <p>For each finding below, read the scenario, analyse the vulnerability description and evidence, then select the correct CVSS v3.1 Base metric values. Submit your score to check it against the model answer with a full explanation.</p>
+</div>
+<div class="conf-bar">Lab A4 - Module A: Soft Skills - Syntex Solutions Ltd Engagement</div>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span>Progress</span>
+    <span id="progressText">0 of 6 completed</span>
+  </div>
+  <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+</div>
+
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Reference</span>
+    <h2>CVSS v3.1 Base Metric Quick Reference</h2>
+  </div>
+  <div class="infobox">
+    Use this reference table while scoring. CVSS v3.1 Base Score = <strong>Impact + Exploitability</strong>, capped at 10.0. Scores: 0.0 = None, 0.1-3.9 = Low, 4.0-6.9 = Medium, 7.0-8.9 = High, 9.0-10.0 = Critical.
+  </div>
+  <div class="ref-grid">
+    <div class="ref-card">
+      <h4>Attack Vector (AV)</h4>
+      <div class="ref-row"><span>Network</span><span class="ref-val">N</span></div>
+      <div class="ref-row"><span>Adjacent</span><span class="ref-val">A</span></div>
+      <div class="ref-row"><span>Local</span><span class="ref-val">L</span></div>
+      <div class="ref-row"><span>Physical</span><span class="ref-val">P</span></div>
+    </div>
+    <div class="ref-card">
+      <h4>Privileges / UI</h4>
+      <div class="ref-row"><span>PR: None</span><span class="ref-val">N</span></div>
+      <div class="ref-row"><span>PR: Low</span><span class="ref-val">L</span></div>
+      <div class="ref-row"><span>PR: High</span><span class="ref-val">H</span></div>
+      <div class="ref-row"><span>UI: None</span><span class="ref-val">N</span></div>
+      <div class="ref-row"><span>UI: Required</span><span class="ref-val">R</span></div>
+    </div>
+    <div class="ref-card">
+      <h4>Scope / Complexity</h4>
+      <div class="ref-row"><span>AC: Low</span><span class="ref-val">L</span></div>
+      <div class="ref-row"><span>AC: High</span><span class="ref-val">H</span></div>
+      <div class="ref-row"><span>Scope: Unchanged</span><span class="ref-val">U</span></div>
+      <div class="ref-row"><span>Scope: Changed</span><span class="ref-val">C</span></div>
+    </div>
+    <div class="ref-card">
+      <h4>CIA Impact</h4>
+      <div class="ref-row"><span>None</span><span class="ref-val">N</span></div>
+      <div class="ref-row"><span>Low</span><span class="ref-val">L</span></div>
+      <div class="ref-row"><span>High</span><span class="ref-val">H</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Scenarios</span>
+    <h2>Findings to Score</h2>
+  </div>
+
+  <!-- ===== FINDING 1 ===== -->
+  <div class="scenario" id="sc1">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-01</span>
+      <div>
+        <div class="scenario-title">Unauthenticated Remote Code Execution via Apache Struts</div>
+        <div class="scenario-host">SYNTEX-LNX01 - 10.1.53.39 - Port 8080/TCP</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        The web application running on port 8080 is built on Apache Struts 2.5.16, which is vulnerable to CVE-2018-11776. The vulnerability exists in the Struts OGNL expression evaluation and allows a remote, unauthenticated attacker to execute arbitrary OS commands on the server by sending a specially crafted HTTP request. No authentication is required and no user interaction is needed. A successful exploit gives the attacker command execution as the <code>www-data</code> user, but a SUID binary on the system allows immediate privilege escalation to root, effectively compromising the underlying server and any data it holds.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>curl -v http://10.1.53.39:8080/index.action \
+  -H 'Content-Type: %{(#_=@org.apache.struts2.ServletActionContext@getResponse())'
+
+HTTP/1.1 200 OK
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+# Post-exploitation - SUID binary found
+find / -perm -4000 2>/dev/null
+/usr/bin/find
+find / -exec /bin/sh -p \; -quit
+# id
+uid=0(root) gid=0(root) groups=0(root)</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s1-AV" onchange="calc('1')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s1-AC" onchange="calc('1')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s1-PR" onchange="calc('1')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s1-UI" onchange="calc('1')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s1-S" onchange="calc('1')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s1-C" onchange="calc('1')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s1-I" onchange="calc('1')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s1-A" onchange="calc('1')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs1">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev1">-</span></div>
+          <div class="vector-display" id="cvec1">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('1')" id="chk1" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINDING 2 ===== -->
+  <div class="scenario" id="sc2">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-02</span>
+      <div>
+        <div class="scenario-title">SMB Null Session - Password Policy Enumeration</div>
+        <div class="scenario-host">SYNTEX-DC01 - 10.0.29.131 - Port 445/TCP</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        The Domain Controller accepts SMB null sessions, allowing an unauthenticated network attacker to enumerate the domain password policy without any credentials. The attacker can determine the minimum password length, lockout threshold, and lockout duration. This information assists in planning brute-force and password spray attacks by allowing the attacker to stay below the lockout threshold. The vulnerability does not directly disclose any credentials or allow modification of data, but it reduces the effort required for subsequent attacks. No user interaction is required and no privileges are needed.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>crackmapexec smb 10.0.29.131 --pass-pol -u '' -p ''
+
+SMB  10.0.29.131  445  SYNTEX-DC01  Minimum password length: 7
+SMB  10.0.29.131  445  SYNTEX-DC01  Password history length: 0
+SMB  10.0.29.131  445  SYNTEX-DC01  Maximum password age: Not Set
+SMB  10.0.29.131  445  SYNTEX-DC01  Password Complexity Flags: 000000
+SMB  10.0.29.131  445  SYNTEX-DC01  Lockout Threshold: 0
+SMB  10.0.29.131  445  SYNTEX-DC01  Lockout Duration: Not Set</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s2-AV" onchange="calc('2')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s2-AC" onchange="calc('2')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s2-PR" onchange="calc('2')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s2-UI" onchange="calc('2')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s2-S" onchange="calc('2')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s2-C" onchange="calc('2')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s2-I" onchange="calc('2')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s2-A" onchange="calc('2')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs2">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev2">-</span></div>
+          <div class="vector-display" id="cvec2">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('2')" id="chk2" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINDING 3 ===== -->
+  <div class="scenario" id="sc3">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-03</span>
+      <div>
+        <div class="scenario-title">Cleartext FTP Credentials in Configuration File</div>
+        <div class="scenario-host">SYNTEX-LNX01 - 10.1.53.39 - Filesystem</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        Following initial access to SYNTEX-LNX01 with low-privileged credentials, a world-readable configuration file was discovered containing plaintext FTP credentials for the organisation's backup server. The credentials allow an authenticated attacker with local access to escalate their reach to the backup infrastructure. Exploiting this requires local access to the server (already obtained via another vulnerability). The backup server stores full server snapshots including the Active Directory database. Integrity and availability of the backup server could be affected, but the attacker cannot modify data on the system where the credentials were found. The vulnerability does not change the scope of the attack beyond the component where it was found.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>cat /var/www/html/config/.env
+
+DB_HOST=localhost
+DB_USER=webapp
+DB_PASS=Webapp2023!
+FTP_HOST=192.168.10.50
+FTP_USER=backup_svc
+FTP_PASS=Backup$ecure99
+FTP_PATH=/backups/syntex/
+
+ls -la /var/www/html/config/.env
+-rw-r--r-- 1 www-data www-data 312 Oct 20 2024 /var/www/html/config/.env</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s3-AV" onchange="calc('3')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s3-AC" onchange="calc('3')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s3-PR" onchange="calc('3')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s3-UI" onchange="calc('3')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s3-S" onchange="calc('3')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s3-C" onchange="calc('3')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s3-I" onchange="calc('3')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s3-A" onchange="calc('3')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs3">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev3">-</span></div>
+          <div class="vector-display" id="cvec3">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('3')" id="chk3" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINDING 4 ===== -->
+  <div class="scenario" id="sc4">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-04</span>
+      <div>
+        <div class="scenario-title">Weak SSH Password - Root Login Permitted</div>
+        <div class="scenario-host">SYNTEX-LNX01 - 10.1.53.39 - Port 22/TCP</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        SSH is accessible from the network on port 22 and the root account is permitted to log in directly. The root account uses the password <code>toor</code> (root reversed), a well-known default. An unauthenticated remote attacker can authenticate directly as root using this trivially guessable password, gaining full administrative control of the Linux server. No user interaction is required. Root access gives complete control over the system including all data, processes, and configuration - full compromise of confidentiality, integrity, and availability. The attack does not change scope beyond the target system itself.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>ssh root@10.1.53.39
+root@10.1.53.39's password: toor
+
+Welcome to Ubuntu 20.04.6 LTS
+
+root@SYNTEX-LNX01:~# id
+uid=0(root) gid=0(root) groups=0(root)
+
+root@SYNTEX-LNX01:~# hostname && uname -a
+SYNTEX-LNX01
+Linux SYNTEX-LNX01 5.4.0-182-generic #202-Ubuntu SMP x86_64 GNU/Linux</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s4-AV" onchange="calc('4')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s4-AC" onchange="calc('4')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s4-PR" onchange="calc('4')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s4-UI" onchange="calc('4')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s4-S" onchange="calc('4')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s4-C" onchange="calc('4')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s4-I" onchange="calc('4')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s4-A" onchange="calc('4')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs4">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev4">-</span></div>
+          <div class="vector-display" id="cvec4">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('4')" id="chk4" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINDING 5 ===== -->
+  <div class="scenario" id="sc5">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-05</span>
+      <div>
+        <div class="scenario-title">Kerberoastable Service Account - Weak Password Hash</div>
+        <div class="scenario-host">SYNTEX-DC01 - 10.0.29.131 - Active Directory</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        Using the supplied domain credentials (jsmith / Password1), a Kerberoasting attack was performed. The service account <code>svc_mssql</code> has a weak password and its Kerberos service ticket hash was extracted and cracked offline in under 2 minutes. The cracked credentials (<code>svc_mssql:Mssql2019!</code>) provide access to the MSSQL service and the account has local admin rights on SYNTEX-DC01. Kerberoasting requires valid domain credentials (low privileges) to request the ticket. The attack is performed entirely from the attacker's machine with no interaction on the target. The cracked credentials grant access beyond the initial component (the Domain Controller itself and the SQL service), changing the scope of impact.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>GetUserSPNs.py syntex.local/jsmith:Password1 -dc-ip 10.0.29.131 -request
+
+ServicePrincipalName       Name       MemberOf
+svc_mssql/SYNTEX-DC01.syntex.local  svc_mssql  CN=Domain Admins
+
+$krb5tgs$23$*svc_mssql$SYNTEX.LOCAL$syntex.local/svc_mssql*$a3f...
+
+hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt
+Session..........: hashcat
+Status...........: Cracked
+Hash.Name........: Kerberos 5, etype 23
+Password.........: Mssql2019!</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s5-AV" onchange="calc('5')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s5-AC" onchange="calc('5')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s5-PR" onchange="calc('5')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s5-UI" onchange="calc('5')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s5-S" onchange="calc('5')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s5-C" onchange="calc('5')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s5-I" onchange="calc('5')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s5-A" onchange="calc('5')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs5">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev5">-</span></div>
+          <div class="vector-display" id="cvec5">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('5')" id="chk5" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FINDING 6 ===== -->
+  <div class="scenario" id="sc6">
+    <div class="scenario-hdr">
+      <span class="scenario-num">F-06</span>
+      <div>
+        <div class="scenario-title">Self-Signed TLS Certificate on Admin Portal</div>
+        <div class="scenario-host">SYNTEX-LNX01 - 10.1.53.39 - Port 8443/TCP</div>
+      </div>
+    </div>
+    <div class="scenario-body">
+      <div class="scenario-desc">
+        The administrative web portal on port 8443 uses a self-signed TLS certificate that has expired. This means that users accessing the portal receive browser security warnings and are susceptible to man-in-the-middle attacks if they proceed. However, exploitation requires an attacker to be on the same network segment as the victim (adjacent network position) and requires the user to interact by accepting the certificate warning and proceeding. If exploited, an attacker positioned on the network could intercept credentials submitted to the admin portal. Integrity and availability are not directly affected. The scope of the vulnerability stays within the affected component.
+      </div>
+      <div class="evidence-block">
+        <div class="evidence-label">Evidence</div>
+        <pre>openssl s_client -connect 10.1.53.39:8443 2>/dev/null | openssl x509 -noout -text
+
+Certificate:
+    Issuer: CN=localhost
+    Subject: CN=localhost
+    Validity:
+        Not Before: Jan  1 00:00:00 2022 GMT
+        Not After : Jan  1 00:00:00 2023 GMT  [EXPIRED]
+    Signature Algorithm: sha256WithRSAEncryption
+    Self-signed certificate in certificate chain</pre>
+      </div>
+      <div class="score-form">
+        <h4>Your CVSS v3.1 Base Score</h4>
+        <div class="cvss-grid">
+          <div class="cvss-metric"><label>Attack Vector</label>
+            <select id="s6-AV" onchange="calc('6')"><option value="">Select</option><option value="N">Network</option><option value="A">Adjacent</option><option value="L">Local</option><option value="P">Physical</option></select></div>
+          <div class="cvss-metric"><label>Attack Complexity</label>
+            <select id="s6-AC" onchange="calc('6')"><option value="">Select</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Privileges Required</label>
+            <select id="s6-PR" onchange="calc('6')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>User Interaction</label>
+            <select id="s6-UI" onchange="calc('6')"><option value="">Select</option><option value="N">None</option><option value="R">Required</option></select></div>
+          <div class="cvss-metric"><label>Scope</label>
+            <select id="s6-S" onchange="calc('6')"><option value="">Select</option><option value="U">Unchanged</option><option value="C">Changed</option></select></div>
+          <div class="cvss-metric"><label>Confidentiality</label>
+            <select id="s6-C" onchange="calc('6')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Integrity</label>
+            <select id="s6-I" onchange="calc('6')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+          <div class="cvss-metric"><label>Availability</label>
+            <select id="s6-A" onchange="calc('6')"><option value="">Select</option><option value="N">None</option><option value="L">Low</option><option value="H">High</option></select></div>
+        </div>
+        <div class="score-row">
+          <div><div style="font-size:11px;color:var(--muted);margin-bottom:2px">BASE SCORE</div><div class="calc-score" id="cs6">-</div></div>
+          <div class="calc-sev"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">SEVERITY</div><span class="badge badge-n" id="csev6">-</span></div>
+          <div class="vector-display" id="cvec6">Complete all fields above</div>
+          <button class="check-btn" onclick="checkAnswer('6')" id="chk6" disabled>Check Answer</button>
+        </div>
+        <div class="feedback" id="fb6"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end section -->
+
+<!-- Summary -->
+<div class="summary-panel" id="summaryPanel" style="display:none">
+  <h3>Results Summary</h3>
+  <div class="summary-grid">
+    <div class="stat-box"><div class="num stat-correct" id="sumCorrect">0</div><div class="lbl">Correct</div></div>
+    <div class="stat-box"><div class="num stat-wrong" id="sumWrong">0</div><div class="lbl">Incorrect</div></div>
+    <div class="stat-box"><div class="num stat-score" id="sumPct">0%</div><div class="lbl">Score</div></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">Try Again</button>
+</div>
+
+<div style="margin-top:32px;padding:16px 52px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  <span>MCA CPSA Resolution - Lab A4 - CVSS Scoring Worksheet</span>
+  <span>My Cyber Academy | mycyberacademy.co.uk</span>
+</div>
+
+</div><!-- end page -->
+
+<script>
+// CVSS 3.1 calculator (same engine as student report)
+const W = {
+  AV:{N:0.85,A:0.62,L:0.55,P:0.20}, AC:{L:0.77,H:0.44},
+  PR:{N:0.85,L:0.62,H:0.27}, UI:{N:0.85,R:0.62},
+  C:{N:0,L:0.22,H:0.56}, I:{N:0,L:0.22,H:0.56}, A:{N:0,L:0.22,H:0.56}
+};
+const PR_C = {N:0.85,L:0.50,H:0.50};
+
+function cvssScore(v) {
+  const iss = 1-(1-W.C[v.C])*(1-W.I[v.I])*(1-W.A[v.A]);
+  const sc = v.S==='C';
+  const imp = sc ? 7.52*(iss-0.029)-3.25*Math.pow(iss-0.02,15) : 6.42*iss;
+  const pr = sc ? PR_C[v.PR] : W.PR[v.PR];
+  const exp = 8.22*W.AV[v.AV]*W.AC[v.AC]*pr*W.UI[v.UI];
+  if (imp<=0) return 0;
+  const raw = sc ? Math.min(1.08*(imp+exp),10) : Math.min(imp+exp,10);
+  return Math.ceil(raw*10)/10;
+}
+
+function severity(s) {
+  if(s===0) return {l:'-',c:'badge-n'};
+  if(s<4)   return {l:'Low',c:'badge-l'};
+  if(s<7)   return {l:'Medium',c:'badge-m'};
+  if(s<9)   return {l:'High',c:'badge-h'};
+  return {l:'Critical',c:'badge-c'};
+}
+
+function getVals(n) {
+  const g = m => (document.getElementById(`s${n}-${m}`)||{}).value||'';
+  return {AV:g('AV'),AC:g('AC'),PR:g('PR'),UI:g('UI'),S:g('S'),C:g('C'),I:g('I'),A:g('A')};
+}
+
+function calc(n) {
+  const v = getVals(n);
+  const complete = Object.values(v).every(x=>x);
+  if (!complete) return;
+  const s = cvssScore(v);
+  const sev = severity(s);
+  document.getElementById('cs'+n).textContent = s.toFixed(1);
+  const sevEl = document.getElementById('csev'+n);
+  sevEl.textContent = sev.l;
+  sevEl.className = 'badge '+sev.c;
+  document.getElementById('cvec'+n).textContent =
+    `CVSS:3.1/AV:${v.AV}/AC:${v.AC}/PR:${v.PR}/UI:${v.UI}/S:${v.S}/C:${v.C}/I:${v.I}/A:${v.A}`;
+  const btn = document.getElementById('chk'+n);
+  if(btn && !btn.dataset.done) btn.disabled = false;
+}
+
+// Model answers
+const ANSWERS = {
+  '1': { v:{AV:'N',AC:'L',PR:'N',UI:'N',S:'U',C:'H',I:'H',A:'H'}, score:9.8,
+    why: "AV:N - exploitable over the internet with no network restrictions. AC:L - no special conditions needed, reliable exploit exists. PR:N - no authentication required. UI:N - no user interaction. S:U - exploitation stays within the web server component. C/I/A:H - root-level access obtained via RCE gives full control of the system. Expected score: 9.8 (Critical)." },
+  '2': { v:{AV:'N',AC:'L',PR:'N',UI:'N',S:'U',C:'L',I:'N',A:'N'}, score:5.3,
+    why: "AV:N - SMB accessible over the network. AC:L - null sessions trivial to establish. PR:N - no authentication required. UI:N - no interaction needed. S:U - impact stays within the DC component. C:L - only partial, non-sensitive info disclosed (password policy structure, not credentials). I:N - no modification possible. A:N - no availability impact. Expected score: 5.3 (Medium). This is a common area where students over-score - the info disclosed assists attacks but does not itself breach confidentiality of protected data." },
+  '3': { v:{AV:'L',AC:'L',PR:'L',UI:'N',S:'U',C:'H',I:'H',A:'H'}, score:7.8,
+    why: "AV:L - attacker must have local access to the filesystem (already on the box). AC:L - config file is world-readable, no complexity. PR:L - low-privileged OS access was already required to reach this file. UI:N - no interaction needed. S:U - scope does not change beyond the component. C/I/A:H - credentials give access to backup server containing full AD database backup, total confidentiality/integrity/availability impact. Expected score: 7.8 (High)." },
+  '4': { v:{AV:'N',AC:'L',PR:'N',UI:'N',S:'U',C:'H',I:'H',A:'H'}, score:9.8,
+    why: "AV:N - SSH is accessible from the network. AC:L - trivially guessable default password, no complexity. PR:N - no prior credentials needed. UI:N - no interaction needed. S:U - impact confined to target system. C/I/A:H - direct root shell means complete system compromise. Expected score: 9.8 (Critical). Note similarity to F-01 in final score despite very different attack chain." },
+  '5': { v:{AV:'N',AC:'L',PR:'L',UI:'N',S:'C',C:'H',I:'H',A:'H'}, score:9.9,
+    why: "AV:N - Kerberoasting request sent over the network to the DC. AC:L - once credentials are in hand, cracking is straightforward with a wordlist. PR:L - requires valid domain credentials (supplied in the engagement pack as jsmith/Password1). UI:N - no user interaction. S:C - CRITICAL: the cracked svc_mssql account has Domain Admin rights, so a vulnerability in one service account changes the scope to include the entire domain. C/I/A:H - full domain compromise. Expected score: 9.9 (Critical). The S:C (Scope Changed) is the key learning point here." },
+  '6': { v:{AV:'A',AC:'H',PR:'N',UI:'R',S:'U',C:'L',I:'N',A:'N'}, score:3.1,
+    why: "AV:A - MitM attack requires attacker to be on the same network segment as the victim. AC:H - requires a successful network positioning attack (ARP spoofing etc.) alongside the certificate issue. PR:N - no privileges needed for the certificate issue itself. UI:R - user must accept the browser warning and proceed. S:U - scope stays within the component. C:L - partial credential disclosure possible if exploited. I:N and A:N - no direct integrity or availability impact. Expected score: 3.1 (Low). This is commonly over-scored. Students often default to AV:N but a MitM requires adjacency." }
+};
+
+let checked = {}; let correct = 0; let wrong = 0;
+
+function checkAnswer(n) {
+  const v = getVals(n);
+  const ans = ANSWERS[n];
+  const fb = document.getElementById('fb'+n);
+  const btn = document.getElementById('chk'+n);
+
+  // Compare vectors
+  const keys = ['AV','AC','PR','UI','S','C','I','A'];
+  let errors = [];
+  keys.forEach(k => { if(v[k] !== ans.v[k]) errors.push(`${k}: you selected ${v[k]}, expected ${ans.v[k]}`); });
+
+  const isCorrect = errors.length === 0;
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+
+  if (isCorrect) {
+    fb.innerHTML = `<strong>Correct! Score: ${ans.score} (${severity(ans.score).l})</strong><div class="model-answer">${ans.why}</div>`;
+    if (!checked[n]) { correct++; }
+  } else {
+    const errList = errors.map(e=>`<li>${e}</li>`).join('');
+    const modelVec = `CVSS:3.1/AV:${ans.v.AV}/AC:${ans.v.AC}/PR:${ans.v.PR}/UI:${ans.v.UI}/S:${ans.v.S}/C:${ans.v.C}/I:${ans.v.I}/A:${ans.v.A}`;
+    fb.innerHTML = `<strong>Not quite - ${errors.length} metric(s) differ:</strong><ul style="margin:6px 0 8px 18px">${errList}</ul><div class="model-answer"><strong>Explanation:</strong> ${ans.why}<br><br><strong>Model vector:</strong> <code>${modelVec}</code></div>`;
+    if (!checked[n]) { wrong++; }
+  }
+
+  checked[n] = true;
+  btn.disabled = true;
+  btn.dataset.done = '1';
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = 6;
+  const done = Object.keys(checked).length;
+  document.getElementById('progressText').textContent = `${done} of ${total} completed`;
+  document.getElementById('progressBar').style.width = `${(done/total)*100}%`;
+  document.getElementById('scorePill').textContent = `${done} / ${total} checked`;
+  if (done === total) {
+    const panel = document.getElementById('summaryPanel');
+    panel.style.display = 'block';
+    document.getElementById('sumCorrect').textContent = correct;
+    document.getElementById('sumWrong').textContent = wrong;
+    document.getElementById('sumPct').textContent = Math.round((correct/total)*100)+'%';
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
+function resetAll() {
+  checked = {}; correct = 0; wrong = 0;
+  for(let n=1;n<=6;n++) {
+    ['AV','AC','PR','UI','S','C','I','A'].forEach(m=>{
+      const el = document.getElementById(`s${n}-${m}`);
+      if(el) el.value='';
+    });
+    document.getElementById('cs'+n).textContent='-';
+    document.getElementById('csev'+n).className='badge badge-n';
+    document.getElementById('csev'+n).textContent='-';
+    document.getElementById('cvec'+n).textContent='Complete all fields above';
+    const fb=document.getElementById('fb'+n); fb.className='feedback'; fb.innerHTML='';
+    const btn=document.getElementById('chk'+n); btn.disabled=true; delete btn.dataset.done;
+  }
+  document.getElementById('summaryPanel').style.display='none';
+  document.getElementById('progressBar').style.width='0%';
+  document.getElementById('progressText').textContent='0 of 6 completed';
+  document.getElementById('scorePill').textContent='0 / 6 checked';
+}
+</script>
+</body>
+</html>

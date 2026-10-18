@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CPSA Student Report</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a2e;
+    --muted: #5a5a7a;
+    --accent: #c8102e;
+    --accent2: #1a1a2e;
+    --border: #d0d0e0;
+    --input-bg: #f8f8fc;
+    --input-border: #b0b0cc;
+    --input-focus: #c8102e;
+    --section-bg: #f4f4f8;
+    --table-head: #1a1a2e;
+    --table-head-fg: #ffffff;
+    --table-alt: #f9f9fc;
+    --critical-bg: #fff0f0;
+    --critical-border: #c8102e;
+    --high-bg: #fff5ee;
+    --high-border: #e65100;
+    --medium-bg: #fffde7;
+    --medium-border: #f9a825;
+    --low-bg: #f1f8e9;
+    --low-border: #558b2f;
+    --tag-bg: #e8e8f4;
+    --code-bg: #1a1a2e;
+    --code-fg: #00ff41;
+    --saved-bg: #e8f8e8;
+    --saved-fg: #1b4a1b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12121f; --fg: #e8e8f0; --muted: #8888aa; --accent: #e8394a;
+      --accent2: #7070cc; --border: #2a2a3e; --input-bg: #1e1e30;
+      --input-border: #4a4a6e; --input-focus: #e8394a; --section-bg: #1a1a2e;
+      --table-head: #2a2a4e; --table-head-fg: #e8e8f0; --table-alt: #161626;
+      --critical-bg: #2a0000; --critical-border: #e8394a;
+      --high-bg: #1f0f00; --high-border: #e65100;
+      --medium-bg: #1f1800; --medium-border: #f9a825;
+      --low-bg: #001f00; --low-border: #558b2f;
+      --tag-bg: #2a2a4e; --code-bg: #0a0a14; --code-fg: #00ff41;
+      --saved-bg: #001f00; --saved-fg: #aaddaa;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12121f; --fg: #e8e8f0; --muted: #8888aa; --accent: #e8394a;
+    --accent2: #7070cc; --border: #2a2a3e; --input-bg: #1e1e30;
+    --input-border: #4a4a6e; --input-focus: #e8394a; --section-bg: #1a1a2e;
+    --table-head: #2a2a4e; --table-head-fg: #e8e8f0; --table-alt: #161626;
+    --critical-bg: #2a0000; --critical-border: #e8394a;
+    --high-bg: #1f0f00; --high-border: #e65100;
+    --medium-bg: #1f1800; --medium-border: #f9a825;
+    --low-bg: #001f00; --low-border: #558b2f;
+    --tag-bg: #2a2a4e; --code-bg: #0a0a14; --code-fg: #00ff41;
+    --saved-bg: #001f00; --saved-fg: #aaddaa;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 0 0 80px; }
+
+  /* Top bar */
+  .topbar {
+    background: var(--accent2);
+    color: #fff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left { font-size: 12px; opacity: 0.8; }
+  .topbar-title { font-size: 14px; font-weight: 700; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; }
+  .btn:hover { opacity: 0.85; }
+  .save-status { font-size: 11px; color: rgba(255,255,255,0.6); }
+  .save-status.saved { color: #88ff88; }
+
+  /* Cover */
+  .cover { background: var(--accent2); color: #fff; padding: 40px 52px 32px; }
+  .cover-eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9999cc; margin-bottom: 10px; }
+  .cover h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .cover h2 { font-size: 16px; font-weight: 400; color: #ccccee; margin-bottom: 28px; }
+  .cover-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); }
+  .cover-field label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #8888bb; display: block; margin-bottom: 4px; }
+  .cover-field input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 3px;
+    width: 100%;
+    font-size: 13px;
+  }
+  .cover-field input::placeholder { color: rgba(255,255,255,0.3); }
+  .cover-field input:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.12); }
+  .conf-bar { background: var(--accent); color: #fff; text-align: center; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 7px; font-weight: 700; }
+
+  /* Sections */
+  .section { margin-top: 36px; padding: 0 52px; }
+  @media (max-width: 680px) { .section { padding: 0 16px; } .cover { padding: 28px 16px; } .cover-form { grid-template-columns: 1fr 1fr; } }
+  .section-hdr { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--accent); margin-bottom: 20px; }
+  .section-tag { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 2px; white-space: nowrap; }
+  .section-hdr h2 { font-size: 18px; font-weight: 700; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 10px; font-style: italic; }
+
+  /* Inputs */
+  textarea, input[type="text"], input[type="number"], select {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--fg);
+    padding: 10px 12px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    width: 100%;
+    resize: vertical;
+  }
+  textarea:focus, input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--input-focus);
+    box-shadow: 0 0 0 2px rgba(200,16,46,0.12);
+  }
+  textarea { min-height: 100px; }
+  .field-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; display: block; }
+  .field-wrap { margin-bottom: 16px; }
+
+  /* Summary table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: var(--table-head); color: var(--table-head-fg); padding: 9px 13px; text-align: left; font-size: 11px; letter-spacing: 0.5px; font-weight: 600; }
+  td { padding: 9px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--table-alt); }
+  td input[type="text"] { padding: 4px 8px; font-size: 12px; min-height: unset; }
+  td select { padding: 4px 8px; font-size: 12px; }
+
+  /* Severity badges */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-critical { background: var(--critical-bg); color: var(--critical-border); border: 1px solid var(--critical-border); }
+  .badge-high { background: var(--high-bg); color: var(--high-border); border: 1px solid var(--high-border); }
+  .badge-medium { background: var(--medium-bg); color: var(--medium-border); border: 1px solid var(--medium-border); }
+  .badge-low { background: var(--low-bg); color: var(--low-border); border: 1px solid var(--low-border); }
+
+  /* Finding card */
+  .finding { border: 1px solid var(--border); border-radius: 4px; margin: 20px 0; overflow: hidden; }
+  .finding-header { padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between; background: var(--section-bg); border-bottom: 1px solid var(--border); }
+  .finding-id-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 2px; }
+  .finding-title-display { font-size: 14px; font-weight: 700; flex: 1; color: var(--muted); font-style: italic; }
+  .finding-title-display.filled { color: var(--fg); font-style: normal; }
+  .finding-controls { display: flex; gap: 8px; align-items: center; }
+  .finding-body { padding: 16px; }
+  .finding-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 680px) { .finding-meta-grid { grid-template-columns: 1fr 1fr; } }
+  .collapse-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .collapse-btn:hover { color: var(--fg); }
+
+  /* CVSS calculator */
+  .cvss-calc { background: var(--section-bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin: 12px 0; }
+  .cvss-title { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .cvss-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 680px) { .cvss-grid { grid-template-columns: 1fr 1fr; } }
+  .cvss-metric label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; }
+  .cvss-metric select { font-size: 12px; padding: 5px 8px; }
+  .cvss-score-row { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .cvss-score-display { font-size: 32px; font-weight: 700; min-width: 60px; }
+  .cvss-vector-display { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; word-break: break-all; flex: 1; }
+
+  /* Evidence block */
+  .evidence-block { background: var(--code-bg); border-radius: 4px; padding: 12px 16px; margin: 8px 0; }
+  .evidence-block textarea {
+    background: transparent;
+    border: none;
+    color: var(--code-fg);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 0;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
+  .evidence-block textarea:focus { box-shadow: none; border-color: transparent; }
+  .evidence-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #4a8a4a; margin-bottom: 6px; font-weight: 700; }
+
+  /* Add finding button */
+  .add-finding-btn {
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    margin-top: 12px;
+  }
+  .add-finding-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Risk summary count boxes */
+  .risk-counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 12px 0; }
+  .risk-count-box { border-radius: 4px; padding: 12px 16px; text-align: center; }
+  .risk-count-box label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .risk-count-box .count { font-size: 28px; font-weight: 700; }
+  .rc-critical { background: var(--critical-bg); color: var(--critical-border); border: 1px solid var(--critical-border); }
+  .rc-high { background: var(--high-bg); color: var(--high-border); border: 1px solid var(--high-border); }
+  .rc-medium { background: var(--medium-bg); color: var(--medium-border); border: 1px solid var(--medium-border); }
+  .rc-low { background: var(--low-bg); color: var(--low-border); border: 1px solid var(--low-border); }
+
+  /* Sig block */
+  .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+  .sig-field { border-top: 1px solid var(--border); padding-top: 8px; }
+  .sig-field label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+  @media (max-width: 680px) { .sig-grid { grid-template-columns: 1fr; } .risk-counts { grid-template-columns: 1fr 1fr; } }
+
+  .info-box { background: var(--section-bg); border-left: 3px solid var(--accent2); padding: 10px 14px; margin: 10px 0; font-size: 12px; color: var(--muted); border-radius: 0 4px 4px 0; }
+
+  @media print {
+    .topbar { display: none !important; }
+    .add-finding-btn { display: none !important; }
+    .collapse-btn { display: none !important; }
+    .btn { display: none !important; }
+    textarea, input { border: 1px solid #ccc !important; }
+    .finding-body.collapsed { display: block !important; }
+    body { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <div class="topbar-left">MCA - CPSA Resolution</div>
+    <div class="topbar-title">Penetration Test Report - Student Submission</div>
+  </div>
+  <div class="topbar-actions">
+    <span class="save-status" id="saveStatus">Unsaved</span>
+    <button class="btn btn-secondary" onclick="saveProgress()">Save Progress</button>
+    <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    <button class="btn btn-primary" onclick="window.print()">Print / Export PDF</button>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">My Cyber Academy - CPSA Resolution</div>
+  <h1>Syntex Solutions Ltd</h1>
+  <h2>Internal Penetration Test - Technical Findings Report</h2>
+  <div class="cover-form">
+    <div class="cover-field">
+      <label>Your Full Name</label>
+      <input type="text" id="cf-name" placeholder="Enter your name" oninput="markUnsaved()">
+    </div>
+    <div class="cover-field">
+      <label>Date Submitted</label>
+      <input type="text" id="cf-date" placeholder="DD/MM/YYYY" oninput="markUnsaved()">
+    </div>
+    <div class="cover-field">
+      <label>Engagement Reference</label>
+      <input type="text" id="cf-ref" value="MCA-CPSA-2024-001" oninput="markUnsaved()">
+    </div>
+    <div class="cover-field">
+      <label>Test Period</label>
+      <input type="text" id="cf-period" value="4-8 November 2024" oninput="markUnsaved()">
+    </div>
+    <div class="cover-field">
+      <label>Prepared For</label>
+      <input type="text" id="cf-client" value="Syntex Solutions Ltd" oninput="markUnsaved()">
+    </div>
+    <div class="cover-field">
+      <label>Classification</label>
+      <input type="text" id="cf-class" value="CONFIDENTIAL" oninput="markUnsaved()">
+    </div>
+  </div>
+</div>
+<div class="conf-bar">Confidential - Authorised Recipients Only - Not for Distribution</div>
+
+<!-- SECTION 1: EXEC SUMMARY -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 1</span>
+    <h2>Executive Summary</h2>
+  </div>
+  <p class="hint">Write a non-technical summary suitable for a board-level audience. Cover: what was tested, the overall risk posture, the most critical issues found, and a high-level recommendation. Avoid jargon - think about what a Finance Director would understand.</p>
+
+  <div class="field-wrap">
+    <span class="field-label">Executive Summary</span>
+    <textarea id="exec-summary" rows="8" placeholder="Write your executive summary here. Consider covering:&#10;- What the engagement involved&#10;- Overall security posture of the organisation&#10;- The most critical findings and their business impact&#10;- Key recommendations&#10;Aim for 2-4 paragraphs." oninput="markUnsaved()"></textarea>
+  </div>
+
+  <div class="risk-counts">
+    <div class="risk-count-box rc-critical">
+      <label>Critical</label>
+      <div class="count" id="cnt-critical">0</div>
+    </div>
+    <div class="risk-count-box rc-high">
+      <label>High</label>
+      <div class="count" id="cnt-high">0</div>
+    </div>
+    <div class="risk-count-box rc-medium">
+      <label>Medium</label>
+      <div class="count" id="cnt-medium">0</div>
+    </div>
+    <div class="risk-count-box rc-low">
+      <label>Low</label>
+      <div class="count" id="cnt-low">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: RISK SUMMARY TABLE -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 2</span>
+    <h2>Risk Summary</h2>
+  </div>
+  <p class="hint">Complete this table with all findings you identified. One row per finding. The finding IDs here should match your detailed write-ups in Section 4 onwards.</p>
+  <div style="overflow-x:auto;">
+  <table id="risk-table">
+    <thead>
+      <tr>
+        <th style="width:70px">ID</th>
+        <th>Finding Title</th>
+        <th style="width:130px">Host</th>
+        <th style="width:80px">CVSS Score</th>
+        <th style="width:100px">Severity</th>
+      </tr>
+    </thead>
+    <tbody id="risk-table-body">
+      <tr>
+        <td><input type="text" placeholder="F-01" oninput="markUnsaved()"></td>
+        <td><input type="text" placeholder="Finding title" oninput="markUnsaved()"></td>
+        <td><input type="text" placeholder="Host / IP" oninput="markUnsaved()"></td>
+        <td><input type="text" placeholder="0.0" oninput="markUnsaved()"></td>
+        <td>
+          <select onchange="markUnsaved()">
+            <option value="">- Select -</option>
+            <option>Critical</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+            <option>Informational</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <button class="add-finding-btn" onclick="addTableRow()">+ Add Row</button>
+</div>
+
+<!-- SECTION 3: SCOPE AND METHODOLOGY -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 3</span>
+    <h2>Scope and Methodology</h2>
+  </div>
+  <p class="hint">Describe how you approached the test. Reference the engagement pack details for scope. Explain the testing phases you followed.</p>
+
+  <div class="field-wrap">
+    <span class="field-label">Scope</span>
+    <textarea id="scope-text" rows="4" placeholder="List the in-scope systems, IP addresses, and any constraints from the rules of engagement..." oninput="markUnsaved()"></textarea>
+  </div>
+  <div class="field-wrap">
+    <span class="field-label">Methodology</span>
+    <textarea id="method-text" rows="5" placeholder="Describe the methodology and phases of testing you followed (e.g. reconnaissance, enumeration, vulnerability identification, exploitation, post-exploitation). List key tools used." oninput="markUnsaved()"></textarea>
+  </div>
+  <div class="field-wrap">
+    <span class="field-label">Engagement Type and Access Level</span>
+    <textarea id="engtype-text" rows="3" placeholder="Was this grey box, black box, or white box? What starting access did you have? What credentials were provided?" oninput="markUnsaved()"></textarea>
+  </div>
+</div>
+
+<!-- SECTION 4: FINDINGS -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 4</span>
+    <h2>Technical Findings</h2>
+  </div>
+  <p class="hint">Complete one card per finding. Be specific with evidence - paste actual command output, tool results, and screenshots references. For each finding: describe what you found, show how you found it, explain the risk, and tell the client how to fix it.</p>
+
+  <div id="findings-container">
+    <!-- Finding cards injected here -->
+  </div>
+
+  <button class="add-finding-btn" onclick="addFinding()">+ Add Finding</button>
+</div>
+
+<!-- SECTION 5: COMPLIANCE -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 5</span>
+    <h2>Compliance Impact</h2>
+  </div>
+  <p class="hint">Map your findings to the relevant legislation and standards. Remember Syntex Solutions is FCA-regulated, PCI DSS v4.0 compliant, and ISO 27001 certified. Consider: CMA 1990, UK GDPR / DPA 2018, PCI DSS v4.0, FCA operational resilience requirements.</p>
+
+  <div class="field-wrap">
+    <span class="field-label">Compliance Mapping and Impact</span>
+    <textarea id="compliance-text" rows="10" placeholder="For each relevant regulation/standard, note which findings are impacted and explain the potential consequence for the client. For example:&#10;&#10;PCI DSS v4.0 Req 4.2 - [Finding IDs] - Cleartext protocols identified violate the requirement to protect cardholder data in transit...&#10;&#10;UK GDPR / DPA 2018 - [Finding IDs] - Plaintext employee credentials in [location] represent a potential personal data breach under Article 4(12)..." oninput="markUnsaved()"></textarea>
+  </div>
+</div>
+
+<!-- SECTION 6: REMEDIATION -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Section 6</span>
+    <h2>Remediation Roadmap</h2>
+  </div>
+  <p class="hint">Prioritise your remediation recommendations. Critical and High findings should have immediate timescales. Think about what a real IT team would need to action these.</p>
+
+  <div class="field-wrap">
+    <span class="field-label">Prioritised Remediation Plan</span>
+    <textarea id="remediation-text" rows="10" placeholder="List your findings in priority order with timescales and the responsible team. For example:&#10;&#10;Immediate (24-48 hours)&#10;- [Finding ID]: Action required...&#10;&#10;Short term (1-2 weeks)&#10;- [Finding ID]: Action required...&#10;&#10;Medium term (1 month)&#10;- [Finding ID]: Action required..." oninput="markUnsaved()"></textarea>
+  </div>
+</div>
+
+<!-- SELF ASSESSMENT -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Reflection</span>
+    <h2>Self-Assessment</h2>
+  </div>
+  <p class="hint">Answer these questions honestly. This is for your own learning and forms part of the lab submission.</p>
+
+  <div class="field-wrap">
+    <span class="field-label">What were the two or three most significant findings you identified, and why?</span>
+    <textarea id="reflect-1" rows="5" placeholder="Explain which findings had the most impact and your reasoning..." oninput="markUnsaved()"></textarea>
+  </div>
+  <div class="field-wrap">
+    <span class="field-label">What did you miss or struggle with, and what would you do differently?</span>
+    <textarea id="reflect-2" rows="5" placeholder="Be honest - identifying gaps in your approach is as important as finding vulnerabilities..." oninput="markUnsaved()"></textarea>
+  </div>
+  <div class="field-wrap">
+    <span class="field-label">What is the most important thing a client can do to reduce their attack surface immediately?</span>
+    <textarea id="reflect-3" rows="4" placeholder="Based on your findings, what single action would have the greatest positive impact?..." oninput="markUnsaved()"></textarea>
+  </div>
+</div>
+
+<!-- SIGN OFF -->
+<div class="section">
+  <div class="section-hdr">
+    <span class="section-tag">Sign Off</span>
+    <h2>Declaration</h2>
+  </div>
+  <div class="info-box">By completing this submission you confirm that all work is your own, all testing was conducted within the authorised scope defined in the engagement pack, and all findings have been reported accurately and without embellishment.</div>
+  <div class="sig-grid">
+    <div class="sig-field">
+      <label>Student Name</label>
+      <input type="text" id="sig-name" placeholder="Print your full name" oninput="markUnsaved()">
+    </div>
+    <div class="sig-field">
+      <label>Date</label>
+      <input type="text" id="sig-date" placeholder="DD/MM/YYYY" oninput="markUnsaved()">
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:40px; padding:16px 52px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+  <span>MCA-CPSA-2024-001 - Syntex Solutions Ltd - Student Submission Template</span>
+  <span>My Cyber Academy | mycyberacademy.co.uk</span>
+</div>
+
+</div><!-- end page -->
+
+<script>
+// =========================================================
+// CVSS 3.1 Base Score Calculator
+// =========================================================
+const CVSS_WEIGHTS = {
+  AV:  { N:0.85, A:0.62, L:0.55, P:0.20 },
+  AC:  { L:0.77, H:0.44 },
+  PR:  { N:0.85, L:0.62, H:0.27 },
+  UI:  { N:0.85, R:0.62 },
+  S:   { U:6.42, C:7.52 },
+  C:   { N:0.00, L:0.22, H:0.56 },
+  I:   { N:0.00, L:0.22, H:0.56 },
+  A:   { N:0.00, L:0.22, H:0.56 }
+};
+// PR weights change when Scope is Changed
+const CVSS_PR_CHANGED = { N:0.85, L:0.50, H:0.50 };
+
+function calcCVSS(vals) {
+  const iss = 1 - (1 - CVSS_WEIGHTS.C[vals.C]) * (1 - CVSS_WEIGHTS.I[vals.I]) * (1 - CVSS_WEIGHTS.A[vals.A]);
+  const scopeChanged = vals.S === 'C';
+  const impact = scopeChanged
+    ? 7.52 * (iss - 0.029) - 3.25 * Math.pow(iss - 0.02, 15)
+    : 6.42 * iss;
+  const prW = scopeChanged ? CVSS_PR_CHANGED[vals.PR] : CVSS_WEIGHTS.PR[vals.PR];
+  const exploit = 8.22 * CVSS_WEIGHTS.AV[vals.AV] * CVSS_WEIGHTS.AC[vals.AC] * prW * CVSS_WEIGHTS.UI[vals.UI];
+  if (impact <= 0) return 0;
+  const base = scopeChanged
+    ? Math.min(1.08 * (impact + exploit), 10)
+    : Math.min(impact + exploit, 10);
+  return Math.ceil(base * 10) / 10;
+}
+
+function scoreToSeverity(s) {
+  if (s === 0) return { label: '-', cls: '' };
+  if (s < 4)  return { label: 'Low', cls: 'badge-low' };
+  if (s < 7)  return { label: 'Medium', cls: 'badge-medium' };
+  if (s < 9)  return { label: 'High', cls: 'badge-high' };
+  return { label: 'Critical', cls: 'badge-critical' };
+}
+
+function updateCVSS(findingId) {
+  const get = (m) => document.getElementById('cvss-' + findingId + '-' + m).value;
+  const vals = { AV:get('AV'), AC:get('AC'), PR:get('PR'), UI:get('UI'), S:get('S'), C:get('C'), I:get('I'), A:get('A') };
+  if (Object.values(vals).some(v => !v)) return;
+
+  const score = calcCVSS(vals);
+  const sev = scoreToSeverity(score);
+  const scoreEl = document.getElementById('cvss-score-' + findingId);
+  const sevEl = document.getElementById('cvss-severity-' + findingId);
+  const vecEl = document.getElementById('cvss-vector-' + findingId);
+  const cardSevEl = document.getElementById('card-severity-' + findingId);
+
+  scoreEl.textContent = score.toFixed(1);
+  scoreEl.style.color = sev.cls.includes('critical') ? 'var(--critical-border)' :
+                        sev.cls.includes('high') ? 'var(--high-border)' :
+                        sev.cls.includes('medium') ? 'var(--medium-border)' :
+                        sev.cls.includes('low') ? 'var(--low-border)' : 'var(--muted)';
+
+  sevEl.textContent = sev.label;
+  sevEl.className = 'badge ' + sev.cls;
+
+  const v = `CVSS:3.1/AV:${vals.AV}/AC:${vals.AC}/PR:${vals.PR}/UI:${vals.UI}/S:${vals.S}/C:${vals.C}/I:${vals.I}/A:${vals.A}`;
+  vecEl.textContent = v;
+
+  if (cardSevEl) {
+    cardSevEl.textContent = sev.label || '-';
+    cardSevEl.className = 'badge ' + sev.cls;
+  }
+
+  updateCounts();
+  markUnsaved();
+}
+
+// =========================================================
+// Finding card builder
+// =========================================================
+let findingCount = 0;
+
+function addFinding() {
+  findingCount++;
+  const id = 'f' + findingCount;
+  const container = document.getElementById('findings-container');
+
+  const card = document.createElement('div');
+  card.className = 'finding';
+  card.id = 'card-' + id;
+
+  card.innerHTML = `
+    <div class="finding-header">
+      <span class="finding-id-badge">F-${String(findingCount).padStart(2,'0')}</span>
+      <span class="finding-title-display" id="ftitle-display-${id}">Click to add finding title</span>
+      <div class="finding-controls">
+        <span class="badge" id="card-severity-${id}">-</span>
+        <button class="collapse-btn" onclick="toggleFinding('${id}')">Collapse</button>
+        <button class="collapse-btn" onclick="removeFinding('${id}')">Remove</button>
+      </div>
+    </div>
+    <div class="finding-body" id="fbody-${id}">
+      <div class="finding-meta-grid">
+        <div class="field-wrap">
+          <span class="field-label">Finding Title</span>
+          <input type="text" id="ftitle-${id}" placeholder="e.g. SSH Root Login Permitted" oninput="updateFindingTitle('${id}'); markUnsaved()">
+        </div>
+        <div class="field-wrap">
+          <span class="field-label">Affected Host</span>
+          <input type="text" id="fhost-${id}" placeholder="e.g. SYNTEX-LNX01 / 10.1.53.39" oninput="markUnsaved()">
+        </div>
+        <div class="field-wrap">
+          <span class="field-label">Affected Port / Service</span>
+          <input type="text" id="fport-${id}" placeholder="e.g. 22/TCP - SSH" oninput="markUnsaved()">
+        </div>
+        <div class="field-wrap">
+          <span class="field-label">CVE (if applicable)</span>
+          <input type="text" id="fcve-${id}" placeholder="e.g. CVE-2024-XXXXX or N/A" oninput="markUnsaved()">
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <span class="field-label">Description</span>
+        <textarea id="fdesc-${id}" rows="4" placeholder="Describe the vulnerability. What is it? Why does it exist? What does it mean for the organisation?" oninput="markUnsaved()"></textarea>
+      </div>
+
+      <div class="cvss-calc">
+        <div class="cvss-title">CVSS v3.1 Base Score Calculator</div>
+        <div class="cvss-grid">
+          <div class="cvss-metric">
+            <label>Attack Vector (AV)</label>
+            <select id="cvss-${id}-AV" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">Network</option>
+              <option value="A">Adjacent</option>
+              <option value="L">Local</option>
+              <option value="P">Physical</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Attack Complexity (AC)</label>
+            <select id="cvss-${id}-AC" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="L">Low</option>
+              <option value="H">High</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Privileges Required (PR)</label>
+            <select id="cvss-${id}-PR" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">None</option>
+              <option value="L">Low</option>
+              <option value="H">High</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>User Interaction (UI)</label>
+            <select id="cvss-${id}-UI" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">None</option>
+              <option value="R">Required</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Scope (S)</label>
+            <select id="cvss-${id}-S" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="U">Unchanged</option>
+              <option value="C">Changed</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Confidentiality (C)</label>
+            <select id="cvss-${id}-C" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">None</option>
+              <option value="L">Low</option>
+              <option value="H">High</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Integrity (I)</label>
+            <select id="cvss-${id}-I" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">None</option>
+              <option value="L">Low</option>
+              <option value="H">High</option>
+            </select>
+          </div>
+          <div class="cvss-metric">
+            <label>Availability (A)</label>
+            <select id="cvss-${id}-A" onchange="updateCVSS('${id}')">
+              <option value="">Select</option>
+              <option value="N">None</option>
+              <option value="L">Low</option>
+              <option value="H">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="cvss-score-row">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">BASE SCORE</div>
+            <div class="cvss-score-display" id="cvss-score-${id}">-</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">SEVERITY</div>
+            <span class="badge" id="cvss-severity-${id}">-</span>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">VECTOR STRING</div>
+            <div class="cvss-vector-display" id="cvss-vector-${id}">Complete all fields above</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <span class="field-label">Evidence (Commands run and output)</span>
+        <div class="evidence-block">
+          <div class="evidence-label">Terminal Output / Tool Results</div>
+          <textarea id="fevidence-${id}" placeholder="Paste your command output, tool results, or describe what you observed here. Be specific - include exact commands run and output received." oninput="markUnsaved()"></textarea>
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <span class="field-label">Steps to Reproduce</span>
+        <textarea id="frepro-${id}" rows="5" placeholder="Step-by-step instructions to reproduce this finding from scratch. Number each step. Be precise enough that another tester could follow them." oninput="markUnsaved()"></textarea>
+      </div>
+
+      <div class="field-wrap">
+        <span class="field-label">Business Impact</span>
+        <textarea id="fimpact-${id}" rows="4" placeholder="What is the real-world impact if this vulnerability is exploited? Think about: data exposure, system compromise, compliance breach, financial impact, reputational damage." oninput="markUnsaved()"></textarea>
+      </div>
+
+      <div class="field-wrap">
+        <span class="field-label">Remediation Recommendation</span>
+        <textarea id="fremed-${id}" rows="4" placeholder="What should the client do to fix this? Be specific and actionable. Include example commands or configuration changes where relevant." oninput="markUnsaved()"></textarea>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(card);
+  addTableRow();
+  updateCounts();
+  markUnsaved();
+}
+
+function updateFindingTitle(id) {
+  const val = document.getElementById('ftitle-' + id).value;
+  const display = document.getElementById('ftitle-display-' + id);
+  if (val.trim()) {
+    display.textContent = val;
+    display.classList.add('filled');
+  } else {
+    display.textContent = 'Click to add finding title';
+    display.classList.remove('filled');
+  }
+}
+
+function toggleFinding(id) {
+  const body = document.getElementById('fbody-' + id);
+  const btn = body.previousElementSibling.querySelector('.collapse-btn');
+  if (body.style.display === 'none') {
+    body.style.display = '';
+    btn.textContent = 'Collapse';
+  } else {
+    body.style.display = 'none';
+    btn.textContent = 'Expand';
+  }
+}
+
+function removeFinding(id) {
+  if (!confirm('Remove this finding?')) return;
+  const card = document.getElementById('card-' + id);
+  if (card) card.remove();
+  updateCounts();
+  markUnsaved();
+}
+
+// =========================================================
+// Risk table
+// =========================================================
+function addTableRow() {
+  const tbody = document.getElementById('risk-table-body');
+  const rowNum = tbody.rows.length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="F-${String(rowNum).padStart(2,'0')}" oninput="markUnsaved()"></td>
+    <td><input type="text" placeholder="Finding title" oninput="markUnsaved()"></td>
+    <td><input type="text" placeholder="Host / IP" oninput="markUnsaved()"></td>
+    <td><input type="text" placeholder="0.0" oninput="markUnsaved()"></td>
+    <td>
+      <select onchange="markUnsaved(); updateCounts()">
+        <option value="">- Select -</option>
+        <option>Critical</option>
+        <option>High</option>
+        <option>Medium</option>
+        <option>Low</option>
+        <option>Informational</option>
+      </select>
+    </td>`;
+  tbody.appendChild(tr);
+}
+
+function updateCounts() {
+  const selects = document.querySelectorAll('#risk-table-body select');
+  let counts = { Critical:0, High:0, Medium:0, Low:0 };
+  selects.forEach(s => { if (counts[s.value] !== undefined) counts[s.value]++; });
+  // also count from CVSS badges in finding cards
+  document.querySelectorAll('[id^="cvss-severity-"]').forEach(el => {
+    const txt = el.textContent.trim();
+    if (counts[txt] !== undefined) counts[txt]++;
+  });
+  document.getElementById('cnt-critical').textContent = counts.Critical;
+  document.getElementById('cnt-high').textContent = counts.High;
+  document.getElementById('cnt-medium').textContent = counts.Medium;
+  document.getElementById('cnt-low').textContent = counts.Low;
+}
+
+// =========================================================
+// Save / Load using localStorage
+// =========================================================
+function markUnsaved() {
+  const el = document.getElementById('saveStatus');
+  el.textContent = 'Unsaved changes';
+  el.className = 'save-status';
+}
+
+function saveProgress() {
+  try {
+    const data = {};
+    document.querySelectorAll('input[id], textarea[id], select[id]').forEach(el => {
+      data[el.id] = el.value;
+    });
+    // Save finding count
+    data['__findingCount'] = findingCount;
+    localStorage.setItem('cpsa-report-v1', JSON.stringify(data));
+    const el = document.getElementById('saveStatus');
+    el.textContent = 'Saved ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+    el.className = 'save-status saved';
+  } catch(e) {
+    alert('Could not save - browser storage may be unavailable.');
+  }
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem('cpsa-report-v1');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    // Recreate findings first
+    const saved = data['__findingCount'] || 0;
+    for (let i = 0; i < saved; i++) addFinding();
+    // Then fill values
+    Object.entries(data).forEach(([id, val]) => {
+      if (id === '__findingCount') return;
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    // Update titles and scores
+    for (let i = 1; i <= saved; i++) {
+      const id = 'f' + i;
+      updateFindingTitle(id);
+      updateCVSS(id);
+    }
+    updateCounts();
+    const el = document.getElementById('saveStatus');
+    el.textContent = 'Loaded';
+    el.className = 'save-status saved';
+  } catch(e) { /* no saved data */ }
+}
+
+function clearAll() {
+  if (!confirm('Clear all your work? This cannot be undone.')) return;
+  try { localStorage.removeItem('cpsa-report-v1'); } catch(e) {}
+  location.reload();
+}
+
+// Load on start
+window.addEventListener('DOMContentLoaded', () => {
+  loadProgress();
+  // Set today's date on sig-date if empty
+  const d = document.getElementById('sig-date');
+  if (d && !d.value) {
+    d.value = new Date().toLocaleDateString('en-GB');
+  }
+});
+
+// Autosave every 60 seconds
+setInterval(saveProgress, 60000);
+</script>
+</body>
+</html>
