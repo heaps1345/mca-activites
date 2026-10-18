@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B4-B: Route Mapping</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #ff8c00; font-weight: bold; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .diagram { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; margin: 12px 0; line-height: 1.8; }
+  .d-orange { color: #E84E0F; }
+  .d-green { color: #4ec94e; }
+  .d-blue { color: #9cdcfe; }
+  .d-dim { color: #666; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" style="height:56px;width:auto;">
+  <!-- M: left pillar + right pillar + white V fill -->
+  <rect x="2"  y="6" width="14" height="62" fill="#fff"/>
+  <rect x="54" y="6" width="14" height="62" fill="#fff"/>
+  <polygon points="2,6 16,6 36,32 56,6 68,6 36,44" fill="#fff"/>
+  <!-- A: two diagonal legs, no crossbar -->
+  <polygon points="122,6 136,6 174,68 160,68" fill="#fff"/>
+  <polygon points="188,6 202,6 164,68 150,68" fill="#fff"/>
+  <!-- C: orange C shape, left bar + top bar + bottom bar, overlapping M right and A left -->
+  <rect x="56" y="6"  width="72" height="13" fill="#E84E0F"/>
+  <rect x="56" y="55" width="72" height="13" fill="#E84E0F"/>
+  <rect x="56" y="6"  width="13" height="62" fill="#E84E0F"/>
+  <!-- MY CYBER ACADEMY text -->
+  <text x="2" y="84" font-family="Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#fff">MY <tspan fill="#E84E0F">CYBER</tspan> ACADEMY</text>
+</svg>
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B4-B</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B4</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Target:</strong> SYNTEX-LNX01</span>
+  </div>
+  <h1>Route Mapping to Targets</h1>
+  <p>Trace the network path between your Kali machine and each target, record hop count and latency, identify filtering hops, and correlate traceroute output with nmap port scan results.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have completed your initial sweep of Syntex Solutions' network and identified several live hosts. Before beginning deep enumeration, your team lead has asked you to map the routing path to each target and document any filtering devices you observe along the way. Network topology data supports better attack planning and helps explain anomalies in later scan results.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Trace the network path between your machine and a target using multiple tools</li>
+      <li>Identify and interpret filtering hops (non-responding hops, asterisks)</li>
+      <li>Record hop count and round-trip time (RTT) for each target</li>
+      <li>Correlate traceroute results with nmap port scan output</li>
+      <li>Understand why a filtered hop does not mean the target is unreachable</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Your Kali IP</div><div class="value">Check: ip a</div></div>
+      <div class="info-card"><div class="label">Target 1</div><div class="value">SYNTEX-LNX01</div></div>
+      <div class="info-card"><div class="label">Tools</div><div class="value">traceroute, mtr, nmap</div></div>
+      <div class="info-card"><div class="label">Protocol</div><div class="value">UDP / ICMP / TCP</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Background - How Traceroute Works</div>
+
+    <p style="font-size:14px;margin-bottom:12px;">Traceroute exploits the IP Time-to-Live (TTL) field. Every router that forwards a packet decrements the TTL by 1. When TTL reaches 0, the router discards the packet and sends an ICMP Time Exceeded message back to the sender. By starting with TTL=1 and incrementing, you map each hop along the path.</p>
+
+    <div class="diagram">
+<span class="d-orange">Kali</span> <span class="d-dim">----[TTL=1]----&gt;</span> <span class="d-blue">Router 1</span> <span class="d-dim">drops it, replies ICMP TTL Exceeded</span>
+<span class="d-orange">Kali</span> <span class="d-dim">----[TTL=2]----&gt;</span> <span class="d-blue">Router 1</span> <span class="d-dim">forwards</span> <span class="d-dim">---&gt;</span> <span class="d-blue">Router 2</span> <span class="d-dim">drops it, replies</span>
+<span class="d-orange">Kali</span> <span class="d-dim">----[TTL=3]----&gt;</span> <span class="d-blue">Router 1</span> <span class="d-dim">---&gt;</span> <span class="d-blue">Router 2</span> <span class="d-dim">---&gt;</span> <span class="d-green">SYNTEX-LNX01</span> <span class="d-dim">replies normally</span>
+
+<span class="d-dim">Result: 3-hop path. Kali - Router1 - Router2 - Target</span>
+    </div>
+
+    <p style="font-size:14px;margin-top:8px;">A hop showing <code>* * *</code> means that router received the packet but chose not to send an ICMP reply. This is common on firewalls and network appliances. It does NOT mean the path beyond is blocked.</p>
+
+    <div class="callout exam">
+      <span class="callout-icon">🎯</span>
+      <div><strong>CREST Exam Focus:</strong> You need to understand what asterisks mean in traceroute output, what TTL is, and why a filtered hop doesn't prevent the destination from being reached. These come up in the written paper.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - Basic Traceroute</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Run traceroute to SYNTEX-LNX01</div></div>
+      <div class="step-body">
+        <p>By default, traceroute on Linux uses UDP probes. Replace TARGET_IP with your SYNTEX-LNX01 address.</p>
+        <pre><span class="comment"># Default UDP traceroute</span>
+<span class="cmd">traceroute</span> TARGET_IP</pre>
+        <p>Each line shows one hop: hop number, IP address, and three RTT measurements.</p>
+        <div class="answer-box">
+          <div class="label">Record your traceroute output</div>
+          <input class="answer-line" type="text" placeholder="Hop 1: IP address + RTT">
+          <input class="answer-line" type="text" placeholder="Hop 2: IP address + RTT (or * * * if filtered)">
+          <input class="answer-line" type="text" placeholder="Final hop (target): IP address + RTT">
+          <input class="answer-line" type="text" placeholder="Total hop count:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Switch to ICMP traceroute</div></div>
+      <div class="step-body">
+        <p>Some environments block UDP probes but pass ICMP. The <code>-I</code> flag switches to ICMP Echo Requests, similar to what ping uses.</p>
+        <pre><span class="comment"># ICMP-based traceroute - requires root</span>
+<span class="cmd">traceroute</span> <span class="flag">-I</span> TARGET_IP</pre>
+        <div class="answer-box">
+          <div class="label">Did the results differ from Step 1? How?</div>
+          <input class="answer-line" type="text" placeholder="Your observation:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">TCP traceroute on port 22</div></div>
+      <div class="step-body">
+        <p>Firewalls often let TCP traffic through when they block ICMP/UDP. Tracing on a specific TCP port can reveal a route that other methods miss. Port 22 (SSH) is open on SYNTEX-LNX01.</p>
+        <pre><span class="comment"># TCP SYN traceroute to port 22</span>
+<span class="cmd">traceroute</span> <span class="flag">-T -p 22</span> TARGET_IP</pre>
+        <div class="answer-box">
+          <div class="label">Any difference in hops visible vs. ICMP traceroute?</div>
+          <input class="answer-line" type="text" placeholder="Your observation:">
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div>In a lab environment all three methods will likely show the same path. In a real engagement with multiple firewalls you may see different hops appear or disappear depending on the probe type.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - MTR (Matt's Traceroute)</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Run mtr for continuous path monitoring</div></div>
+      <div class="step-body">
+        <p>MTR combines ping and traceroute. It runs continuously, showing loss percentage and jitter at each hop - more useful for spotting intermittent filtering than a single traceroute run.</p>
+        <pre><span class="comment"># -n skips DNS lookups (faster), -c sets packet count</span>
+<span class="cmd">mtr</span> <span class="flag">-n -c 10 --report</span> TARGET_IP</pre>
+        <p>The <code>--report</code> flag makes mtr run for 10 packets then exit. Without it, mtr runs interactively (press <code>q</code> to quit).</p>
+        <div class="answer-box">
+          <div class="label">Record the mtr output - note the Loss% column for each hop</div>
+          <input class="answer-line" type="text" placeholder="Hop with highest loss % (if any):">
+          <input class="answer-line" type="text" placeholder="Average RTT to final hop:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Interpret a * * * hop in mtr output</div></div>
+      <div class="step-body">
+        <p>Below is example mtr output showing a filtered hop. Read it and answer the questions underneath.</p>
+        <pre><span class="output">HOST: kali                           Loss%   Snt   Last   Avg  Best  Wrst StDev
+  1.|-- 10.1.0.1                        0.0%    10    0.8   0.9   0.7   1.2   0.2
+  2.|-- <span class="highlight">???</span>                             <span class="highlight">100.0%</span>   10    0.0   0.0   0.0   0.0   0.0
+  3.|-- 10.1.147.39                     0.0%    10    0.6   0.7   0.5   1.1   0.2</span></pre>
+        <div class="question" style="background:#fff;border:1px solid var(--border);">
+          <div class="q-num">Analysis Question</div>
+          <p>Hop 2 shows 100% loss and appears as <code>???</code>. Yet hop 3 (the target) responds fine with 0% loss.</p>
+          <div class="answer-box">
+            <input class="answer-line" type="text" placeholder="What type of device is hop 2 likely to be?">
+            <input class="answer-line" type="text" placeholder="Why does 100% loss at hop 2 NOT mean the target is unreachable?">
+            <input class="answer-line" type="text" placeholder="What is the total hop count to the target?">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - nmap Traceroute Integration</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Use nmap's built-in traceroute</div></div>
+      <div class="step-body">
+        <p>Nmap can trace routes during a scan. This combines path mapping with port discovery in a single operation - useful for correlating filtering positions with port states.</p>
+        <pre><span class="comment"># Scan top ports AND trace route simultaneously</span>
+<span class="cmd">nmap</span> <span class="flag">-sS --traceroute -F</span> TARGET_IP</pre>
+        <p>Look for the <code>TRACEROUTE</code> section in the output after the port table.</p>
+        <div class="answer-box">
+          <div class="label">Copy the TRACEROUTE section from your nmap output here</div>
+          <input class="answer-line" type="text" placeholder="Hop 1:">
+          <input class="answer-line" type="text" placeholder="Hop 2 (if shown):">
+          <input class="answer-line" type="text" placeholder="Final hop:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Correlate filtered ports with hop positions</div></div>
+      <div class="step-body">
+        <p>Compare the hop that showed <code>* * *</code> in your traceroute with the port states nmap reported. Filtered ports are likely blocked at that hop.</p>
+
+        <table>
+          <tr><th>Port</th><th>Protocol</th><th>State from nmap</th><th>Blocked at which hop?</th></tr>
+          <tr><td>22</td><td>SSH</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+          <tr><td>21</td><td>FTP</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+          <tr><td>2049</td><td>NFS</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+          <tr><td>445</td><td>SMB</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+          <tr><td>443</td><td>HTTPS</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <div><strong>Port states explained:</strong> Open = port is reachable and listening. Closed = port is reachable but nothing listening. Filtered = something between you and the host is blocking the probe - nmap never gets a reply. A filtered hop in traceroute and filtered ports in nmap at the same position is strong evidence of a firewall.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Document Your Route Map</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">8</div><div class="step-title">Build your network path diagram</div></div>
+      <div class="step-body">
+        <p>Using your traceroute and nmap output, complete the path diagram below. Fill in the IP addresses and device types for each hop.</p>
+
+        <div class="diagram">
+<span class="d-orange">[Kali - YOUR IP]</span>
+        |
+        | Hop 1 - RTT: ___ms
+        v
+<span class="d-blue">[Hop 1 IP: _____________ ]</span>  Device type: _____________
+        |
+        | Hop 2 - RTT: ___ms (or * * *)
+        v
+<span class="d-blue">[Hop 2 IP: _____________ ]</span>  Device type: _____________ (firewall? router?)
+        |
+        | Hop 3 - RTT: ___ms
+        v
+<span class="d-green">[SYNTEX-LNX01 - TARGET IP]</span>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div>In a real engagement report, this diagram (or a table equivalent) would appear in the Infrastructure section of your findings. It provides context for why some ports appear filtered vs. open.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 5 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">🎯</span>
+      <div>Answer from memory first. These questions are typical of the CPSA written paper.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>What IP field does traceroute manipulate to discover each hop along the route?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>A hop in your traceroute shows <code>* * *</code>. You then run a port scan and the target responds. What does the asterisk output tell you about that hop?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>What is the default probe protocol used by traceroute on Linux? Name an alternative you could use if that protocol is blocked.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Default protocol:">
+        <input class="answer-line" type="text" placeholder="Alternative:">
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>An nmap scan returns a port as <code>filtered</code> rather than <code>closed</code>. What does this tell you about the network path?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>You run traceroute to a target and get 12 hops. You run it again 5 minutes later and get 14 hops. What could explain the different hop count?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Answer Key</div>
+    <div class="callout tip">
+      <span class="callout-icon">✓</span>
+      <div>
+        Q1: TTL (Time to Live)<br>
+        Q2: The device at that hop received the probe but chose not to send an ICMP Time Exceeded reply - common on firewalls/ACLs. It does not mean the path is blocked beyond that point.<br>
+        Q3: Default = UDP. Alternatives = ICMP (-I flag) or TCP (-T flag)<br>
+        Q4: A packet filtering device (firewall, ACL) between the scanner and the host is dropping probes to that port without sending a response.<br>
+        Q5: Asymmetric routing or load balancing - different packets took different paths through the network. The internet uses multiple redundant paths.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B4-B &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>

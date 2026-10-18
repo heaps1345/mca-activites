@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B4-A: Network Sweeping</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-box .lines { }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90" style="height:56px;width:auto;">
+  <!-- M: left pillar + right pillar + white V fill -->
+  <rect x="2"  y="6" width="14" height="62" fill="#fff"/>
+  <rect x="54" y="6" width="14" height="62" fill="#fff"/>
+  <polygon points="2,6 16,6 36,32 56,6 68,6 36,44" fill="#fff"/>
+  <!-- A: two diagonal legs, no crossbar -->
+  <polygon points="122,6 136,6 174,68 160,68" fill="#fff"/>
+  <polygon points="188,6 202,6 164,68 150,68" fill="#fff"/>
+  <!-- C: orange C shape, left bar + top bar + bottom bar, overlapping M right and A left -->
+  <rect x="56" y="6"  width="72" height="13" fill="#E84E0F"/>
+  <rect x="56" y="55" width="72" height="13" fill="#E84E0F"/>
+  <rect x="56" y="6"  width="13" height="62" fill="#E84E0F"/>
+  <!-- MY CYBER ACADEMY text -->
+  <text x="2" y="84" font-family="Arial,sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#fff">MY <tspan fill="#E84E0F">CYBER</tspan> ACADEMY</text>
+</svg>
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B4-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B4</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Target:</strong> SYNTEX-LNX01</span>
+  </div>
+  <h1>Network Sweeping and Target Prioritisation</h1>
+  <p>Perform host discovery across a live subnet, compare sweep techniques, identify false negatives, and produce a prioritised target list ready for deeper enumeration.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have been engaged to perform a penetration test of Syntex Solutions Ltd. You have been given the network range <strong>10.1.0.0/16</strong> as your scope. No host list has been provided. Your first task is to identify live hosts and prioritise them for testing. You are working from your Kali Linux machine.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Perform and compare multiple host discovery techniques</li>
+      <li>Understand why hosts appear in some sweeps but not others</li>
+      <li>Identify false negatives caused by ICMP filtering</li>
+      <li>Produce a prioritised target list from sweep output</li>
+      <li>Interpret sweep output as an examiner would expect</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Your Kali IP</div><div class="value">Check: ip a</div></div>
+      <div class="info-card"><div class="label">Target Range</div><div class="value">10.1.0.0/16</div></div>
+      <div class="info-card"><div class="label">Known Target</div><div class="value">SYNTEX-LNX01</div></div>
+      <div class="info-card"><div class="label">Tool</div><div class="value">nmap, netdiscover</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>A /16 full scan takes a long time. Your instructor will give you a narrower range to scan during the lab - e.g. 10.1.147.0/24. Use that range for the timed exercises.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - ICMP Ping Sweep</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Run a basic ICMP ping sweep</div></div>
+      <div class="step-body">
+        <p>The simplest form of host discovery. Nmap sends ICMP Echo Requests (Type 8) to every address in the range and waits for replies.</p>
+        <pre><span class="comment"># Replace with your lab subnet</span>
+<span class="cmd">nmap</span> <span class="flag">-sn -PE</span> 10.1.147.0/24</pre>
+        <p>The <code>-sn</code> flag means "ping scan only - no port scan." The <code>-PE</code> flag means "use ICMP Echo."</p>
+        <div class="answer-box">
+          <div class="label">Record your results - how many hosts responded?</div>
+          <input class="answer-line" type="text" placeholder="Number of hosts up:">
+          <input class="answer-line" type="text" placeholder="IP addresses found:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Run an aggressive multi-probe sweep</div></div>
+      <div class="step-body">
+        <p>ICMP alone is often blocked. This command adds ICMP timestamp requests and a TCP probe to port 443, catching hosts that filter Echo requests.</p>
+        <pre><span class="cmd">nmap</span> <span class="flag">-sn -PE -PP -PS443 -PA80</span> 10.1.147.0/24</pre>
+        <p><code>-PP</code> = ICMP Timestamp | <code>-PS443</code> = TCP SYN to port 443 | <code>-PA80</code> = TCP ACK to port 80</p>
+        <div class="answer-box">
+          <div class="label">Did you find any additional hosts compared to Step 1?</div>
+          <input class="answer-line" type="text" placeholder="Additional hosts found (if any):">
+          <input class="answer-line" type="text" placeholder="Why might a host appear here but not in Step 1?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Sweep with no ping - treat all hosts as up</div></div>
+      <div class="step-body">
+        <p>The nuclear option. Nmap skips host discovery entirely and scans every address. Slow, but catches hosts that block all probe types.</p>
+        <pre><span class="comment"># -Pn treats all hosts as up, -F scans top 100 ports only (faster)</span>
+<span class="cmd">nmap</span> <span class="flag">-Pn -F</span> 10.1.147.0/24</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div>This will take significantly longer. Your instructor may ask you to run this against a single IP rather than the full subnet during the lab.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">When would you use -Pn in a real engagement?</div>
+          <input class="answer-line" type="text" placeholder="Your answer:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Interpreting False Negatives</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">🎯</span>
+      <div><strong>CREST Exam Focus:</strong> The exam will give you sweep output and ask why a host might not appear. You need to know the four main reasons.</div>
+    </div>
+
+    <table>
+      <tr><th>Reason Host Doesn't Appear</th><th>How to Detect It</th><th>Fix</th></tr>
+      <tr><td>ICMP Echo blocked by host firewall</td><td>Try -PS or -PA instead of -PE</td><td>Use -sn -PS22,80,443</td></tr>
+      <tr><td>ICMP blocked by network firewall</td><td>Host appears with -Pn but not -PE</td><td>Use -Pn to bypass ping discovery</td></tr>
+      <tr><td>Host is genuinely down</td><td>Nothing responds even with -Pn</td><td>Try at different times</td></tr>
+      <tr><td>Rate limiting causing dropped probes</td><td>Results vary between scans</td><td>Reduce --min-rate, use -T3</td></tr>
+    </table>
+
+    <div class="question">
+      <div class="q-num">Question 1</div>
+      <p>You run <code>nmap -sn 10.1.0.0/24</code> and get 3 hosts. You then run <code>nmap -Pn -p 80 10.1.0.0/24</code> and get 7 hosts responding on port 80. What does this tell you?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer:">
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Question 2</div>
+      <p>A host responds to <code>-PE</code> (ICMP Echo) but not to <code>-PP</code> (ICMP Timestamp). Is this unusual? What might cause it?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer:">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Prioritise Your Target List</div>
+
+    <p style="font-size:14px;margin-bottom:16px;">Once you have a list of live hosts, the next step is to prioritise them. Not all hosts are equal - a server with 10 open ports is a higher priority than a workstation with one.</p>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Quick service scan across all discovered hosts</div></div>
+      <div class="step-body">
+        <p>Run a top-100-port scan with version detection across all hosts you found. Save the output so you can reference it.</p>
+        <pre><span class="comment"># Save output in all formats - greppable, normal, XML</span>
+<span class="cmd">nmap</span> <span class="flag">-sV -F --open</span> 10.1.147.0/24 <span class="flag">-oA</span> syntex_sweep</pre>
+        <p><code>--open</code> shows only hosts with at least one open port. <code>-oA</code> saves three output files: .nmap, .gnmap, .xml</p>
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <div>Always save scan output with -oA. In a real engagement this is your evidence. In the exam you may be shown saved output and asked to interpret it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Build your target priority list</div></div>
+      <div class="step-body">
+        <p>Using the output from Step 4, complete the table below. Rank each host by attack surface - more open ports, more interesting services = higher priority.</p>
+
+        <table>
+          <tr><th>IP Address</th><th>Open Ports</th><th>Services Identified</th><th>Priority (1=High)</th><th>Reason</th></tr>
+          <tr><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td></tr>
+          <tr><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td></tr>
+          <tr><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td></tr>
+          <tr><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td><td class="fill">Fill in</td></tr>
+        </table>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Prioritisation criteria:</strong> services with known attack paths (SMB, NFS, SSH, FTP) rank higher than filtered or single-service hosts. A host running SMB + NFS + SSH is your first target.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">🎯</span>
+      <div>These are the types of questions that appear in the CPSA written paper. Answer them without looking at your notes first.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>You run a ping sweep and receive no responses. Which flag would you add to nmap to continue scanning regardless?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>What ICMP type does nmap send during a standard ping sweep (-PE)?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>You are performing a sweep and the client tells you one host definitely exists but it never appears in your results. Name two possible explanations.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Reason 1:">
+        <input class="answer-line" type="text" placeholder="Reason 2:">
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What is the purpose of the <code>-oA</code> flag in nmap?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>A host responds to TCP SYN on port 443 but not to ICMP Echo. What does this tell you about the host's firewall configuration?</p>
+      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Answer Key</div>
+    <div class="callout tip">
+      <span class="callout-icon">✓</span>
+      <div>Q1: -Pn &nbsp;|&nbsp; Q2: Type 8 (Echo Request) &nbsp;|&nbsp; Q3: ICMP filtered by firewall / host is in a different subnet not reachable &nbsp;|&nbsp; Q4: Saves output in all three formats (.nmap, .gnmap, .xml) simultaneously &nbsp;|&nbsp; Q5: ICMP Echo is blocked but TCP is permitted - common Windows firewall default behaviour</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B4-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+</body>
+</html>
