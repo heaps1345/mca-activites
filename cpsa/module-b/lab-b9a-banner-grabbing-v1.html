@@ -76,8 +76,8 @@
   .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
   .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
   .preflight-note { font-size: 12px; color: #e3b341; background: rgba(227,179,65,0.08); border-left: 3px solid #e3b341; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-bottom: 14px; }
-  .preflight-target { margin-bottom: 14px; }
-  .preflight-target-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+
   .preflight-cmd { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .preflight-cmd code { flex: 1; word-break: break-all; }
   .copy-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
@@ -89,12 +89,49 @@
   .preflight-checklist li.checked { color: #3fb950; }
 
 
-  .preflight-ip-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .preflight-ip-display { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px 14px; font-family: 'Courier New', monospace; font-size: 13px; color: #79c0ff; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .preflight-ip-display.set { color: #3fb950; border-color: #3fb950; }
-  .paste-ip-btn { background: var(--orange); color: #fff; border: none; border-radius: 4px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .paste-ip-btn:hover { opacity: 0.88; }
-  .paste-ip-btn.set { background: #21262d; color: #3fb950; border: 1px solid #3fb950; }
+
+
+  /* --- Rework v2: check-answer / model-answer / preflight popup --- */
+  .check-btn, .model-btn {
+    margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px;
+    font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block;
+  }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950;
+    border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical;
+    font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  td.fill[contenteditable] { background: #fffde7; font-style: normal; color: #333;
+    outline: none; cursor: text; }
+  td.fill[contenteditable]:focus { background: #fff9c4; box-shadow: inset 0 0 0 2px var(--orange); }
+  td.fill[contenteditable]:empty::before { content: attr(data-placeholder); color: #aaa; font-style: italic; }
+  /* Preflight popup overlay */
+  .preflight-popup {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center;
+  }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner {
+    background: #161b22; border: 2px solid #3fb950; border-radius: 10px;
+    padding: 36px 44px; text-align: center; max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button {
+    background: #3fb950; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .preflight-popup-inner button:hover { background: #2ea043; }
 
 </style>
 </head>
@@ -124,49 +161,26 @@
 <div class="container">
 
   
-  <!-- Port Checker Widget -->
+  <!-- Pre-Flight Checks -->
   <div class="preflight">
     <h3>&#128270; Pre-Flight Checks</h3>
-    <p class="preflight-intro">Run these commands in your Kali terminal to confirm the target VMs are reachable before you start. Copy the IP from the <strong>Systems tab</strong> on the left.</p>
+    <p class="preflight-intro">Confirm the following before starting the lab.</p>
     <div class="preflight-note">&#9888; FTP (21) on LNX01 is required for this lab - confirm it shows open before starting.</div>
-
-    <div class="preflight-target">
-      <div class="preflight-target-label">SYNTEX-LNX01</div>
-      <div class="preflight-ip-row">
-        <div class="preflight-ip-display" id="ip-display-LNX_IP">LNX_IP=&lt;click IP in Systems tab, then Paste&gt;</div>
-        <button class="paste-ip-btn" id="paste-btn-LNX_IP" onclick="pasteIP('LNX_IP')">&#128203; Paste IP</button>
-      </div>
-      <div class="preflight-cmd">
-        <code id="nc-cmd-LNX_IP">for p in 21 22 80; do nc -zv -w2 $LNX_IP $p 2>&1; done</code>
-        <button class="copy-btn" id="nc-copy-LNX_IP" data-cmd="for p in 21 22 80; do nc -zv -w2 $LNX_IP $p 2>&1; done" onclick="copyNcCmd('LNX_IP')">Copy</button>
-      </div>
-    </div>
-    <div class="preflight-target">
-      <div class="preflight-target-label">SYNTEX-DC01</div>
-      <div class="preflight-ip-row">
-        <div class="preflight-ip-display" id="ip-display-DC_IP">DC_IP=&lt;click IP in Systems tab, then Paste&gt;</div>
-        <button class="paste-ip-btn" id="paste-btn-DC_IP" onclick="pasteIP('DC_IP')">&#128203; Paste IP</button>
-      </div>
-      <div class="preflight-cmd">
-        <code id="nc-cmd-DC_IP">for p in 80 135 445; do nc -zv -w2 $DC_IP $p 2>&1; done</code>
-        <button class="copy-btn" id="nc-copy-DC_IP" data-cmd="for p in 80 135 445; do nc -zv -w2 $DC_IP $p 2>&1; done" onclick="copyNcCmd('DC_IP')">Copy</button>
-      </div>
-    </div>
-    <ul class="preflight-checklist">
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-LNX01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-DC01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> nc output shows <strong>open</strong> for the key ports above</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> Kali Linux terminal is open and ready</li>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> SYNTEX-LNX01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> SYNTEX-DC01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open and ready</li>
     </ul>
   </div>
-          <div class="checker-input-group">
-            <label>SYNTEX-DC01 IP</label>
-            <input class="checker-ip" id="ip-dc" type="text" placeholder="e.g. 10.0.22.20" />
-          </div>
-      <button class="checker-btn" id="check-btn" onclick="runPortCheck()">Check Ports</button>
+
+  <!-- Away you go popup -->
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
     </div>
-    <div class="port-results" id="port-results"></div>
-    <div class="checker-note" id="checker-note" style="display:none"></div>
   </div>
 
   <div class="scenario-box">
@@ -364,12 +378,12 @@ QUIT</pre>
         </div>
         <table>
           <tr><th>Host</th><th>Port</th><th>Service</th><th>Banner / Version</th></tr>
-          <tr><td>LNX01</td><td>21</td><td>FTP</td><td class="fill">your result</td></tr>
-          <tr><td>LNX01</td><td>22</td><td>SSH</td><td class="fill">your result</td></tr>
-          <tr><td>LNX01</td><td>445</td><td>SMB</td><td class="fill">your result</td></tr>
-          <tr><td>DC01</td><td>80</td><td>HTTP</td><td class="fill">your result</td></tr>
-          <tr><td>DC01</td><td>445</td><td>SMB</td><td class="fill">your result</td></tr>
-          <tr><td>DC01</td><td>3389</td><td>RDP</td><td class="fill">your result</td></tr>
+          <tr><td>LNX01</td><td>21</td><td>FTP</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
+          <tr><td>LNX01</td><td>22</td><td>SSH</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
+          <tr><td>LNX01</td><td>445</td><td>SMB</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
+          <tr><td>DC01</td><td>80</td><td>HTTP</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
+          <tr><td>DC01</td><td>445</td><td>SMB</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
+          <tr><td>DC01</td><td>3389</td><td>RDP</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">your result</td></tr>
         </table>
       </div>
     </div>
@@ -383,7 +397,9 @@ QUIT</pre>
       <div class="q-num">Q1</div>
       <p>An HTTP response contains the header <strong>Server: Microsoft-IIS/10.0</strong>. What Windows Server versions does IIS 10.0 correspond to?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Your answer" />
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Windows Server 2016 and Windows Server 2019|Windows Server 2016|2016 and 2019|IIS 10.0 Windows Server">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
       </div>
     </div>
 
@@ -391,8 +407,9 @@ QUIT</pre>
       <div class="q-num">Q2</div>
       <p>You find the following HTML comment: <code>&lt;!-- TODO: remove test creds - admin/admin123 still active --&gt;</code>. How would you classify this finding and what immediate action would you take?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Finding severity and classification" />
-        <input class="answer-line" type="text" placeholder="Immediate next step" />
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>This is a Critical finding - credentials in a HTML comment are visible to anyone viewing the page source. Actions: (1) Document the finding with a screenshot showing the URL, page source, and the comment; (2) Attempt to use those credentials to authenticate to the application and any other services on the host (password reuse); (3) Notify the client immediately if these are live credentials - this is a Priority 1 finding.</div>
       </div>
     </div>
 
@@ -400,8 +417,9 @@ QUIT</pre>
       <div class="q-num">Q3</div>
       <p>A server has removed its HTTP Server header entirely. List two other methods you could use to identify the web server software.</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Method 1" />
-        <input class="answer-line" type="text" placeholder="Method 2" />
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Two methods to identify the web server without a Server header: (1) Error page fingerprinting - request a non-existent page (/doesnotexist) and analyse the 404 error page; Apache, Nginx and IIS each have distinctive default error page formats; (2) HTTP response header order and X-Powered-By - even without Server, headers like X-Powered-By: PHP/7.x or X-AspNet-Version are characteristic of specific server stacks.</div>
       </div>
     </div>
 
@@ -409,8 +427,9 @@ QUIT</pre>
       <div class="q-num">Q4</div>
       <p>The SSH banner shows <strong>OpenSSH_7.2p2 Ubuntu-4ubuntu2.8</strong>. What information can you extract from this and how would you use it?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Information extracted" />
-        <input class="answer-line" type="text" placeholder="How you would use it" />
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>From OpenSSH_7.2p2 Ubuntu-4ubuntu2.8 you can extract: exact OpenSSH version (7.2p2), the OS (Ubuntu), and the Ubuntu package version (4ubuntu2.8 maps to Ubuntu 16.04 LTS). Use it by: (1) searching for CVEs affecting OpenSSH 7.2p2 - notably CVE-2016-6515 and CVE-2016-10009; (2) confirming Ubuntu 16.04 reached end-of-life in April 2021 - document as an unsupported OS finding.</div>
       </div>
     </div>
   </div>
@@ -429,37 +448,7 @@ QUIT</pre>
 
 <script>
 
-function pasteIP(varName) {
-  navigator.clipboard.readText().then(text => {
-    const ip = text.trim();
-    const ipRegex = /^\d{1,3}(\.\d{1,3}){3}$/;
-    if (!ipRegex.test(ip)) {
-      alert('Clipboard does not contain a valid IP address.\nCopy the IP from the Systems tab first.');
-      return;
-    }
-    window._labIPs = window._labIPs || {};
-    window._labIPs[varName] = ip;
-    const display = document.getElementById('ip-display-' + varName);
-    if (display) { display.textContent = varName + '=' + ip; display.classList.add('set'); }
-    const btn = document.getElementById('paste-btn-' + varName);
-    if (btn) { btn.textContent = '\u2713 IP Set'; btn.classList.add('set'); }
-    const ncEl = document.getElementById('nc-cmd-' + varName);
-    if (ncEl) { ncEl.textContent = ncEl.textContent.replace('$' + varName, ip); }
-    const copyBtn = document.getElementById('nc-copy-' + varName);
-    if (copyBtn) { copyBtn.setAttribute('data-cmd', copyBtn.getAttribute('data-cmd').replace('$' + varName, ip)); }
-  }).catch(() => {
-    alert('Could not read clipboard.\nMake sure you clicked the IP in the Systems tab first, then try again.');
-  });
-}
 
-function copyNcCmd(varName) {
-  const btn = document.getElementById('nc-copy-' + varName);
-  if (!btn) return;
-  navigator.clipboard.writeText(btn.getAttribute('data-cmd')).then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
-}
 
 
 </script>

@@ -113,8 +113,8 @@
   .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
   .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
   .preflight-note { font-size: 12px; color: #e3b341; background: rgba(227,179,65,0.08); border-left: 3px solid #e3b341; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-bottom: 14px; }
-  .preflight-target { margin-bottom: 14px; }
-  .preflight-target-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+
   .preflight-cmd { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .preflight-cmd code { flex: 1; word-break: break-all; }
   .copy-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
@@ -126,12 +126,49 @@
   .preflight-checklist li.checked { color: #3fb950; }
 
 
-  .preflight-ip-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .preflight-ip-display { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px 14px; font-family: 'Courier New', monospace; font-size: 13px; color: #79c0ff; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .preflight-ip-display.set { color: #3fb950; border-color: #3fb950; }
-  .paste-ip-btn { background: var(--orange); color: #fff; border: none; border-radius: 4px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .paste-ip-btn:hover { opacity: 0.88; }
-  .paste-ip-btn.set { background: #21262d; color: #3fb950; border: 1px solid #3fb950; }
+
+
+  /* --- Rework v2: check-answer / model-answer / preflight popup --- */
+  .check-btn, .model-btn {
+    margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px;
+    font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block;
+  }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950;
+    border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical;
+    font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  td.fill[contenteditable] { background: #fffde7; font-style: normal; color: #333;
+    outline: none; cursor: text; }
+  td.fill[contenteditable]:focus { background: #fff9c4; box-shadow: inset 0 0 0 2px var(--orange); }
+  td.fill[contenteditable]:empty::before { content: attr(data-placeholder); color: #aaa; font-style: italic; }
+  /* Preflight popup overlay */
+  .preflight-popup {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center;
+  }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner {
+    background: #161b22; border: 2px solid #3fb950; border-radius: 10px;
+    padding: 36px 44px; text-align: center; max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button {
+    background: #3fb950; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .preflight-popup-inner button:hover { background: #2ea043; }
 
 </style>
 </head>
@@ -162,33 +199,25 @@
 <div class="container">
 
   
-  <!-- Port Checker Widget -->
+  <!-- Pre-Flight Checks -->
   <div class="preflight">
     <h3>&#128270; Pre-Flight Checks</h3>
-    <p class="preflight-intro">Run these commands in your Kali terminal to confirm the target VMs are reachable before you start. Copy the IP from the <strong>Systems tab</strong> on the left.</p>
-    <div class="preflight-note">&#9888; SSH (22) must be open - you need at least one open TCP port for TCP traceroute.</div>
-
-    <div class="preflight-target">
-      <div class="preflight-target-label">SYNTEX-LNX01</div>
-      <div class="preflight-ip-row">
-        <div class="preflight-ip-display" id="ip-display-LNX_IP">LNX_IP=&lt;click IP in Systems tab, then Paste&gt;</div>
-        <button class="paste-ip-btn" id="paste-btn-LNX_IP" onclick="pasteIP('LNX_IP')">&#128203; Paste IP</button>
-      </div>
-      <div class="preflight-cmd">
-        <code id="nc-cmd-LNX_IP">for p in 22 80 445; do nc -zv -w2 $LNX_IP $p 2>&1; done</code>
-        <button class="copy-btn" id="nc-copy-LNX_IP" data-cmd="for p in 22 80 445; do nc -zv -w2 $LNX_IP $p 2>&1; done" onclick="copyNcCmd('LNX_IP')">Copy</button>
-      </div>
-    </div>
-    <ul class="preflight-checklist">
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-LNX01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> nc output shows <strong>open</strong> for the key ports above</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> Kali Linux terminal is open and ready</li>
+    <p class="preflight-intro">Confirm the following before starting the lab.</p>
+    <div class="preflight-note">&#9888; SSH (22) must be open - you need at least one open TCP port for TCP traceroute mode.</div>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> SYNTEX-LNX01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open and ready</li>
     </ul>
   </div>
-      <button class="checker-btn" id="check-btn" onclick="runPortCheck()">Check Ports</button>
+
+  <!-- Away you go popup -->
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
     </div>
-    <div class="port-results" id="port-results"></div>
-    <div class="checker-note" id="checker-note" style="display:none"></div>
   </div>
 
   <div class="scenario-box">
@@ -354,11 +383,11 @@
 
         <table>
           <tr><th>Port</th><th>Protocol</th><th>State from nmap</th><th>Blocked at which hop?</th></tr>
-          <tr><td>22</td><td>SSH</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
-          <tr><td>21</td><td>FTP</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
-          <tr><td>2049</td><td>NFS</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
-          <tr><td>445</td><td>SMB</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
-          <tr><td>443</td><td>HTTPS</td><td class="fill">Fill from your scan</td><td class="fill">Fill in</td></tr>
+          <tr><td>22</td><td>SSH</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">Fill from your scan</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in"></td></tr>
+          <tr><td>21</td><td>FTP</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">Fill from your scan</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in"></td></tr>
+          <tr><td>2049</td><td>NFS</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">Fill from your scan</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in"></td></tr>
+          <tr><td>445</td><td>SMB</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">Fill from your scan</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in"></td></tr>
+          <tr><td>443</td><td>HTTPS</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in">Fill from your scan</td><td class="fill" contenteditable="true" spellcheck="false" data-placeholder="Fill in"></td></tr>
         </table>
 
         <div class="callout tip">
@@ -412,49 +441,53 @@
     <div class="question">
       <div class="q-num">Q1</div>
       <p>What IP field does traceroute manipulate to discover each hop along the route?</p>
-      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="TTL|ttl|time to live">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
     </div>
 
     <div class="question">
       <div class="q-num">Q2</div>
       <p>A hop in your traceroute shows <code>* * *</code>. You then run a port scan and the target responds. What does the asterisk output tell you about that hop?</p>
-      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>A *** hop means that device does not send ICMP Time Exceeded messages back to the source, so traceroute cannot identify it. This does not mean the path is blocked - traffic is still flowing through that device. Common causes: routers configured to drop ICMP, stateful firewalls, or network devices that do not generate TTL-exceeded responses.</div>
+      </div>
     </div>
 
     <div class="question">
       <div class="q-num">Q3</div>
       <p>What is the default probe protocol used by traceroute on Linux? Name an alternative you could use if that protocol is blocked.</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Default protocol:">
-        <input class="answer-line" type="text" placeholder="Alternative:">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="UDP; ICMP or TCP|UDP default ICMP TCP|udp icmp tcp|default udp">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
       </div>
     </div>
 
     <div class="question">
       <div class="q-num">Q4</div>
       <p>An nmap scan returns a port as <code>filtered</code> rather than <code>closed</code>. What does this tell you about the network path?</p>
-      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>A filtered hop means a packet-filtering device (firewall or ACL) is dropping the probes before they reach the next hop - the path is actively blocked at that point. A closed hop (port unreachable) means traffic reached the device but the destination port is not open; the route is intact but the service is unavailable.</div>
+      </div>
     </div>
 
     <div class="question">
       <div class="q-num">Q5</div>
       <p>You run traceroute to a target and get 12 hops. You run it again 5 minutes later and get 14 hops. What could explain the different hop count?</p>
-      <div class="answer-box"><input class="answer-line" type="text" placeholder="Answer:"></div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Answer Key</div>
-    <div class="callout tip">
-      <span class="callout-icon">✓</span>
-      <div>
-        Q1: TTL (Time to Live)<br>
-        Q2: The device at that hop received the probe but chose not to send an ICMP Time Exceeded reply - common on firewalls/ACLs. It does not mean the path is blocked beyond that point.<br>
-        Q3: Default = UDP. Alternatives = ICMP (-I flag) or TCP (-T flag)<br>
-        Q4: A packet filtering device (firewall, ACL) between the scanner and the host is dropping probes to that port without sending a response.<br>
-        Q5: Asymmetric routing or load balancing - different packets took different paths through the network. The internet uses multiple redundant paths.
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Asymmetric routing - the outbound and return paths differ, so a different set of routers handle each run. Alternatively, load balancing across multiple equal-cost paths means probes are distributed across different routes on each run. Both are normal in large enterprise or ISP networks.</div>
       </div>
     </div>
+  </div>
   </div>
 
 </div>
@@ -466,37 +499,7 @@
 
 <script>
 
-function pasteIP(varName) {
-  navigator.clipboard.readText().then(text => {
-    const ip = text.trim();
-    const ipRegex = /^\d{1,3}(\.\d{1,3}){3}$/;
-    if (!ipRegex.test(ip)) {
-      alert('Clipboard does not contain a valid IP address.\nCopy the IP from the Systems tab first.');
-      return;
-    }
-    window._labIPs = window._labIPs || {};
-    window._labIPs[varName] = ip;
-    const display = document.getElementById('ip-display-' + varName);
-    if (display) { display.textContent = varName + '=' + ip; display.classList.add('set'); }
-    const btn = document.getElementById('paste-btn-' + varName);
-    if (btn) { btn.textContent = '\u2713 IP Set'; btn.classList.add('set'); }
-    const ncEl = document.getElementById('nc-cmd-' + varName);
-    if (ncEl) { ncEl.textContent = ncEl.textContent.replace('$' + varName, ip); }
-    const copyBtn = document.getElementById('nc-copy-' + varName);
-    if (copyBtn) { copyBtn.setAttribute('data-cmd', copyBtn.getAttribute('data-cmd').replace('$' + varName, ip)); }
-  }).catch(() => {
-    alert('Could not read clipboard.\nMake sure you clicked the IP in the Systems tab first, then try again.');
-  });
-}
 
-function copyNcCmd(varName) {
-  const btn = document.getElementById('nc-copy-' + varName);
-  if (!btn) return;
-  navigator.clipboard.writeText(btn.getAttribute('data-cmd')).then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
-}
 
 
 </script>

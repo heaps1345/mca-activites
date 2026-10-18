@@ -75,8 +75,8 @@
   .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
   .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
   .preflight-note { font-size: 12px; color: #e3b341; background: rgba(227,179,65,0.08); border-left: 3px solid #e3b341; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-bottom: 14px; }
-  .preflight-target { margin-bottom: 14px; }
-  .preflight-target-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+
   .preflight-cmd { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .preflight-cmd code { flex: 1; word-break: break-all; }
   .copy-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
@@ -88,12 +88,49 @@
   .preflight-checklist li.checked { color: #3fb950; }
 
 
-  .preflight-ip-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .preflight-ip-display { background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px 14px; font-family: 'Courier New', monospace; font-size: 13px; color: #79c0ff; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .preflight-ip-display.set { color: #3fb950; border-color: #3fb950; }
-  .paste-ip-btn { background: var(--orange); color: #fff; border: none; border-radius: 4px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .paste-ip-btn:hover { opacity: 0.88; }
-  .paste-ip-btn.set { background: #21262d; color: #3fb950; border: 1px solid #3fb950; }
+
+
+  /* --- Rework v2: check-answer / model-answer / preflight popup --- */
+  .check-btn, .model-btn {
+    margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px;
+    font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block;
+  }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950;
+    border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical;
+    font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  td.fill[contenteditable] { background: #fffde7; font-style: normal; color: #333;
+    outline: none; cursor: text; }
+  td.fill[contenteditable]:focus { background: #fff9c4; box-shadow: inset 0 0 0 2px var(--orange); }
+  td.fill[contenteditable]:empty::before { content: attr(data-placeholder); color: #aaa; font-style: italic; }
+  /* Preflight popup overlay */
+  .preflight-popup {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center;
+  }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner {
+    background: #161b22; border: 2px solid #3fb950; border-radius: 10px;
+    padding: 36px 44px; text-align: center; max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button {
+    background: #3fb950; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .preflight-popup-inner button:hover { background: #2ea043; }
 
 </style>
 </head>
@@ -123,33 +160,25 @@
 <div class="container">
 
   
-  <!-- Port Checker Widget -->
+  <!-- Pre-Flight Checks -->
   <div class="preflight">
     <h3>&#128270; Pre-Flight Checks</h3>
-    <p class="preflight-intro">Run these commands in your Kali terminal to confirm the target VMs are reachable before you start. Copy the IP from the <strong>Systems tab</strong> on the left.</p>
+    <p class="preflight-intro">Confirm the following before starting the lab.</p>
     <div class="preflight-note">&#9888; SMB (445) must be open - this is used for initial shell access via psexec.</div>
-
-    <div class="preflight-target">
-      <div class="preflight-target-label">SYNTEX-DC01</div>
-      <div class="preflight-ip-row">
-        <div class="preflight-ip-display" id="ip-display-DC_IP">DC_IP=&lt;click IP in Systems tab, then Paste&gt;</div>
-        <button class="paste-ip-btn" id="paste-btn-DC_IP" onclick="pasteIP('DC_IP')">&#128203; Paste IP</button>
-      </div>
-      <div class="preflight-cmd">
-        <code id="nc-cmd-DC_IP">for p in 445 135 3389 389; do nc -zv -w2 $DC_IP $p 2>&1; done</code>
-        <button class="copy-btn" id="nc-copy-DC_IP" data-cmd="for p in 445 135 3389 389; do nc -zv -w2 $DC_IP $p 2>&1; done" onclick="copyNcCmd('DC_IP')">Copy</button>
-      </div>
-    </div>
-    <ul class="preflight-checklist">
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> SYNTEX-DC01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> nc output shows <strong>open</strong> for the key ports above</li>
-      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked)"> Kali Linux terminal is open and ready</li>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> SYNTEX-DC01 is showing <strong>Running</strong> in the Systems tab with an IP assigned</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open and ready</li>
     </ul>
   </div>
-      <button class="checker-btn" id="check-btn" onclick="runPortCheck()">Check Ports</button>
+
+  <!-- Away you go popup -->
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
     </div>
-    <div class="port-results" id="port-results"></div>
-    <div class="checker-note" id="checker-note" style="display:none"></div>
   </div>
 
   <div class="scenario-box">
@@ -410,8 +439,9 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
       <div class="q-num">Q1</div>
       <p>A service has the binary path: <code>C:\Program Files\Syntex App\Payments Service\payments.exe</code>. The path is unquoted and you have write access to <code>C:\Program Files\Syntex App\</code>. What would you create and where to exploit this?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="File to create and its exact path" />
-        <input class="answer-line" type="text" placeholder="Why Windows would execute it" />
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Create Payments.exe at C:\Program Files\Syntex App\Payments.exe|place Payments.exe|drop malicious Payments.exe|create malicious exe at the unquoted path">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
       </div>
     </div>
 
@@ -419,7 +449,9 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
       <div class="q-num">Q2</div>
       <p>You check AlwaysInstallElevated and find HKCU is 0x1 but HKLM is 0x0. Is this exploitable? Explain why.</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Is it exploitable? Why or why not?" />
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="No - both HKCU and HKLM must be 1|No both keys must be 1|No both registry keys|no both hkcu and hklm">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
       </div>
     </div>
 
@@ -427,8 +459,9 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
       <div class="q-num">Q3</div>
       <p>icacls shows <code>BUILTIN\Users:(F)</code> on a service binary running as SYSTEM. What does (F) mean and what is the attack?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="What (F) means" />
-        <input class="answer-line" type="text" placeholder="The attack" />
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="(F) Full Control; replace the service binary|full control replace service binary|F means full control overwrite binary">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
       </div>
     </div>
 
@@ -436,9 +469,9 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
       <div class="q-num">Q4</div>
       <p>You achieve SYSTEM on SYNTEX-DC01. What specific evidence would you collect to prove domain-level impact in your report?</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Evidence 1 (what and why)" />
-        <input class="answer-line" type="text" placeholder="Evidence 2 (what and why)" />
-        <input class="answer-line" type="text" placeholder="Evidence 3 (what and why)" />
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Evidence to collect for domain-level impact: (1) Extract NTDS.dit and SYSTEM hive (ntdsutil or impacket-secretsdump) - contains all domain account hashes; run: impacket-secretsdump -system SYSTEM -ntds ntds.dit LOCAL. Screenshot the command, output showing domain admin hashes, and a hash-to-plaintext crack if possible; (2) Dump the krbtgt account hash - proves you could create Golden Tickets, meaning persistent domain access; (3) Screenshot of net group 'Domain Admins' /domain showing membership, proving administrative control over Active Directory.</div>
       </div>
     </div>
   </div>
@@ -457,37 +490,7 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
 
 <script>
 
-function pasteIP(varName) {
-  navigator.clipboard.readText().then(text => {
-    const ip = text.trim();
-    const ipRegex = /^\d{1,3}(\.\d{1,3}){3}$/;
-    if (!ipRegex.test(ip)) {
-      alert('Clipboard does not contain a valid IP address.\nCopy the IP from the Systems tab first.');
-      return;
-    }
-    window._labIPs = window._labIPs || {};
-    window._labIPs[varName] = ip;
-    const display = document.getElementById('ip-display-' + varName);
-    if (display) { display.textContent = varName + '=' + ip; display.classList.add('set'); }
-    const btn = document.getElementById('paste-btn-' + varName);
-    if (btn) { btn.textContent = '\u2713 IP Set'; btn.classList.add('set'); }
-    const ncEl = document.getElementById('nc-cmd-' + varName);
-    if (ncEl) { ncEl.textContent = ncEl.textContent.replace('$' + varName, ip); }
-    const copyBtn = document.getElementById('nc-copy-' + varName);
-    if (copyBtn) { copyBtn.setAttribute('data-cmd', copyBtn.getAttribute('data-cmd').replace('$' + varName, ip)); }
-  }).catch(() => {
-    alert('Could not read clipboard.\nMake sure you clicked the IP in the Systems tab first, then try again.');
-  });
-}
 
-function copyNcCmd(varName) {
-  const btn = document.getElementById('nc-copy-' + varName);
-  if (!btn) return;
-  navigator.clipboard.writeText(btn.getAttribute('data-cmd')).then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 2000);
-  });
-}
 
 
 </script>
