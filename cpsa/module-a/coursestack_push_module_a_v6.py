@@ -105,18 +105,16 @@ def make_text(markdown):
 
 
 def make_iframe(url, title=""):
-    item = {"id": uid(), "type": "iframe", "url": url, "aspect_height": 9, "aspect_width": 16}
-    if title:
-        item["title"] = title
-    return item
+    return {"id": uid(), "type": "iframe", "url": url, "aspect_height": 9, "aspect_width": 16}
 
 
 def make_mcq(question, answers, explanation=""):
+    answers_with_ids = [{"id": uid(), **a} for a in answers]
     item = {
         "id": uid(),
         "type": "question-multiple-choice",
         "question": question,
-        "answers": answers,
+        "answers": answers_with_ids,
     }
     if explanation:
         item["explanation"] = explanation
