@@ -29,7 +29,7 @@ from requests.auth import HTTPBasicAuth
 API_KEY = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
 BASE    = "https://app.coursestack.com"
 auth    = HTTPBasicAuth(API_KEY, "")
-COURSE_ID = "32dd022a-61bb-4105-be92-71a46eadf98d"
+COURSE_ID = "b9d920c3-4a8e-4227-af24-3c5f32fc7350"
 
 # GitHub Pages URLs (heaps1345.github.io/mca-activites)
 ARTIFACT_ENGAGEMENT_PACK  = "https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_engagement_pack_v1.html"
