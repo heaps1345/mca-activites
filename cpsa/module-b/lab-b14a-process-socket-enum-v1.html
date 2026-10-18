@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B14-A: Process and Socket Enumeration</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B14-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B14</span>
+    <span><strong>Duration:</strong> 60 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate</span>
+    <span><strong>Targets:</strong> SYNTEX-LNX01, SYNTEX-DC01</span>
+  </div>
+  <h1>Process and Socket Enumeration</h1>
+  <p>Enumerate running processes, open network sockets, and active connections on both Linux and Windows targets. Understand what each discovered service reveals and how to map process-to-port relationships - a critical skill for both privilege escalation and lateral movement.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have low-privilege access to both Syntex Solutions targets. Before attempting privilege escalation, a thorough tester enumerates all running processes and open network connections. This reveals services that port scans miss (internal-only listeners), processes running as privileged users, and potential attack surface that would otherwise go unnoticed. This lab builds the enumeration skills that feed directly into privilege escalation planning.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Use ps, top and /proc to enumerate running processes on Linux</li>
+      <li>Use ss and netstat to list open sockets and active connections</li>
+      <li>Identify services listening only on localhost (internal attack surface)</li>
+      <li>Enumerate Windows processes and connections with tasklist and netstat</li>
+      <li>Correlate PIDs to processes and understand what each service means</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Kali (attacker)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Windows Target</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Creds</div><div class="value">jsmith / Password1</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel.</div>
+    </div>
+  </div>
+
+  <!-- Part 1: Linux Process Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 1 - Linux Process Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">SSH to SYNTEX-LNX01</div>
+      </div>
+      <div class="step-body">
+        <pre><span class="cmd">ssh</span> jsmith@&lt;LNX01-IP&gt;
+<span class="comment"># Password: Password1</span></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Full Process Listing</div>
+      </div>
+      <div class="step-body">
+        <p>The ps command shows running processes. The flags matter: aux shows all processes for all users with full details.</p>
+        <pre><span class="comment"># All processes, all users, with details</span>
+<span class="cmd">ps</span> <span class="flag">aux</span>
+
+<span class="comment"># Full command lines - shows script paths and arguments</span>
+<span class="cmd">ps</span> <span class="flag">auxww</span>
+
+<span class="comment"># Tree view showing parent-child relationships</span>
+<span class="cmd">ps</span> <span class="flag">auxf</span>
+
+<span class="comment"># Processes running as root (high value targets)</span>
+<span class="cmd">ps</span> <span class="flag">aux</span> | grep "^root"</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>What to look for:</strong> Processes running as root that have exploitable configurations, database daemons running locally (MySQL, PostgreSQL), web servers running internally, and any custom/non-standard process names that suggest bespoke applications.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Process enumeration - notable findings</div>
+          <input class="answer-line" type="text" placeholder="Processes running as root (list interesting ones)" />
+          <input class="answer-line" type="text" placeholder="Any database processes (mysql, postgres, etc.)?" />
+          <input class="answer-line" type="text" placeholder="Custom/non-standard processes seen?" />
+          <input class="answer-line" type="text" placeholder="Cron daemon running?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Read Process Details from /proc</div>
+      </div>
+      <div class="step-body">
+        <p>The /proc filesystem exposes detailed information about every running process. Each PID has its own directory with full command line, environment variables, and open file descriptors.</p>
+        <pre><span class="comment"># Get the PID of a process first</span>
+<span class="cmd">ps</span> aux | grep ssh
+
+<span class="comment"># Read the full command line of a specific PID</span>
+<span class="cmd">cat</span> /proc/&lt;PID&gt;/cmdline | tr '\0' ' '
+
+<span class="comment"># Read environment variables for the process</span>
+<span class="comment"># (this may contain credentials if devs are lazy)</span>
+<span class="cmd">cat</span> /proc/&lt;PID&gt;/environ | tr '\0' '\n'
+
+<span class="comment"># See what files the process has open</span>
+<span class="cmd">ls -la</span> /proc/&lt;PID&gt;/fd/</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> Process environment variables are a goldmine. Applications that pass credentials via environment variables (common in poorly configured Docker or systemd services) can be read by any user who can see the /proc entry. This is a real finding category: "Credentials exposed in process environment".</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">/proc investigation</div>
+          <input class="answer-line" type="text" placeholder="Any interesting environment variables found in /proc?" />
+          <input class="answer-line" type="text" placeholder="Any credentials or API keys visible?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 2: Socket Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 2 - Linux Socket Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Socket State with ss</div>
+      </div>
+      <div class="step-body">
+        <p>The ss command (socket statistics) is the modern replacement for netstat. It shows all open sockets including those listening only on localhost - services that an external nmap scan would never see.</p>
+        <pre><span class="comment"># All listening TCP sockets with PID and process name</span>
+<span class="cmd">ss</span> <span class="flag">-tlnp</span>
+
+<span class="comment"># All listening UDP sockets</span>
+<span class="cmd">ss</span> <span class="flag">-ulnp</span>
+
+<span class="comment"># All TCP connections (established and listening)</span>
+<span class="cmd">ss</span> <span class="flag">-tnp</span>
+
+<span class="comment"># All sockets (TCP + UDP + Unix sockets)</span>
+<span class="cmd">ss</span> <span class="flag">-tlunp</span>
+
+<span class="comment"># Equivalent with netstat (if available)</span>
+<span class="cmd">netstat</span> <span class="flag">-tlnp</span> 2>/dev/null</pre>
+        <p>Pay special attention to services bound to <code>127.0.0.1</code> - these are only accessible from localhost. If you compromise the machine, you have direct access to these internal services that no external scan revealed.</p>
+        <div class="answer-box">
+          <div class="label">Socket enumeration findings</div>
+        </div>
+        <table>
+          <tr><th>Port</th><th>Address</th><th>Service/Process</th><th>Accessible Externally?</th></tr>
+          <tr><td>22</td><td>0.0.0.0</td><td>sshd</td><td>Yes</td></tr>
+          <tr><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td></tr>
+          <tr><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td></tr>
+          <tr><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td></tr>
+          <tr><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td><td class="fill">your result</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Map PID to Process to Port</div>
+      </div>
+      <div class="step-body">
+        <p>Correlate process IDs from ss with process names from ps to understand the full picture.</p>
+        <pre><span class="comment"># ss -tlnp shows PIDs in the Users column - e.g. users:(("nginx",pid=1234,fd=6))</span>
+<span class="cmd">ss</span> <span class="flag">-tlnp</span>
+
+<span class="comment"># Then match the PID to a full process listing</span>
+<span class="cmd">ps</span> <span class="flag">-p &lt;PID&gt; -f</span>
+
+<span class="comment"># Or use lsof to get all open files/sockets for a process</span>
+<span class="cmd">lsof -p</span> &lt;PID&gt; 2>/dev/null
+
+<span class="comment"># All network connections for a specific process name</span>
+<span class="cmd">lsof -i -n -P</span> | grep ssh</pre>
+        <div class="answer-box">
+          <div class="label">PID-to-port mapping</div>
+          <input class="answer-line" type="text" placeholder="Which process is listening on port 445? (SMB)" />
+          <input class="answer-line" type="text" placeholder="Which process is listening on port 2049? (NFS)" />
+          <input class="answer-line" type="text" placeholder="Any localhost-only services that nmap did not see externally?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 3: Windows -->
+  <div class="section">
+    <div class="section-title">Part 3 - Windows Process and Socket Enumeration</div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>For this section, use a method to execute commands on SYNTEX-DC01. Options: SMB exec via authenticated connection, or review the commands you would run if you had a shell via a previous foothold. The commands shown are standard Windows cmd/PowerShell.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Windows Process Enumeration</div>
+      </div>
+      <div class="step-body">
+        <pre><span class="comment"># List all running processes (Command Prompt)</span>
+<span class="cmd">tasklist</span>
+
+<span class="comment"># With verbose info including memory usage</span>
+<span class="cmd">tasklist</span> <span class="flag">/v</span>
+
+<span class="comment"># Services only</span>
+<span class="cmd">tasklist</span> <span class="flag">/svc</span>
+
+<span class="comment"># PowerShell - detailed process list</span>
+<span class="cmd">Get-Process</span> | Sort-Object -Property CPU -Descending
+
+<span class="comment"># PowerShell - processes with parent PID</span>
+<span class="cmd">Get-WmiObject Win32_Process</span> | Select-Object ProcessId,ParentProcessId,Name,CommandLine</pre>
+        <div class="answer-box">
+          <div class="label">Windows process analysis</div>
+          <input class="answer-line" type="text" placeholder="Key AD-related processes running (lsass.exe, dns.exe, etc.)" />
+          <input class="answer-line" type="text" placeholder="AV/EDR processes visible? (defender, etc.)" />
+          <input class="answer-line" type="text" placeholder="Any non-standard processes?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">Windows Socket Enumeration</div>
+      </div>
+      <div class="step-body">
+        <pre><span class="comment"># All listening ports with owning PID</span>
+<span class="cmd">netstat</span> <span class="flag">-ano</span>
+
+<span class="comment"># Filter to listening only</span>
+<span class="cmd">netstat</span> <span class="flag">-ano</span> | findstr LISTENING
+
+<span class="comment"># Match PID to process name</span>
+<span class="cmd">tasklist</span> | findstr &lt;PID&gt;
+
+<span class="comment"># PowerShell - all TCP connections with process</span>
+<span class="cmd">Get-NetTCPConnection</span> | Where-Object State -eq Listen | Select-Object LocalPort,State,OwningProcess
+
+<span class="comment"># RDP port check (should be 3389 on DC01)</span>
+<span class="cmd">netstat</span> <span class="flag">-ano</span> | findstr 3389</pre>
+        <p>Common Windows DC ports to expect:</p>
+        <table>
+          <tr><th>Port</th><th>Service</th><th>Notes</th></tr>
+          <tr><td>88</td><td>Kerberos</td><td>Confirms this is a domain controller</td></tr>
+          <tr><td>135</td><td>RPC Endpoint Mapper</td><td>Used for WMI and DCOM</td></tr>
+          <tr><td>389</td><td>LDAP</td><td>Active Directory directory service</td></tr>
+          <tr><td>445</td><td>SMB</td><td>File sharing and RPC named pipes</td></tr>
+          <tr><td>636</td><td>LDAPS</td><td>LDAP over SSL</td></tr>
+          <tr><td>3268</td><td>Global Catalog</td><td>Multi-domain AD queries</td></tr>
+          <tr><td>3389</td><td>RDP</td><td>Remote Desktop Protocol</td></tr>
+        </table>
+        <div class="answer-box">
+          <div class="label">Windows socket findings</div>
+          <input class="answer-line" type="text" placeholder="Port 88 open? (confirms DC role)" />
+          <input class="answer-line" type="text" placeholder="Port 3389 (RDP) open and accessible?" />
+          <input class="answer-line" type="text" placeholder="Any unexpected ports listening?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>You run <code>ss -tlnp</code> on a Linux server and see a MySQL service listening on <code>127.0.0.1:3306</code>. Explain why this is significant even though nmap would not detect it from the network.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Why it is significant" />
+        <input class="answer-line" type="text" placeholder="How you would exploit this access" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>What does the presence of port 88 (Kerberos) open on a Windows host tell you about the machine's role in the network?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>On Linux, how would you check whether a process is reading credentials from environment variables? What command would you use and what would you look for?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Command used" />
+        <input class="answer-line" type="text" placeholder="What to look for" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What is the difference between <code>netstat</code> and <code>ss</code> on a modern Linux system?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Process and socket enumeration reveals the internal attack surface that external scanning misses. Services bound to 127.0.0.1 are invisible to nmap but fully accessible once you have a shell. On a CREST exam, candidates who demonstrate internal enumeration after gaining access score higher than those who stop at the initial foothold. Always correlate PIDs to process names and document any services running as privileged users.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B14-A - Process and Socket Enumeration v1
+</div>
+
+</body>
+</html>

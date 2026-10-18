@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B5-A: Interpreting Tool Output</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .annotation { background: #2a2a2a; border-left: 4px solid var(--orange); padding: 8px 14px; margin: 4px 0; font-size: 12px; color: #f9c74f; font-family: monospace; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B5-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B5</span>
+    <span><strong>Duration:</strong> 60 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate</span>
+    <span><strong>Targets:</strong> SYNTEX-LNX01, SYNTEX-DC01</span>
+  </div>
+  <h1>Interpreting and Documenting Tool Output</h1>
+  <p>Run live enumeration tools, extract meaningful intelligence from their output, and translate raw results into professional findings. This lab tests whether you understand what the tools are telling you - not just how to run them.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>Your port scan of the Syntex Solutions environment is complete. You now have two targets with multiple open services. The next phase is enumeration: using specialised tools to interrogate each service and pull out intelligence. The challenge in the CREST exam is not running the tools - it is proving you understand what the output means and can extract findings from it.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Run service enumeration tools and interpret their output correctly</li>
+      <li>Extract specific intelligence from SMB, FTP, NFS, and LDAP enumeration</li>
+      <li>Distinguish between a finding and background noise in tool output</li>
+      <li>Produce structured notes from raw tool output</li>
+      <li>Understand what each piece of output means for a penetration tester</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Windows Target</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Tools</div><div class="value">enum4linux, smbclient, showmount, ftp</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all &lt;LNX01-IP&gt; and &lt;DC01-IP&gt; placeholders with the IPs shown in your CourseStack Lab Panel before running commands.</div>
+    </div>
+  </div>
+
+  <!-- SMB Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 1 - SMB Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">enum4linux Against SYNTEX-LNX01</div>
+      </div>
+      <div class="step-body">
+        <p>enum4linux is a wrapper around Samba tools that automates SMB enumeration. It attempts to pull users, groups, shares, password policy, and OS information from a target.</p>
+        <pre><span class="comment"># Full enum4linux scan</span>
+<span class="cmd">enum4linux</span> <span class="flag">-a</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># Save output</span>
+<span class="cmd">enum4linux</span> <span class="flag">-a</span> &lt;LNX01-IP&gt; | tee enum4linux-lnx01.txt</pre>
+        <p>The output is verbose. Focus on these sections:</p>
+        <table>
+          <tr><th>Section Header in Output</th><th>What to Extract</th></tr>
+          <tr><td>Enumerating Workgroup/Domain</td><td>Domain/workgroup name</td></tr>
+          <tr><td>Session Check on</td><td>Null session allowed? Yes/No</td></tr>
+          <tr><td>Getting domain SID</td><td>SID string if returned</td></tr>
+          <tr><td>Share Enumeration</td><td>Share names and access level</td></tr>
+          <tr><td>Password Policy Information</td><td>Min length, complexity, lockout</td></tr>
+          <tr><td>Users on</td><td>Username list</td></tr>
+        </table>
+        <div class="answer-box">
+          <div class="label">Key findings from enum4linux on SYNTEX-LNX01</div>
+          <input class="answer-line" type="text" placeholder="Workgroup / Domain name" />
+          <input class="answer-line" type="text" placeholder="Null session allowed? Y/N" />
+          <input class="answer-line" type="text" placeholder="Shares found" />
+          <input class="answer-line" type="text" placeholder="Any users enumerated?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Accessing the SMB Share</div>
+      </div>
+      <div class="step-body">
+        <p>If enum4linux found accessible shares, use smbclient to browse them. The goal is to identify any sensitive files left accessible.</p>
+        <pre><span class="comment"># List shares with null session (no credentials)</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;LNX01-IP&gt; <span class="flag">-N</span>
+
+<span class="comment"># Connect to the data share</span>
+<span class="cmd">smbclient</span> //&lt;LNX01-IP&gt;/data <span class="flag">-N</span>
+
+<span class="comment"># Inside smbclient - list files</span>
+smb: \&gt; ls
+smb: \&gt; get budget_draft.txt
+smb: \&gt; get staff.txt
+smb: \&gt; exit</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> Finding and accessing a share with sensitive data is a finding. Document: share name, authentication required (none in this case), files accessible, sensitivity of those files. A null session share with staff data is a medium or high finding depending on data sensitivity.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Files retrieved from the SMB share - summarise their contents</div>
+          <input class="answer-line" type="text" placeholder="File 1 - name and content summary" />
+          <input class="answer-line" type="text" placeholder="File 2 - name and content summary" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">enum4linux Against SYNTEX-DC01</div>
+      </div>
+      <div class="step-body">
+        <p>A domain controller will return significantly more data than a standalone Linux host. Pay close attention to the password policy and any share names that suggest sensitive content.</p>
+        <pre><span class="comment"># Full enum4linux against the Windows DC</span>
+<span class="cmd">enum4linux</span> <span class="flag">-a</span> &lt;DC01-IP&gt; | tee enum4linux-dc01.txt
+
+<span class="comment"># Also try enum4linux-ng (newer version, better against modern Windows)</span>
+<span class="cmd">enum4linux-ng</span> &lt;DC01-IP&gt; <span class="flag">-A</span> | tee enum4linux-ng-dc01.txt</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>What to look for on a DC:</strong> Domain name, domain SID, list of domain users, password policy (minimum length, complexity, lockout threshold), share names including SYSVOL and NETLOGON, and whether anonymous sessions are permitted.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Key findings from DC01 enumeration</div>
+          <input class="answer-line" type="text" placeholder="Domain name" />
+          <input class="answer-line" type="text" placeholder="Domain SID" />
+          <input class="answer-line" type="text" placeholder="Password policy - minimum length" />
+          <input class="answer-line" type="text" placeholder="Password policy - complexity required Y/N" />
+          <input class="answer-line" type="text" placeholder="Shares visible" />
+          <input class="answer-line" type="text" placeholder="Users enumerated (first 5)" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FTP Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 2 - FTP Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Anonymous FTP Login</div>
+      </div>
+      <div class="step-body">
+        <p>Anonymous FTP login is a classic misconfiguration. If the server accepts the anonymous username, any unauthenticated user can browse and download files.</p>
+        <pre><span class="comment"># Connect to FTP and try anonymous login</span>
+<span class="cmd">ftp</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># At the login prompt:</span>
+<span class="output">Name: anonymous
+Password: (press enter or enter any email)</span>
+
+<span class="comment"># If logged in - list files</span>
+ftp&gt; ls
+ftp&gt; ls -la
+ftp&gt; get welcome.txt
+ftp&gt; quit</pre>
+        <pre><span class="comment"># Alternative: use curl to browse FTP anonymously</span>
+<span class="cmd">curl</span> ftp://&lt;LNX01-IP&gt;/ <span class="flag">--user anonymous:</span>
+<span class="cmd">curl</span> ftp://&lt;LNX01-IP&gt;/welcome.txt <span class="flag">--user anonymous:</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> Anonymous FTP is always a finding. Even if the only file is a welcome message, the misconfiguration must be reported. Record: service version from the banner, anonymous login permitted (Y/N), files accessible, and whether write access is enabled (higher severity).</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">FTP enumeration findings</div>
+          <input class="answer-line" type="text" placeholder="FTP banner / version" />
+          <input class="answer-line" type="text" placeholder="Anonymous login: Y/N" />
+          <input class="answer-line" type="text" placeholder="Files found" />
+          <input class="answer-line" type="text" placeholder="Write access permitted: Y/N" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NFS Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 3 - NFS Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Enumerating and Mounting NFS Exports</div>
+      </div>
+      <div class="step-body">
+        <p>NFS (Network File System) allows remote directories to be mounted over the network. Misconfigured exports can expose sensitive files to anyone on the network.</p>
+        <pre><span class="comment"># Show available NFS exports</span>
+<span class="cmd">showmount</span> <span class="flag">-e</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># Mount the export</span>
+<span class="cmd">mkdir</span> /tmp/nfs-mount
+<span class="cmd">sudo mount</span> <span class="flag">-t nfs</span> &lt;LNX01-IP&gt;:/exports/data /tmp/nfs-mount
+
+<span class="comment"># Browse the mounted share</span>
+<span class="cmd">ls -la</span> /tmp/nfs-mount/
+<span class="cmd">cat</span> /tmp/nfs-mount/db.conf
+<span class="cmd">cat</span> /tmp/nfs-mount/passwd.bak
+
+<span class="comment"># Unmount when done</span>
+<span class="cmd">sudo umount</span> /tmp/nfs-mount</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div><strong>no_root_squash:</strong> Check the export options from showmount. If you see no_root_squash, root on your Kali machine has full root access to the NFS export. This means you can write files as root, including SUID binaries or SSH keys. This is a critical finding in a real engagement.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">NFS enumeration findings</div>
+          <input class="answer-line" type="text" placeholder="Export path" />
+          <input class="answer-line" type="text" placeholder="Export options (rw, no_root_squash, etc)" />
+          <input class="answer-line" type="text" placeholder="Files found - db.conf contents" />
+          <input class="answer-line" type="text" placeholder="passwd.bak - notable accounts?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output Analysis -->
+  <div class="section">
+    <div class="section-title">Part 4 - Reading Annotated Output</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Annotate the enum4linux Output</div>
+      </div>
+      <div class="step-body">
+        <p>Below is a sample section of enum4linux output. Read it carefully and answer the questions that follow. This is the kind of analysis the CREST exam expects.</p>
+        <pre><span class="comment"># From: enum4linux -a &lt;DC01-IP&gt;</span>
+
+<span class="output"> ==============================
+|    Session Check on DC01     |
+ ==============================
+[+] Server DC01 allows sessions using username '', password ''</span>
+<span class="annotation"> ^ Null session is allowed - anonymous access is possible</span>
+
+<span class="output"> ======================================
+|    Password Policy Information       |
+ ======================================
+[+] Minimum password length: 4
+[+] Password Complexity Flags: 000000
+[+] Password history length: 0
+[+] Maximum password age: Not Set</span>
+<span class="annotation"> ^ Password policy is extremely weak - 4 char min, no complexity, no expiry</span>
+
+<span class="output"> ============================
+|    Share Enumeration       |
+ ============================
+        Sharename       Type      Comment
+        ---------       ----      -------
+        FINANCE         Disk      Finance Documents
+        IT-ADMIN        Disk      IT Administration
+        BACKUP          Disk      Backup Files
+        HR              Disk      HR Documents
+        PUBLIC          Disk      Public Share
+        IPC$            IPC       Remote IPC</span>
+<span class="annotation"> ^ Multiple sensitive share names visible - all should be tested for anonymous access</span></pre>
+
+        <div class="question">
+          <div class="q-num">Analysis Q1</div>
+          <p>The output shows "Server DC01 allows sessions using username '', password ''". What is the security implication of this?</p>
+          <div class="answer-box">
+            <input class="answer-line" type="text" placeholder="Your answer" />
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="q-num">Analysis Q2</div>
+          <p>The minimum password length is 4 and complexity flags are 000000. What does this mean in practice and what attack does it enable?</p>
+          <div class="answer-box">
+            <input class="answer-line" type="text" placeholder="Your answer" />
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="q-num">Analysis Q3</div>
+          <p>You can see shares named FINANCE, IT-ADMIN, BACKUP and HR. What is your next step and what would you be looking for?</p>
+          <div class="answer-box">
+            <input class="answer-line" type="text" placeholder="Your answer" />
+            <input class="answer-line" type="text" placeholder="" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>enum4linux returns a large amount of output. What are the three most valuable sections to focus on for a penetration test and why?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Section 1 and reason" />
+        <input class="answer-line" type="text" placeholder="Section 2 and reason" />
+        <input class="answer-line" type="text" placeholder="Section 3 and reason" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>You find an NFS export with the option <strong>no_root_squash</strong>. Explain what this means and describe one concrete attack this enables.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Explanation" />
+        <input class="answer-line" type="text" placeholder="Attack technique" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>FTP returns a 230 response code after you enter the username "anonymous". What does 230 mean and what should you do next?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>You are enumerating a domain controller. enum4linux shows a minimum password length of 1. Why is this particularly significant in the context of an Active Directory environment?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+        <input class="answer-line" type="text" placeholder="" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Tool output is only useful if you can read it. CREST examiners test whether you can identify findings within output, explain their significance, and link them to real attack techniques. A candidate who can run enum4linux and say "null session enabled means I can enumerate users without credentials, enabling a password spray attack" will always score higher than one who just pastes the output.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B5-A - Tool Output Interpretation v1
+</div>
+
+</body>
+</html>

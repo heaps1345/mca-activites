@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B4-C: Port Scanning</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B4-C</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B4</span>
+    <span><strong>Duration:</strong> 60 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate</span>
+    <span><strong>Targets:</strong> SYNTEX-LNX01, SYNTEX-DC01</span>
+  </div>
+  <h1>Port Scanning - Techniques and Interpretation</h1>
+  <p>Perform TCP and UDP port scans against live targets, compare scan types, understand the difference between filtered and closed ports, and document findings in a format suitable for a penetration test report.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>Host discovery is complete. You have identified two live hosts in the Syntex Solutions environment: a Linux server (SYNTEX-LNX01) and a Windows domain controller (SYNTEX-DC01). Your next task is to enumerate the open ports on both targets. You need to understand exactly what is listening, what scan types reveal different results, and how to avoid common mistakes that cause CREST examiners to mark candidates down.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Perform a full TCP SYN scan and interpret open, closed, and filtered states</li>
+      <li>Understand why UDP scanning is unreliable and how to work around it</li>
+      <li>Use version detection to enrich port scan output</li>
+      <li>Compare results from a default scan vs a full port scan</li>
+      <li>Correctly interpret nmap output as expected in a CREST exam</li>
+      <li>Produce a clean port matrix for two targets ready for a pentest report</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Windows Target</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Primary Tool</div><div class="value">nmap</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div><strong>Dynamic IPs:</strong> All IPs are assigned by the CourseStack lab platform. Check the Lab Panel on the right of your screen for the actual addresses assigned to your session. Replace &lt;LNX01-IP&gt; and &lt;DC01-IP&gt; with your assigned values before running any commands.</div>
+    </div>
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div><strong>Run as root:</strong> SYN scans (-sS) and UDP scans (-sU) require root privileges. All nmap commands in this lab must be run as root or with sudo.</div>
+    </div>
+  </div>
+
+  <!-- PART 1 - LNX01 -->
+  <div class="section">
+    <div class="section-title">Part 1 - TCP Scanning SYNTEX-LNX01</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Default SYN Scan</div>
+      </div>
+      <div class="step-body">
+        <p>Start with nmap's default SYN scan. This scans the top 1000 most common ports. It is fast and stealthy compared to a connect scan - it never completes the TCP handshake.</p>
+        <pre><span class="comment"># Default SYN scan - top 1000 ports</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -v</span> &lt;LNX01-IP&gt;</pre>
+        <p>Look at the output carefully. Note the STATE column: <strong>open</strong>, <strong>closed</strong>, or <strong>filtered</strong>.</p>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Port states:</strong> open = something is listening. closed = port reachable, nothing listening (RST returned). filtered = no response, likely a firewall dropping packets. This distinction matters in the exam.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record the open ports from the default scan</div>
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Full Port Scan</div>
+      </div>
+      <div class="step-body">
+        <p>The default scan only covers 1000 ports. Services running on non-standard ports will be missed. A full port scan covers all 65535 TCP ports.</p>
+        <pre><span class="comment"># Full TCP port scan - all 65535 ports</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -p-</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># Same scan with timing - T4 is aggressive, suitable for lab environments</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -p- -T4</span> &lt;LNX01-IP&gt;</pre>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <div><strong>Exam technique:</strong> In a real engagement and in the CREST exam, always run a full port scan. Candidates who only scan the top 1000 ports miss services and lose marks. Show your examiner that you know the difference.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Did the full scan find any ports the default scan missed? List them.</div>
+          <input class="answer-line" type="text" placeholder="Additional ports found (or 'None')" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Version Detection</div>
+      </div>
+      <div class="step-body">
+        <p>Open ports tell you what is listening. Version detection tells you what software and version is running. This is critical for vulnerability identification.</p>
+        <pre><span class="comment"># Version detection on open ports</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p 21,22,139,445,2049</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># More aggressive version detection (0-9 scale, 5 is default)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV --version-intensity 9 -p 21,22,139,445,2049</span> &lt;LNX01-IP&gt;</pre>
+        <p>Check the VERSION column in the output. You should now see software names and version numbers rather than just service guesses.</p>
+        <div class="answer-box">
+          <div class="label">Fill in the version information returned for each service</div>
+        </div>
+        <table>
+          <tr><th>Port</th><th>Service</th><th>Version / Banner (fill in)</th></tr>
+          <tr><td>21</td><td>FTP</td><td class="fill">your result here</td></tr>
+          <tr><td>22</td><td>SSH</td><td class="fill">your result here</td></tr>
+          <tr><td>139</td><td>NetBIOS</td><td class="fill">your result here</td></tr>
+          <tr><td>445</td><td>SMB</td><td class="fill">your result here</td></tr>
+          <tr><td>2049</td><td>NFS</td><td class="fill">your result here</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">UDP Scanning</div>
+      </div>
+      <div class="step-body">
+        <p>TCP scanning is reliable - the three-way handshake gives you a clear open/closed signal. UDP is connectionless: if no response comes back, the port could be open (service received but did not reply) or filtered. This makes UDP scanning slow and less certain.</p>
+        <pre><span class="comment"># UDP scan - top 20 most common UDP ports only (faster)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sU --top-ports 20</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># UDP with version detection to reduce false positives</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sU -sV --top-ports 20</span> &lt;LNX01-IP&gt;</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> You must be able to explain the difference between open|filtered and open for UDP ports. open|filtered means nmap received no response - the port may be open or a firewall may be dropping packets silently. You cannot be certain without a version probe that gets a reply.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">List any open or open|filtered UDP ports found</div>
+          <input class="answer-line" type="text" placeholder="Port / State / Service" />
+          <input class="answer-line" type="text" placeholder="Port / State / Service" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART 2 - DC01 -->
+  <div class="section">
+    <div class="section-title">Part 2 - TCP Scanning SYNTEX-DC01 (Windows DC)</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Full SYN Scan Against the Domain Controller</div>
+      </div>
+      <div class="step-body">
+        <p>A Windows domain controller exposes a very different port profile to a Linux server. AD DS, Kerberos, DNS, LDAP, RPC, WinRM, and IIS may all be running. Your job is to map every listening service.</p>
+        <pre><span class="comment"># Full port SYN scan with version detection</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p-</span> &lt;DC01-IP&gt;
+
+<span class="comment"># Save output to a file for your notes</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p- -oN</span> syntex-dc01-portscan.txt &lt;DC01-IP&gt;</pre>
+        <div class="callout tip">
+          <span class="callout-icon">✔</span>
+          <div><strong>Output formats:</strong> -oN saves normal (human-readable) output. -oX saves XML (useful for tools like Metasploit). -oG saves grepable format. -oA saves all three at once. Good habit: always save your scan output.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record all open ports found on SYNTEX-DC01</div>
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+          <input class="answer-line" type="text" placeholder="Port / Service" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Identifying Key Windows Services</div>
+      </div>
+      <div class="step-body">
+        <p>Use the port numbers from your scan to identify which Windows and Active Directory services are present. Match ports to services in the table below.</p>
+        <table>
+          <tr><th>Port</th><th>Expected Service</th><th>Found? (Y/N)</th><th>Notes</th></tr>
+          <tr><td>53</td><td>DNS</td><td class="fill">Y/N</td><td class="fill">DNS server present</td></tr>
+          <tr><td>88</td><td>Kerberos</td><td class="fill">Y/N</td><td class="fill">AD authentication</td></tr>
+          <tr><td>135</td><td>RPC Endpoint Mapper</td><td class="fill">Y/N</td><td class="fill">Windows RPC</td></tr>
+          <tr><td>139</td><td>NetBIOS Session</td><td class="fill">Y/N</td><td class="fill">Legacy name resolution</td></tr>
+          <tr><td>389</td><td>LDAP</td><td class="fill">Y/N</td><td class="fill">Directory queries</td></tr>
+          <tr><td>445</td><td>SMB</td><td class="fill">Y/N</td><td class="fill">File shares, lateral movement</td></tr>
+          <tr><td>464</td><td>Kerberos kpasswd</td><td class="fill">Y/N</td><td class="fill">Password change</td></tr>
+          <tr><td>593</td><td>RPC over HTTP</td><td class="fill">Y/N</td><td class="fill">Outlook Anywhere</td></tr>
+          <tr><td>636</td><td>LDAPS</td><td class="fill">Y/N</td><td class="fill">Encrypted LDAP</td></tr>
+          <tr><td>3268</td><td>Global Catalog LDAP</td><td class="fill">Y/N</td><td class="fill">Forest-wide queries</td></tr>
+          <tr><td>3389</td><td>RDP</td><td class="fill">Y/N</td><td class="fill">Remote desktop</td></tr>
+          <tr><td>5985</td><td>WinRM HTTP</td><td class="fill">Y/N</td><td class="fill">Remote management</td></tr>
+          <tr><td>80</td><td>HTTP (IIS)</td><td class="fill">Y/N</td><td class="fill">Web server</td></tr>
+          <tr><td>1433</td><td>SQL Server</td><td class="fill">Y/N</td><td class="fill">Database</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">Targeted Scans on Interesting Ports</div>
+      </div>
+      <div class="step-body">
+        <p>Once you have your full port list, run targeted scans on the services that matter most for Active Directory enumeration.</p>
+        <pre><span class="comment"># Focused scan on AD-critical ports with maximum version detail</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p 88,389,445,3389,5985</span> &lt;DC01-IP&gt;
+
+<span class="comment"># Check if SMB signing is disabled (critical finding)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb2-security-mode</span> &lt;DC01-IP&gt;
+
+<span class="comment"># Check SMB version (SMBv1 is a critical vulnerability)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb-protocols</span> &lt;DC01-IP&gt;</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> SMB signing disabled and SMBv1 enabled are both reportable findings. If the smb2-security-mode script returns "Message signing enabled but not required" - that is a finding. An attacker can perform NTLM relay attacks against machines with signing disabled.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">SMB signing status on SYNTEX-DC01</div>
+          <input class="answer-line" type="text" placeholder="Signing enabled / disabled / required?" />
+          <input class="answer-line" type="text" placeholder="SMBv1 enabled? Y/N" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART 3 - Comparison and Analysis -->
+  <div class="section">
+    <div class="section-title">Part 3 - Scan Comparison and Reporting</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">8</div>
+        <div class="step-title">Connect Scan vs SYN Scan</div>
+      </div>
+      <div class="step-body">
+        <p>You have been using SYN scans (-sS). A connect scan (-sT) completes the full TCP handshake. Run both and compare what gets logged on the target.</p>
+        <pre><span class="comment"># TCP connect scan (does NOT require root)</span>
+<span class="cmd">nmap</span> <span class="flag">-sT -p 22,445</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># SYN scan (requires root, does not complete handshake)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -p 22,445</span> &lt;LNX01-IP&gt;</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Why this matters:</strong> A connect scan (-sT) completes the three-way handshake and will appear in application logs. A SYN scan (-sS) sends only the initial SYN and drops the connection on SYN-ACK - it is less likely to appear in application logs, but will still be seen by IDS and firewall logs. Neither is truly invisible.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">In your own words: what is the practical difference between -sS and -sT for a penetration tester?</div>
+          <input class="answer-line" type="text" placeholder="Your answer" />
+          <input class="answer-line" type="text" placeholder="" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">9</div>
+        <div class="step-title">Build the Port Matrix</div>
+      </div>
+      <div class="step-body">
+        <p>A port matrix is what you would include in a penetration test report's technical appendix. Complete the table below from your scan results. This is the deliverable that proves your reconnaissance was thorough.</p>
+        <table>
+          <tr><th>Host</th><th>Port</th><th>Protocol</th><th>State</th><th>Service</th><th>Version</th></tr>
+          <tr><td>SYNTEX-LNX01</td><td class="fill">21</td><td>TCP</td><td class="fill">open</td><td>FTP</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-LNX01</td><td class="fill">22</td><td>TCP</td><td class="fill">open</td><td>SSH</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-LNX01</td><td class="fill">139</td><td>TCP</td><td class="fill">open</td><td>NetBIOS</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-LNX01</td><td class="fill">445</td><td>TCP</td><td class="fill">open</td><td>SMB</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-LNX01</td><td class="fill">2049</td><td>TCP</td><td class="fill">open</td><td>NFS</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-DC01</td><td class="fill">53</td><td>TCP</td><td class="fill">open</td><td>DNS</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-DC01</td><td class="fill">88</td><td>TCP</td><td class="fill">open</td><td>Kerberos</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-DC01</td><td class="fill">389</td><td>TCP</td><td class="fill">open</td><td>LDAP</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-DC01</td><td class="fill">445</td><td>TCP</td><td class="fill">open</td><td>SMB</td><td class="fill">your result</td></tr>
+          <tr><td>SYNTEX-DC01</td><td class="fill">3389</td><td>TCP</td><td class="fill">open</td><td>RDP</td><td class="fill">your result</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>During a port scan you see a port listed as <strong>filtered</strong>. What does this mean and what might cause it?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+        <input class="answer-line" type="text" placeholder="" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>A client says they have no firewall in their internal network. You scan port 80 on a web server and get state: <strong>filtered</strong>. What are two possible explanations?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Explanation 1" />
+        <input class="answer-line" type="text" placeholder="Explanation 2" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>You are scanning a target and nmap returns port 53 as open on a Windows server. What service does this indicate and what does it tell you about the server's likely role?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+        <input class="answer-line" type="text" placeholder="" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>Why should you always run a full port scan (-p-) rather than relying on the default top 1000 ports?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>A colleague says UDP scanning is useless because it is too slow and unreliable. Give two scenarios where you would still run a UDP scan despite this.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Scenario 1" />
+        <input class="answer-line" type="text" placeholder="Scenario 2" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Port scanning is not just about finding open ports. It is about understanding what each open port means, identifying misconfigurations (SMB signing, SMBv1), saving output properly, and knowing when to dig deeper. In the CREST exam, candidates who demonstrate understanding of scan types and port states consistently outperform those who just run nmap and screenshot the output.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B4-C - Port Scanning v1
+</div>
+
+</body>
+</html>

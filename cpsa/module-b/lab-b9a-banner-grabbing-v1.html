@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B9-A: Banner Grabbing</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B9-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B9</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner-Intermediate</span>
+    <span><strong>Targets:</strong> SYNTEX-LNX01, SYNTEX-DC01</span>
+  </div>
+  <h1>Banner Grabbing and Service Identification</h1>
+  <p>Extract service banners from open ports using multiple techniques. Identify software versions, OS clues, and configuration details exposed in banners. Understand what banner information an attacker can use and what it means for the organisation.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have a list of open ports on both Syntex Solutions targets. Service banners - the text a service presents when you first connect - are a goldmine of intelligence. Software versions link directly to CVEs. Configuration details reveal deployment decisions. In some cases, developers leave credentials in banners. Your job is to systematically grab and analyse every banner available.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Grab banners from SSH, FTP, HTTP, and SMB services using multiple tools</li>
+      <li>Identify software versions and link them to known vulnerabilities</li>
+      <li>Extract intelligence from HTTP headers and HTML source comments</li>
+      <li>Understand which banner suppression techniques defenders use and how to work around them</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Windows Target</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Tools</div><div class="value">nc, curl, nmap -sV, whatweb</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel.</div>
+    </div>
+  </div>
+
+  <!-- Manual Banner Grabbing -->
+  <div class="section">
+    <div class="section-title">Part 1 - Manual Banner Grabbing with Netcat</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">SSH Banner</div>
+      </div>
+      <div class="step-body">
+        <p>SSH presents a banner immediately on connection before any authentication is attempted. This banner contains the SSH protocol version and the server software version.</p>
+        <pre><span class="comment"># Grab the SSH banner with netcat</span>
+<span class="cmd">nc</span> -nv &lt;LNX01-IP&gt; 22
+
+<span class="comment"># You will see something like:</span>
+<span class="output">SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.9</span>
+
+<span class="comment"># Press Ctrl+C to disconnect</span></pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Reading the SSH banner:</strong> SSH-2.0 is the protocol version. OpenSSH_8.2p1 is the software and version. Ubuntu-4ubuntu0.9 is the OS package suffix - this tells you the distribution (Ubuntu) and patch level. Cross-reference the version against CVE databases.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">SSH banner from SYNTEX-LNX01</div>
+          <input class="answer-line" type="text" placeholder="Full banner text" />
+          <input class="answer-line" type="text" placeholder="Software and version" />
+          <input class="answer-line" type="text" placeholder="OS information revealed" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">FTP Banner</div>
+      </div>
+      <div class="step-body">
+        <p>FTP servers typically present a banner on connection that includes the server software and sometimes the hostname.</p>
+        <pre><span class="comment"># Grab FTP banner with netcat</span>
+<span class="cmd">nc</span> -nv &lt;LNX01-IP&gt; 21
+
+<span class="comment"># Expected banner format:</span>
+<span class="output">220 Syntex Solutions FTP Server - Authorised Users Only</span>
+
+<span class="comment"># Type QUIT to disconnect cleanly</span>
+QUIT</pre>
+        <div class="answer-box">
+          <div class="label">FTP banner from SYNTEX-LNX01</div>
+          <input class="answer-line" type="text" placeholder="Full banner text" />
+          <input class="answer-line" type="text" placeholder="Software / version identified" />
+          <input class="answer-line" type="text" placeholder="Any other intelligence in the banner?" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HTTP Headers -->
+  <div class="section">
+    <div class="section-title">Part 2 - HTTP Header Analysis</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">HTTP Response Headers from SYNTEX-DC01</div>
+      </div>
+      <div class="step-body">
+        <p>HTTP response headers expose the web server software and version. The Server header is the most valuable for fingerprinting IIS installations.</p>
+        <pre><span class="comment"># Grab HTTP headers only (HEAD request)</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> http://&lt;DC01-IP&gt;/
+
+<span class="comment"># Verbose output showing full request and response</span>
+<span class="cmd">curl</span> <span class="flag">-v</span> http://&lt;DC01-IP&gt;/ 2&gt;&amp;1 | head -40</pre>
+        <p>Look for these headers in the response:</p>
+        <table>
+          <tr><th>Header</th><th>What It Reveals</th></tr>
+          <tr><td>Server:</td><td>Web server software and version (e.g. Microsoft-IIS/10.0)</td></tr>
+          <tr><td>X-Powered-By:</td><td>Backend technology (e.g. ASP.NET)</td></tr>
+          <tr><td>X-AspNet-Version:</td><td>.NET framework version</td></tr>
+          <tr><td>Set-Cookie:</td><td>Session technology, sometimes framework hints</td></tr>
+          <tr><td>Date:</td><td>Server time zone - useful for timing attacks</td></tr>
+        </table>
+        <div class="answer-box">
+          <div class="label">HTTP headers from SYNTEX-DC01</div>
+          <input class="answer-line" type="text" placeholder="Server header" />
+          <input class="answer-line" type="text" placeholder="X-Powered-By (if present)" />
+          <input class="answer-line" type="text" placeholder="Any other interesting headers" />
+          <input class="answer-line" type="text" placeholder="IIS version identified - maps to which Windows version?" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">HTML Source Analysis - Finding Comments</div>
+      </div>
+      <div class="step-body">
+        <p>Developers sometimes leave sensitive information in HTML comments. These are invisible to normal browsers but trivially accessible to an attacker. Always view source on any web page you find.</p>
+        <pre><span class="comment"># Download and view the page source</span>
+<span class="cmd">curl</span> http://&lt;DC01-IP&gt;/
+
+<span class="comment"># Grep specifically for HTML comments</span>
+<span class="cmd">curl</span> http://&lt;DC01-IP&gt;/ | grep -i "&lt;!--"
+
+<span class="comment"># Also check for common sensitive paths</span>
+<span class="cmd">curl</span> http://&lt;DC01-IP&gt;/robots.txt
+<span class="cmd">curl</span> http://&lt;DC01-IP&gt;/web.config 2>/dev/null</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> If you find credentials or internal information in HTML comments, this is a High severity finding. Document exactly: the URL, the comment text verbatim, what information it reveals, and the risk. "Developer comments expose credentials and internal infrastructure details" is a real finding category in CREST reports.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">HTML comments found in the Syntex intranet page</div>
+          <input class="answer-line" type="text" placeholder="Comment 1 - full text" />
+          <input class="answer-line" type="text" placeholder="Comment 1 - information revealed" />
+          <input class="answer-line" type="text" placeholder="Comment 2 - full text" />
+          <input class="answer-line" type="text" placeholder="Comment 2 - information revealed" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">WhatWeb for Automated Banner Analysis</div>
+      </div>
+      <div class="step-body">
+        <p>WhatWeb automates the process of identifying web technologies from headers, cookies, and page content.</p>
+        <pre><span class="comment"># Standard WhatWeb scan</span>
+<span class="cmd">whatweb</span> http://&lt;DC01-IP&gt;/
+
+<span class="comment"># Verbose output</span>
+<span class="cmd">whatweb</span> <span class="flag">-v</span> http://&lt;DC01-IP&gt;/
+
+<span class="comment"># Aggressive mode (more requests)</span>
+<span class="cmd">whatweb</span> <span class="flag">-a 3</span> http://&lt;DC01-IP&gt;/</pre>
+        <div class="answer-box">
+          <div class="label">WhatWeb results</div>
+          <input class="answer-line" type="text" placeholder="Technologies identified" />
+          <input class="answer-line" type="text" placeholder="Versions identified" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- nmap Banner Scripts -->
+  <div class="section">
+    <div class="section-title">Part 3 - nmap Banner Scripts</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Automated Banner Grabbing with nmap</div>
+      </div>
+      <div class="step-body">
+        <p>nmap's banner script automates banner grabbing across multiple ports in a single scan.</p>
+        <pre><span class="comment"># Banner grab all open ports on LNX01</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script banner -p 21,22,139,445,2049</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># Version detection also pulls banners</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sV --version-intensity 9 -p 21,22</span> &lt;LNX01-IP&gt;</pre>
+        <div class="answer-box">
+          <div class="label">Compile your banner summary table for both targets</div>
+        </div>
+        <table>
+          <tr><th>Host</th><th>Port</th><th>Service</th><th>Banner / Version</th></tr>
+          <tr><td>LNX01</td><td>21</td><td>FTP</td><td class="fill">your result</td></tr>
+          <tr><td>LNX01</td><td>22</td><td>SSH</td><td class="fill">your result</td></tr>
+          <tr><td>LNX01</td><td>445</td><td>SMB</td><td class="fill">your result</td></tr>
+          <tr><td>DC01</td><td>80</td><td>HTTP</td><td class="fill">your result</td></tr>
+          <tr><td>DC01</td><td>445</td><td>SMB</td><td class="fill">your result</td></tr>
+          <tr><td>DC01</td><td>3389</td><td>RDP</td><td class="fill">your result</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>An HTTP response contains the header <strong>Server: Microsoft-IIS/10.0</strong>. What Windows Server versions does IIS 10.0 correspond to?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>You find the following HTML comment: <code>&lt;!-- TODO: remove test creds - admin/admin123 still active --&gt;</code>. How would you classify this finding and what immediate action would you take?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Finding severity and classification" />
+        <input class="answer-line" type="text" placeholder="Immediate next step" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>A server has removed its HTTP Server header entirely. List two other methods you could use to identify the web server software.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Method 1" />
+        <input class="answer-line" type="text" placeholder="Method 2" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>The SSH banner shows <strong>OpenSSH_7.2p2 Ubuntu-4ubuntu2.8</strong>. What information can you extract from this and how would you use it?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Information extracted" />
+        <input class="answer-line" type="text" placeholder="How you would use it" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Banner grabbing is quick, passive-looking, and provides high-value intelligence. The CREST exam rewards candidates who go beyond port scanning: viewing page source, reading HTTP headers, and checking HTML comments shows thoroughness. A single HTML comment containing credentials changes the entire test from reconnaissance to compromise.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B9-A - Banner Grabbing v1
+</div>
+
+</body>
+</html>

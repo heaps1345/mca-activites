@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B8-A: OS Fingerprinting</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B8-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> B8</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Intermediate</span>
+    <span><strong>Targets:</strong> SYNTEX-LNX01, SYNTEX-DC01</span>
+  </div>
+  <h1>OS Fingerprinting and Host Identification</h1>
+  <p>Identify the operating system and host characteristics of live targets using active fingerprinting techniques, service banners, and TTL analysis. Understand what the evidence tells you and how confident you should be in your assessment.</p>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have confirmed two live hosts in the Syntex Solutions environment. Before you can search for OS-specific vulnerabilities, you need to identify exactly what operating systems are running and how confident you can be in that identification. This lab covers the techniques you should demonstrate in the CREST exam.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Use nmap OS detection and understand its confidence ratings</li>
+      <li>Identify OS clues from service banners and port profiles</li>
+      <li>Use TTL values to make an initial OS guess before scanning</li>
+      <li>Cross-reference multiple sources to build a confident OS assessment</li>
+      <li>Understand the difference between active and passive fingerprinting</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Environment</div>
+    <div class="info-grid">
+      <div class="info-card"><div class="label">Attacker (Kali)</div><div class="value">&lt;KALI-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Linux Target</div><div class="value">&lt;LNX01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Windows Target</div><div class="value">&lt;DC01-IP&gt;</div></div>
+      <div class="info-card"><div class="label">Tools</div><div class="value">nmap, ping, p0f</div></div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <div>Replace all IP placeholders with the values shown in your CourseStack Lab Panel before running commands.</div>
+    </div>
+  </div>
+
+  <!-- TTL Analysis -->
+  <div class="section">
+    <div class="section-title">Part 1 - TTL Analysis</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Reading TTL Values from Ping</div>
+      </div>
+      <div class="step-body">
+        <p>Before running nmap, you can make an educated OS guess just from the ping TTL. Different operating systems start with different default TTL values. This takes seconds and requires no special tools.</p>
+        <pre><span class="comment"># Ping both targets and note the TTL value</span>
+<span class="cmd">ping</span> <span class="flag">-c 4</span> &lt;LNX01-IP&gt;
+<span class="cmd">ping</span> <span class="flag">-c 4</span> &lt;DC01-IP&gt;</pre>
+        <p>Look for the TTL= value in the response. Use this reference table:</p>
+        <table>
+          <tr><th>TTL Value (approx)</th><th>Likely OS</th><th>Notes</th></tr>
+          <tr><td>64</td><td>Linux / macOS</td><td>Default Linux TTL is 64</td></tr>
+          <tr><td>128</td><td>Windows</td><td>Default Windows TTL is 128</td></tr>
+          <tr><td>255</td><td>Cisco IOS / Solaris</td><td>Network devices often use 255</td></tr>
+          <tr><td>Values lower than default</td><td>Any of the above</td><td>Each router hop decrements by 1</td></tr>
+        </table>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>Why TTL decrements:</strong> Each router hop reduces the TTL by 1. A response of 63 instead of 64 means one hop between you and the target. A response of 127 means one hop from a Windows machine. Always account for routing when interpreting TTL.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">TTL readings and OS assessment</div>
+          <input class="answer-line" type="text" placeholder="LNX01 TTL value" />
+          <input class="answer-line" type="text" placeholder="LNX01 likely OS based on TTL" />
+          <input class="answer-line" type="text" placeholder="DC01 TTL value" />
+          <input class="answer-line" type="text" placeholder="DC01 likely OS based on TTL" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- nmap OS Detection -->
+  <div class="section">
+    <div class="section-title">Part 2 - nmap OS Detection</div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Active OS Fingerprinting with nmap -O</div>
+      </div>
+      <div class="step-body">
+        <p>nmap's OS detection (-O) sends a series of specially crafted packets and analyses the responses to match TCP/IP stack behaviour against a database of known OS fingerprints. It requires root privileges and at least one open and one closed port.</p>
+        <pre><span class="comment"># OS detection against both targets</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-O</span> &lt;LNX01-IP&gt;
+<span class="cmd">sudo nmap</span> <span class="flag">-O</span> &lt;DC01-IP&gt;
+
+<span class="comment"># Combined OS + version detection (more information)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-O -sV</span> &lt;LNX01-IP&gt;
+
+<span class="comment"># Aggressive scan (OS + version + scripts + traceroute)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-A</span> &lt;DC01-IP&gt;</pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> nmap shows an OS match with a confidence percentage. "OS details: Windows Server 2016 (98%)" means nmap is 98% confident. Always quote the confidence in your notes. If confidence is below 80%, document that the OS could not be determined with certainty and explain what other evidence you used to reach your assessment.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">nmap OS detection results</div>
+          <input class="answer-line" type="text" placeholder="LNX01 - OS detected" />
+          <input class="answer-line" type="text" placeholder="LNX01 - confidence %" />
+          <input class="answer-line" type="text" placeholder="DC01 - OS detected" />
+          <input class="answer-line" type="text" placeholder="DC01 - confidence %" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Corroborating with Service Banners</div>
+      </div>
+      <div class="step-body">
+        <p>OS detection from packet behaviour can be blocked or fooled. Service banners - the text a service returns when you connect - often confirm the OS directly. Cross-reference these with your nmap -O result.</p>
+        <pre><span class="comment"># SSH banner grab (Linux)</span>
+<span class="cmd">nc</span> -nv &lt;LNX01-IP&gt; 22
+
+<span class="comment"># FTP banner grab</span>
+<span class="cmd">nc</span> -nv &lt;LNX01-IP&gt; 21
+
+<span class="comment"># HTTP banner grab from IIS (Windows DC)</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> http://&lt;DC01-IP&gt;/
+
+<span class="comment"># WinRM banner</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> http://&lt;DC01-IP&gt;:5985/</pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>What to look for in banners:</strong> SSH banners often include the OS (e.g. Ubuntu-4ubuntu0.3). FTP banners show server software. HTTP Server headers show IIS version (e.g. Microsoft-IIS/10.0 maps to Windows Server 2016/2019). These are passive and do not require sending crafted packets.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Banner information collected</div>
+          <input class="answer-line" type="text" placeholder="SSH banner from LNX01" />
+          <input class="answer-line" type="text" placeholder="FTP banner from LNX01" />
+          <input class="answer-line" type="text" placeholder="HTTP Server header from DC01" />
+          <input class="answer-line" type="text" placeholder="OS clues from banners" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Port Profile Analysis</div>
+      </div>
+      <div class="step-body">
+        <p>Even without OS detection or banners, a port profile tells a story. Certain combinations of open ports are unique to specific OS roles.</p>
+        <table>
+          <tr><th>Port Profile</th><th>Likely OS / Role</th></tr>
+          <tr><td>22, 21, 2049, 139, 445</td><td>Linux server - SSH, FTP, NFS, Samba</td></tr>
+          <tr><td>53, 88, 135, 389, 445, 464, 636, 3268, 3389</td><td>Windows Active Directory Domain Controller</td></tr>
+          <tr><td>80, 443, 8080</td><td>Web server - platform unclear without banner</td></tr>
+          <tr><td>3389 only</td><td>Windows desktop / server, no AD role</td></tr>
+          <tr><td>1433 + 445</td><td>Windows with SQL Server</td></tr>
+          <tr><td>5985, 5986</td><td>Windows with WinRM enabled</td></tr>
+        </table>
+        <div class="answer-box">
+          <div class="label">Based on your port scan results and this table, confirm your OS assessment for both targets</div>
+          <input class="answer-line" type="text" placeholder="LNX01 - OS and role" />
+          <input class="answer-line" type="text" placeholder="DC01 - OS and role" />
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">nmap OS Scripts</div>
+      </div>
+      <div class="step-body">
+        <p>nmap NSE scripts can pull additional OS and host information beyond basic fingerprinting.</p>
+        <pre><span class="comment"># SMB OS detection script (Windows)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb-os-discovery</span> &lt;DC01-IP&gt;
+
+<span class="comment"># This returns OS version, computer name, domain, and FQDN</span></pre>
+        <pre><span class="comment"># Example output you should see:</span>
+<span class="output">Host script results:
+| smb-os-discovery:
+|   OS: Windows Server 2016 Standard 14393 (Windows Server 2016 Standard 6.3)
+|   OS CPE: cpe:/o:microsoft:windows_server_2016
+|   Computer name: SYNTEX-DC01
+|   NetBIOS computer name: SYNTEX-DC01
+|   Domain name: syntex.local
+|   Forest name: syntex.local
+|   FQDN: SYNTEX-DC01.syntex.local
+|_  System time: 2024-01-15T14:23:41+00:00</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">★</span>
+          <div><strong>CREST Exam Point:</strong> smb-os-discovery gives you the computer name, domain name, and exact OS version in one script. This is extremely valuable - you get the AD domain name (syntex.local), the hostname (SYNTEX-DC01), and confirmation of the OS build number. Always run this against any Windows host with SMB open.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">smb-os-discovery results for SYNTEX-DC01</div>
+          <input class="answer-line" type="text" placeholder="OS version returned" />
+          <input class="answer-line" type="text" placeholder="Computer name" />
+          <input class="answer-line" type="text" placeholder="Domain name" />
+          <input class="answer-line" type="text" placeholder="FQDN" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Knowledge Check -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>You ping a target and receive a TTL of 126. What can you infer from this and how confident should you be?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="OS inference" />
+        <input class="answer-line" type="text" placeholder="Confidence and reasoning" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>nmap -O returns "OS: Linux 3.2 - 4.9 (87%)". What are two other methods you could use to narrow down the exact Linux distribution and kernel version?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Method 1" />
+        <input class="answer-line" type="text" placeholder="Method 2" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>What is the difference between active and passive OS fingerprinting? Give one example of each.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Active fingerprinting - definition and example" />
+        <input class="answer-line" type="text" placeholder="Passive fingerprinting - definition and example" />
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>A target has ports 88, 389, 445, and 3268 open. Without any further scanning, what role is this host almost certainly performing and why?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Your answer" />
+        <input class="answer-line" type="text" placeholder="" />
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">★</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> OS fingerprinting is about building confidence through corroboration. TTL gives you a starting point, nmap -O gives you a probability, service banners give you hard evidence, and smb-os-discovery can give you the exact OS version and AD domain. A strong CREST candidate cross-references all available sources and documents both the finding and their confidence level.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> - CREST CPSA - Module B Lab B8-A - OS Fingerprinting v1
+</div>
+
+</body>
+</html>
