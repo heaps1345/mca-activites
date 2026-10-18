@@ -479,6 +479,7 @@ async function runPortCheck() {
   const note = document.getElementById("checker-note");
   const results = document.getElementById("port-results");
   const checks = [];
+  results.innerHTML = "";
   for (const [key, target] of Object.entries(TARGETS)) {
     const ip = document.getElementById(target.inputId)?.value.trim();
     if (!ip) continue;
