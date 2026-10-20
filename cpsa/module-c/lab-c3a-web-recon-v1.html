@@ -152,13 +152,13 @@
       <div class="step-body">
         <p>HTTP response headers often disclose the web server version, framework, and security configuration. This is the first thing to check on any web target.</p>
         <pre><span class="comment"># Fetch headers only with curl (HEAD request)</span>
-<span class="cmd">curl</span> <span class="flag">-I</span> https://bbc.co.uk
+<span class="cmd">curl</span> <span class="flag">-I</span> https://syntexsolutions.net
 
 <span class="comment"># Follow redirects and show final headers</span>
-<span class="cmd">curl</span> <span class="flag">-sI -L</span> https://bbc.co.uk
+<span class="cmd">curl</span> <span class="flag">-sI -L</span> https://syntexsolutions.net
 
 <span class="comment"># Verbose output shows request AND response headers</span>
-<span class="cmd">curl</span> <span class="flag">-v</span> https://bbc.co.uk 2>&1 | <span class="cmd">grep</span> <span class="flag">-E</span> "^[<>]"</pre>
+<span class="cmd">curl</span> <span class="flag">-v</span> https://syntexsolutions.net 2>&1 | <span class="cmd">grep</span> <span class="flag">-E</span> "^[<>]"</pre>
 
         <div class="callout info">
           <span class="callout-icon">&#8505;</span>
@@ -192,10 +192,10 @@
       <div class="step-body">
         <p>The <code>robots.txt</code> file instructs search engine crawlers which paths to ignore. Those disallowed paths are often the most interesting ones for testers.</p>
         <pre><span class="comment"># Fetch robots.txt</span>
-<span class="cmd">curl</span> https://bbc.co.uk/robots.txt
+<span class="cmd">curl</span> https://syntexsolutions.net/robots.txt
 
 <span class="comment"># Check sitemap.xml for all indexed content</span>
-<span class="cmd">curl</span> https://bbc.co.uk/sitemap.xml | <span class="cmd">head</span> <span class="flag">-50</span></pre>
+<span class="cmd">curl</span> https://syntexsolutions.net/sitemap.xml | <span class="cmd">head</span> <span class="flag">-50</span></pre>
         <div class="callout exam">
           <span class="callout-icon">&#127919;</span>
           <div><strong>CREST Exam Focus:</strong> The exam may ask what robots.txt reveals and why Disallow entries are valuable. Answer: robots.txt discloses paths the owner does not want indexed - these are often admin panels, staging areas, or legacy directories.</div>
@@ -213,10 +213,10 @@
       <div class="step-body">
         <p>The Wayback Machine at <strong>web.archive.org</strong> archives public websites over time. Deleted pages, old configuration files, and former directory listings may still be accessible.</p>
         <pre><span class="comment"># Check what years/dates have been archived</span>
-<span class="comment"># Browse to: https://web.archive.org/web/*/bbc.co.uk</span>
+<span class="comment"># Browse to: https://web.archive.org/web/*/syntexsolutions.net</span>
 
 <span class="comment"># Use the CDX API to list all archived URLs for a domain</span>
-<span class="cmd">curl</span> "https://web.archive.org/cdx/search/cdx?url=bbc.co.uk&output=text&fl=original&collapse=urlkey&limit=50"</pre>
+<span class="cmd">curl</span> "https://web.archive.org/cdx/search/cdx?url=syntexsolutions.net&output=text&fl=original&collapse=urlkey&limit=50"</pre>
         <div class="callout tip">
           <span class="callout-icon">&#10003;</span>
           <div>Look for: old login pages, admin interfaces, API endpoints, backup files (.bak, .old), and configuration files (.conf, .cfg) in archived URLs. These may still be live even if removed from current site navigation.</div>
@@ -238,13 +238,13 @@
       <div class="step-body">
         <p><code>WhatWeb</code> fingerprints web technologies from HTTP headers, HTML source, cookies, and JavaScript. It identifies CMS, frameworks, hosting, and CDNs in a single scan.</p>
         <pre><span class="comment"># Basic scan</span>
-<span class="cmd">whatweb</span> https://bbc.co.uk
+<span class="cmd">whatweb</span> https://syntexsolutions.net
 
 <span class="comment"># Verbose output with all plugin matches</span>
-<span class="cmd">whatweb</span> <span class="flag">-v</span> https://bbc.co.uk
+<span class="cmd">whatweb</span> <span class="flag">-v</span> https://syntexsolutions.net
 
 <span class="comment"># Aggressive mode - follow more links (semi-active, use carefully)</span>
-<span class="cmd">whatweb</span> <span class="flag">-a 3</span> https://bbc.co.uk</pre>
+<span class="cmd">whatweb</span> <span class="flag">-a 3</span> https://syntexsolutions.net</pre>
         <div class="answer-box">
           <div class="label">What technologies did WhatWeb identify?</div>
           <input class="answer-line" type="text" placeholder="Web server:">
@@ -260,10 +260,10 @@
       <div class="step-body">
         <p>HTML source often contains comments, version strings, internal paths, and references to JavaScript files that reveal the technology stack and sometimes internal infrastructure.</p>
         <pre><span class="comment"># Download and search source for comments and version strings</span>
-<span class="cmd">curl</span> <span class="flag">-s</span> https://bbc.co.uk | <span class="cmd">grep</span> <span class="flag">-iE</span> "version|generator|powered|comment|internal|/api/"
+<span class="cmd">curl</span> <span class="flag">-s</span> https://syntexsolutions.net | <span class="cmd">grep</span> <span class="flag">-iE</span> "version|generator|powered|comment|internal|/api/"
 
 <span class="comment"># Look for HTML generator meta tag</span>
-<span class="cmd">curl</span> <span class="flag">-s</span> https://bbc.co.uk | <span class="cmd">grep</span> <span class="flag">-i</span> "generator"</pre>
+<span class="cmd">curl</span> <span class="flag">-s</span> https://syntexsolutions.net | <span class="cmd">grep</span> <span class="flag">-i</span> "generator"</pre>
         <div class="callout warn">
           <span class="callout-icon">&#9888;</span>
           <div>HTML comments like <code>&lt;!-- TODO: remove debug endpoint --&gt;</code> or <code>&lt;!-- internal: api.internal.corp.com --&gt;</code> are surprisingly common and reveal internal infrastructure names.</div>

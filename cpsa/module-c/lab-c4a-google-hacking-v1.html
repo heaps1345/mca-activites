@@ -159,42 +159,42 @@
       <div class="dork-card">
         <div class="dork-op">site:</div>
         <div class="dork-desc">Restrict results to one domain</div>
-        <div class="dork-ex">site:example.com</div>
+        <div class="dork-ex">site:syntexsolutions.net</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">filetype: / ext:</div>
         <div class="dork-desc">Find specific file types</div>
-        <div class="dork-ex">site:example.com filetype:pdf</div>
+        <div class="dork-ex">site:syntexsolutions.net filetype:pdf</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">inurl:</div>
         <div class="dork-desc">Find URLs containing a keyword</div>
-        <div class="dork-ex">site:example.com inurl:admin</div>
+        <div class="dork-ex">site:syntexsolutions.net inurl:admin</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">intitle:</div>
         <div class="dork-desc">Find pages with keyword in title</div>
-        <div class="dork-ex">intitle:"index of" site:example.com</div>
+        <div class="dork-ex">intitle:"index of" site:syntexsolutions.net</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">intext:</div>
         <div class="dork-desc">Find pages containing body text</div>
-        <div class="dork-ex">intext:"password" site:example.com</div>
+        <div class="dork-ex">intext:"password" site:syntexsolutions.net</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">cache:</div>
         <div class="dork-desc">View Google's cached copy</div>
-        <div class="dork-ex">cache:example.com/login</div>
+        <div class="dork-ex">cache:syntexsolutions.net/login</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">-</div>
         <div class="dork-desc">Exclude a term from results</div>
-        <div class="dork-ex">site:example.com -www</div>
+        <div class="dork-ex">site:syntexsolutions.net -www</div>
       </div>
       <div class="dork-card">
         <div class="dork-op">" "</div>
         <div class="dork-desc">Exact phrase match</div>
-        <div class="dork-ex">"admin panel" site:example.com</div>
+        <div class="dork-ex">"admin panel" site:syntexsolutions.net</div>
       </div>
     </div>
 
@@ -211,16 +211,16 @@
       <div class="step-header"><div class="step-num">1</div><div class="step-title">Enumerate subdomains via site: operator</div></div>
       <div class="step-body">
         <p>The <code>site:</code> operator without <code>www</code> reveals all subdomains Google has indexed for a target. This is passive enumeration with no direct target contact.</p>
-        <pre><span class="comment">-- Run these in Google (use bbc.co.uk as a safe practice target) --</span>
+        <pre><span class="comment">-- Run these in Google against the engagement target --</span>
 
 <span class="comment">All indexed pages for the domain:</span>
-site:bbc.co.uk
+site:syntexsolutions.net
 
 <span class="comment">Exclude www to see subdomains:</span>
-site:bbc.co.uk -www.bbc.co.uk
+site:syntexsolutions.net -www.syntexsolutions.net
 
 <span class="comment">Find subdomains only (using inurl to find dots before domain):</span>
-site:bbc.co.uk -inurl:www</pre>
+site:syntexsolutions.net -inurl:www</pre>
         <div class="answer-box">
           <div class="label">What subdomains were revealed?</div>
           <input class="answer-line" type="text" placeholder="List interesting subdomains found:">
@@ -234,22 +234,22 @@ site:bbc.co.uk -inurl:www</pre>
       <div class="step-body">
         <p>Documents, spreadsheets, and config files are frequently indexed by accident. These often contain internal data, employee names, or system information.</p>
         <pre><span class="comment">Find PDFs (often contain internal document metadata):</span>
-site:bbc.co.uk filetype:pdf
+site:syntexsolutions.net filetype:pdf
 
 <span class="comment">Find Excel spreadsheets:</span>
-site:bbc.co.uk filetype:xlsx OR filetype:xls
+site:syntexsolutions.net filetype:xlsx OR filetype:xls
 
 <span class="comment">Find exposed config files (dangerous on real targets):</span>
-site:example.com ext:cfg OR ext:conf OR ext:ini OR ext:env
+site:syntexsolutions.net ext:cfg OR ext:conf OR ext:ini OR ext:env
 
 <span class="comment">Find text/log files:</span>
-site:example.com ext:txt OR ext:log</pre>
+site:syntexsolutions.net ext:txt OR ext:log</pre>
         <div class="callout exam">
           <span class="callout-icon">&#127919;</span>
           <div><strong>CREST Exam Focus:</strong> Know these file types by heart - .pdf, .xls, .xlsx, .doc, .docx, .txt, .bak, .sql, .cfg, .conf, .env, .log. The exam may ask which file types are most valuable in passive recon.</div>
         </div>
         <div class="answer-box">
-          <div class="label">Most interesting file types found on bbc.co.uk:</div>
+          <div class="label">Most interesting file types found on syntexsolutions.net:</div>
           <input class="answer-line" type="text" placeholder="File types and example URLs:">
         </div>
       </div>
@@ -260,17 +260,17 @@ site:example.com ext:txt OR ext:log</pre>
       <div class="step-body">
         <p>Admin panels and login forms exposed to the internet are high-value targets. Google often indexes them even when not linked from the main site.</p>
         <pre><span class="comment">Find admin panels:</span>
-site:example.com inurl:admin
-site:example.com inurl:login
-site:example.com inurl:wp-admin
+site:syntexsolutions.net inurl:admin
+site:syntexsolutions.net inurl:login
+site:syntexsolutions.net inurl:wp-admin
 
 <span class="comment">Find pages with login in the title:</span>
-site:example.com intitle:"login"
-site:example.com intitle:"admin panel"
-site:example.com intitle:"administrator"
+site:syntexsolutions.net intitle:"login"
+site:syntexsolutions.net intitle:"admin panel"
+site:syntexsolutions.net intitle:"administrator"
 
 <span class="comment">Find phpMyAdmin (database management tool):</span>
-inurl:phpmyadmin/index.php site:example.com</pre>
+inurl:phpmyadmin/index.php site:syntexsolutions.net</pre>
         <div class="answer-box">
           <div class="label">Notes on login/admin panels discovered:</div>
           <input class="answer-line" type="text" placeholder="Admin panel paths found:">
@@ -283,12 +283,12 @@ inurl:phpmyadmin/index.php site:example.com</pre>
       <div class="step-body">
         <p>Apache and IIS web servers show directory listings when <code>index.html</code> is absent. These expose the entire file structure of that directory.</p>
         <pre><span class="comment">Classic open directory dork:</span>
-intitle:"index of" site:example.com
+intitle:"index of" site:syntexsolutions.net
 
 <span class="comment">Find specific exposed directories:</span>
-intitle:"index of" "backup" site:example.com
-intitle:"index of" "uploads" site:example.com
-intitle:"index of" ".git" site:example.com</pre>
+intitle:"index of" "backup" site:syntexsolutions.net
+intitle:"index of" "uploads" site:syntexsolutions.net
+intitle:"index of" ".git" site:syntexsolutions.net</pre>
         <div class="callout info">
           <span class="callout-icon">&#8505;</span>
           <div>An exposed <code>.git</code> directory is critical severity - it allows an attacker to reconstruct the entire source code of the application including all previous commits, credentials hardcoded in history, and internal architecture.</div>
@@ -345,9 +345,9 @@ intitle:"index of" ".git" site:example.com</pre>
 
     <div class="question">
       <div class="q-num">Q2</div>
-      <p>Write a Google dork query to find all PDF files indexed on example.com.</p>
+      <p>Write a Google dork query to find all PDF files indexed on syntexsolutions.net.</p>
       <div class="answer-box">
-        <input class="answer-line" type="text" placeholder="Answer:" data-answer="site:example.com filetype:pdf|site:example.com ext:pdf">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="site:syntexsolutions.net filetype:pdf|site:syntexsolutions.net ext:pdf">
         <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
         <div class="answer-feedback" hidden></div>
       </div>

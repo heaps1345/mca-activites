@@ -185,23 +185,23 @@
     <div class="step">
       <div class="step-header"><div class="step-num">1</div><div class="step-title">Query individual record types</div></div>
       <div class="step-body">
-        <p>Use <code>dig</code> to query specific DNS record types. We use <code>bbc.co.uk</code> as a publicly accessible example.</p>
+        <p>Use <code>dig</code> to query specific DNS record types against the engagement target domain.</p>
         <pre><span class="comment"># A record - primary IPv4 address</span>
-<span class="cmd">dig</span> bbc.co.uk A
+<span class="cmd">dig</span> syntexsolutions.net A
 
 <span class="comment"># Name servers</span>
-<span class="cmd">dig</span> bbc.co.uk NS
+<span class="cmd">dig</span> syntexsolutions.net NS
 
 <span class="comment"># Mail exchangers</span>
-<span class="cmd">dig</span> bbc.co.uk MX
+<span class="cmd">dig</span> syntexsolutions.net MX
 
 <span class="comment"># TXT records (SPF, DMARC, verification tokens)</span>
-<span class="cmd">dig</span> bbc.co.uk TXT
+<span class="cmd">dig</span> syntexsolutions.net TXT
 
 <span class="comment"># SOA - get admin email from the second field</span>
-<span class="cmd">dig</span> bbc.co.uk SOA</pre>
+<span class="cmd">dig</span> syntexsolutions.net SOA</pre>
         <div class="answer-box">
-          <div class="label">Record your findings</div>
+          <div class="label">Record your findings for syntexsolutions.net</div>
           <input class="answer-line" type="text" placeholder="A record (primary IP):">
           <input class="answer-line" type="text" placeholder="Name servers (first two):">
           <input class="answer-line" type="text" placeholder="MX record (mail server):">
@@ -215,10 +215,13 @@
       <div class="step-body">
         <p>The <code>@server</code> syntax directs the query to a specific resolver. This is useful for comparing responses from different resolvers or querying the authoritative server directly.</p>
         <pre><span class="comment"># Query Google's public DNS</span>
-<span class="cmd">dig</span> @8.8.8.8 bbc.co.uk A
+<span class="cmd">dig</span> @8.8.8.8 syntexsolutions.net A
 
-<span class="comment"># Query the authoritative NS directly (replace with NS from Step 1)</span>
-<span class="cmd">dig</span> @ns1.bbc.co.uk bbc.co.uk A</pre>
+<span class="comment"># Query the Syntex authoritative NS directly</span>
+<span class="cmd">dig</span> @ns1.syntexsolutions.net syntexsolutions.net A
+
+<span class="comment"># Or use the IP directly if DNS hasn't propagated yet</span>
+<span class="cmd">dig</span> @20.24.202.6 syntexsolutions.net A</pre>
         <div class="callout info">
           <span class="callout-icon">&#8505;</span>
           <div>Querying the authoritative server directly bypasses caching and returns the live DNS state. This is useful when you suspect a zone is being served differently to different resolvers.</div>
@@ -239,20 +242,19 @@
       <div class="step-header"><div class="step-num">3</div><div class="step-title">Attempt a zone transfer (AXFR)</div></div>
       <div class="step-body">
         <p>A DNS zone transfer (AXFR query) requests a full copy of all DNS records in a zone from the authoritative name server. Misconfigured servers allow this from any source - a serious information disclosure vulnerability.</p>
-        <pre><span class="comment"># Attempt AXFR - replace NS with an NS you found in Step 1</span>
-<span class="cmd">dig</span> @ns1.bbc.co.uk bbc.co.uk <span class="flag">AXFR</span>
+        <pre><span class="comment"># Attempt AXFR against the Syntex authoritative name server</span>
+<span class="cmd">dig</span> @ns1.syntexsolutions.net syntexsolutions.net <span class="flag">AXFR</span>
 
-<span class="comment"># Most modern servers refuse this - you will see "Transfer failed" or REFUSED</span>
-<span class="comment"># zonetransfer.me is a deliberately vulnerable domain for practice</span>
-<span class="cmd">dig</span> @nsztm1.digi.ninja zonetransfer.me <span class="flag">AXFR</span></pre>
+<span class="comment"># If DNS propagation is still in progress, use the IP directly</span>
+<span class="cmd">dig</span> @20.24.202.6 syntexsolutions.net <span class="flag">AXFR</span></pre>
         <div class="callout tip">
           <span class="callout-icon">&#10003;</span>
-          <div><code>zonetransfer.me</code> is intentionally configured to allow zone transfers for security training. Run the AXFR against it and examine the output - this is what a successful zone transfer looks like.</div>
+          <div>The Syntex Solutions BIND9 server is deliberately misconfigured with <code>allow-transfer &#123; any; &#125;;</code> - this zone transfer will succeed. A successful AXFR begins and ends with the SOA record. See Lab C2-B for a deeper analysis of the zone file contents.</div>
         </div>
         <div class="answer-box">
-          <div class="label">What did the zonetransfer.me AXFR reveal?</div>
+          <div class="label">What did the syntexsolutions.net AXFR reveal?</div>
           <input class="answer-line" type="text" placeholder="Number of records returned:">
-          <input class="answer-line" type="text" placeholder="Any interesting subdomains (e.g. internal-looking names):">
+          <input class="answer-line" type="text" placeholder="Any interesting subdomains found in the zone:">
         </div>
       </div>
     </div>
@@ -266,13 +268,13 @@
       <div class="step-body">
         <p>When zone transfers fail, enumerate subdomains by brute-forcing common names. <code>dnsrecon</code> and <code>dnsenum</code> automate this.</p>
         <pre><span class="comment"># dnsrecon - standard enumeration with default wordlist</span>
-<span class="cmd">dnsrecon</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-t std</span>
+<span class="cmd">dnsrecon</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-t std</span>
 
 <span class="comment"># Brute force subdomains using a wordlist</span>
-<span class="cmd">dnsrecon</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-t brt -D</span> /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+<span class="cmd">dnsrecon</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-t brt -D</span> /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
 
 <span class="comment"># dnsenum - combines WHOIS, zone transfer attempt, and brute force</span>
-<span class="cmd">dnsenum</span> <span class="flag">--noreverse</span> bbc.co.uk</pre>
+<span class="cmd">dnsenum</span> <span class="flag">--noreverse</span> syntexsolutions.net</pre>
         <div class="answer-box">
           <div class="label">How many subdomains were discovered?</div>
           <input class="answer-line" type="text" placeholder="Count:">
@@ -285,17 +287,22 @@
       <div class="step-header"><div class="step-num">5</div><div class="step-title">Reverse DNS lookup</div></div>
       <div class="step-body">
         <p>A PTR lookup resolves an IP address back to a hostname. This reveals server names for IPs you have discovered and can identify internal naming conventions.</p>
-        <pre><span class="comment"># Single reverse lookup</span>
-<span class="cmd">dig</span> <span class="flag">-x</span> 212.58.244.22
+        <pre><span class="comment"># Reverse lookup the Syntex lab IP</span>
+<span class="cmd">dig</span> <span class="flag">-x</span> 20.24.202.6
 
 <span class="comment"># Or use host command</span>
-<span class="cmd">host</span> 212.58.244.22
+<span class="cmd">host</span> 20.24.202.6
 
-<span class="comment"># Reverse lookup a whole subnet (slow but thorough)</span>
-<span class="cmd">for</span> i in $(seq 1 254); <span class="cmd">do</span> host 212.58.244.$i 2>/dev/null | grep "domain name"; <span class="cmd">done</span></pre>
+<span class="comment"># Check if the Syntex name server itself has a PTR</span>
+<span class="cmd">dig</span> <span class="flag">-x</span> 20.24.202.6 @8.8.8.8</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>Cloud-hosted IPs (Azure, AWS, GCP) often return a provider hostname rather than the tenant's hostname in PTR records. A result like <code>20-24-202-6.cpnorth.cloudapp.azure.com</code> confirms Azure hosting but does not expose Syntex's own naming convention - that requires the zone transfer.</div>
+        </div>
         <div class="answer-box">
-          <div class="label">What hostname resolves for 212.58.244.22?</div>
+          <div class="label">What PTR record resolves for 20.24.202.6?</div>
           <input class="answer-line" type="text" placeholder="PTR record:">
+          <input class="answer-line" type="text" placeholder="What does this confirm about the hosting platform?">
         </div>
       </div>
     </div>

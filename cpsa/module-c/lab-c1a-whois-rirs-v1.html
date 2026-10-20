@@ -222,8 +222,9 @@
     <div class="step">
       <div class="step-header"><div class="step-num">1</div><div class="step-title">Query WHOIS for a domain</div></div>
       <div class="step-body">
-        <p>Use the <code>whois</code> command to retrieve domain registration details. In this lab we use <code>bbc.co.uk</code> as a publicly accessible example target.</p>
-        <pre><span class="cmd">whois</span> bbc.co.uk</pre>
+        <p>Use the <code>whois</code> command to retrieve domain registration details for the engagement target.</p>
+        <pre><span class="comment"># Query WHOIS for the Syntex Solutions domain</span>
+<span class="cmd">whois</span> syntexsolutions.net</pre>
         <p>Look for these key fields in the output: <code>Registrant</code>, <code>Registrar</code>, <code>Creation Date</code>, <code>Expiry Date</code>, <code>Name Servers</code>.</p>
         <div class="callout warn">
           <span class="callout-icon">&#9888;</span>
@@ -242,11 +243,11 @@
       <div class="step-header"><div class="step-num">2</div><div class="step-title">Query a specific WHOIS server</div></div>
       <div class="step-body">
         <p>By default <code>whois</code> queries IANA, which redirects to the correct TLD registry. You can specify the server directly with <code>-h</code>.</p>
-        <pre><span class="comment"># Query Nominet directly for .uk domains</span>
-<span class="cmd">whois</span> <span class="flag">-h</span> whois.nic.uk bbc.co.uk
+        <pre><span class="comment"># Query PIR (Public Interest Registry) directly for .net domains</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.pir.org syntexsolutions.net
 
-<span class="comment"># Query Verisign for .com domains</span>
-<span class="cmd">whois</span> <span class="flag">-h</span> whois.verisign-grs.com google.com</pre>
+<span class="comment"># Query Verisign for .net domains (alternative)</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.verisign-grs.com syntexsolutions.net</pre>
         <div class="callout info">
           <span class="callout-icon">&#8505;</span>
           <div>Different TLD registries hold different information. Going directly to the authoritative server often gives more complete data than generic WHOIS tools.</div>
@@ -262,15 +263,15 @@
       <div class="step-header"><div class="step-num">3</div><div class="step-title">Look up an IP address in WHOIS</div></div>
       <div class="step-body">
         <p>WHOIS also covers IP addresses. The response tells you who owns the IP block, the registered organisation, and abuse contact details.</p>
-        <pre><span class="comment"># Look up the owner of a public IP</span>
-<span class="cmd">whois</span> 212.58.244.22
+        <pre><span class="comment"># Look up the owner of the Syntex Solutions IP</span>
+<span class="cmd">whois</span> 20.24.202.6
 
-<span class="comment"># This is a BBC IP - look for the netname and org fields</span></pre>
+<span class="comment"># Look for the netname, org fields, and which RIR holds the record</span></pre>
         <div class="answer-box">
-          <div class="label">What organisation owns this IP block?</div>
+          <div class="label">What organisation owns the 20.24.202.6 IP block?</div>
           <input class="answer-line" type="text" placeholder="Organisation / netname:">
           <input class="answer-line" type="text" placeholder="Which RIR holds these records (look for source: field)?">
-          <input class="answer-line" type="text" placeholder="IP range (inetnum):">
+          <input class="answer-line" type="text" placeholder="IP range (inetnum / NetRange):">
         </div>
       </div>
     </div>
@@ -279,18 +280,24 @@
       <div class="step-header"><div class="step-num">4</div><div class="step-title">Find an organisation's ASN</div></div>
       <div class="step-body">
         <p>An Autonomous System Number (ASN) identifies all IP ranges belonging to one organisation. Finding the ASN lets you enumerate all their publicly announced IP space.</p>
-        <pre><span class="comment"># Look up ASN ownership</span>
-<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net AS2818
+        <pre><span class="comment"># The Syntex IP (20.24.202.6) sits in Microsoft Azure's IP space</span>
+<span class="comment"># Look up Microsoft's ASN via ARIN - the RIR for North America</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net AS8075
 
-<span class="comment"># Query BGP routing table via a looking glass</span>
-<span class="comment"># bgp.he.net is a public resource - search for an org name</span></pre>
+<span class="comment"># Search bgp.he.net for the cloud provider's full IP footprint</span>
+<span class="comment"># In a real engagement you would search for the target organisation</span></pre>
         <div class="callout tip">
           <span class="callout-icon">&#10003;</span>
-          <div>In a real engagement, use <strong>bgp.he.net</strong> in your browser to search an organisation by name and see all their ASNs and announced prefixes. This gives you the full IP footprint without any active probing.</div>
+          <div>In a real engagement, use <strong>bgp.he.net</strong> in your browser to search the target organisation by name and see all their ASNs and announced prefixes. Cloud-hosted targets will often resolve to a provider ASN (Microsoft Azure, AWS, GCP) - note the provider and continue enumerating the specific IPs rather than the whole cloud ASN.</div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>The Syntex Solutions IP <code>20.24.202.6</code> is in Microsoft Azure's ARIN-registered range. The WHOIS output will show <code>MSFT</code> or <code>Microsoft Corporation</code> as the netblock owner - this is expected for cloud-hosted targets.</div>
         </div>
         <div class="answer-box">
-          <div class="label">What is the organisation name for AS2818?</div>
+          <div class="label">What organisation is listed as owner of 20.24.202.6 in WHOIS?</div>
           <input class="answer-line" type="text" placeholder="Organisation:">
+          <input class="answer-line" type="text" placeholder="Which RIR (ARIN / RIPE / APNIC / LACNIC / AFRINIC)?">
         </div>
       </div>
     </div>
@@ -299,13 +306,15 @@
       <div class="step-header"><div class="step-num">5</div><div class="step-title">Find prefixes announced by an ASN</div></div>
       <div class="step-body">
         <p>Once you have an ASN, you can enumerate all IP prefixes they announce via BGP. This is entirely passive - you are reading publicly available routing data.</p>
-        <pre><span class="comment"># List all routes announced by AS2818</span>
-<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net -- <span class="flag">-i origin</span> AS2818 | <span class="cmd">grep</span> <span class="flag">^route</span></pre>
+        <pre><span class="comment"># List all routes announced by Microsoft Azure (AS8075)</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net -- <span class="flag">-i origin</span> AS8075 | <span class="cmd">grep</span> <span class="flag">^route</span> | <span class="cmd">head</span> <span class="flag">-20</span>
+
+<span class="comment"># Confirm which prefix 20.24.202.6 falls within</span>
+<span class="cmd">whois</span> 20.24.202.6 | <span class="cmd">grep</span> <span class="flag">-iE</span> "netrange|inetnum|cidr|netname"</pre>
         <div class="answer-box">
-          <div class="label">How many IP prefixes did you find? List two of them.</div>
-          <input class="answer-line" type="text" placeholder="Number of prefixes:">
-          <input class="answer-line" type="text" placeholder="Prefix 1:">
-          <input class="answer-line" type="text" placeholder="Prefix 2:">
+          <div class="label">What Azure IP prefix contains 20.24.202.6?</div>
+          <input class="answer-line" type="text" placeholder="CIDR prefix (e.g. 20.24.0.0/16):">
+          <input class="answer-line" type="text" placeholder="What does this tell you about the Syntex infrastructure?">
         </div>
       </div>
     </div>

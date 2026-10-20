@@ -164,29 +164,29 @@
         <p>Analyse the sample email header below. Read it <strong>from the bottom upward</strong> to trace the email's journey.</p>
         <pre><span class="h-label">-- SAMPLE EMAIL HEADER (read bottom to top) --</span>
 
-<span class="h-key">Authentication-Results:</span> <span class="h-val">mx.example-corp.com;</span>
-       spf=fail (domain of ceo@syntex-solutions.com does not designate
+<span class="h-key">Authentication-Results:</span> <span class="h-val">mx.syntexsolutions.net;</span>
+       spf=fail (domain of ceo@syntexsolutions.net does not designate
        192.168.77.5 as permitted sender)
        dkim=none;
        dmarc=fail
 
-<span class="h-key">Received:</span> <span class="h-val">from mail.example-corp.com (192.0.2.1)</span>
-    by mx.example-corp.com; Tue, 10 Oct 2024 09:21:33 +0000
+<span class="h-key">Received:</span> <span class="h-val">from mail.syntexsolutions.net (20.24.202.6)</span>
+    by mx.syntexsolutions.net; Tue, 10 Oct 2025 09:21:33 +0000
 
-<span class="h-key">Received:</span> <span class="h-val">from smtp-relay.suspiciousdomain.net (192.168.77.5)</span>
-    by mail.example-corp.com; Tue, 10 Oct 2024 09:21:31 +0000
+<span class="h-key">Received:</span> <span class="h-val">from smtp-relay.phishingdomain.com (192.168.77.5)</span>
+    by mail.syntexsolutions.net; Tue, 10 Oct 2025 09:21:31 +0000
 
 <span class="h-key">X-Originating-IP:</span> <span class="h-val">203.0.113.42</span>
 
-<span class="h-key">Message-ID:</span> <span class="h-val">&lt;abc123@smtp-relay.suspiciousdomain.net&gt;</span>
+<span class="h-key">Message-ID:</span> <span class="h-val">&lt;abc123@smtp-relay.phishingdomain.com&gt;</span>
 
 <span class="h-key">DKIM-Signature:</span> <span class="h-val">(none)</span>
 
-<span class="h-key">Return-Path:</span> <span class="h-val">&lt;bounce@suspiciousdomain.net&gt;</span>
+<span class="h-key">Return-Path:</span> <span class="h-val">&lt;bounce@phishingdomain.com&gt;</span>
 
-<span class="h-key">From:</span> <span class="h-val">CEO Jane Smith &lt;ceo@syntex-solutions.com&gt;</span>
+<span class="h-key">From:</span> <span class="h-val">CEO Sarah Chen &lt;ceo@syntexsolutions.net&gt;</span>
 
-<span class="h-key">To:</span> <span class="h-val">finance@example-corp.com</span>
+<span class="h-key">To:</span> <span class="h-val">finance@syntexsolutions.net</span>
 
 <span class="h-key">Subject:</span> <span class="h-val">URGENT: Wire transfer required today</span></pre>
 

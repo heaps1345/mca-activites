@@ -154,22 +154,22 @@
       <div class="step-body">
         <p><code>theHarvester</code> queries multiple public sources (search engines, PGP key servers, LinkedIn, Shodan) in one command to collect email addresses and subdomains for a target domain. It is a standard first step in passive recon.</p>
         <pre><span class="comment"># Basic harvest - query multiple sources</span>
-<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> all
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-b</span> all
 
 <span class="comment"># Query specific sources (faster)</span>
-<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> google,bing,dnsdumpster
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-b</span> google,bing,dnsdumpster
 
 <span class="comment"># Limit results per source</span>
-<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> google <span class="flag">-l</span> 100
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-b</span> google <span class="flag">-l</span> 100
 
 <span class="comment"># Save results to file</span>
-<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> all <span class="flag">-f</span> bbc_harvest</pre>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> syntexsolutions.net <span class="flag">-b</span> all <span class="flag">-f</span> syntex_harvest</pre>
         <div class="callout info">
           <span class="callout-icon">&#8505;</span>
           <div>theHarvester's most reliable sources in 2024: <strong>google</strong>, <strong>bing</strong>, <strong>dnsdumpster</strong>, <strong>crtsh</strong> (certificate transparency), <strong>hunter</strong> (API key needed), and <strong>shodan</strong> (API key needed). Use <code>-b all</code> on engagements but be aware some sources rate-limit quickly.</div>
         </div>
         <div class="answer-box">
-          <div class="label">theHarvester results for bbc.co.uk</div>
+          <div class="label">theHarvester results for syntexsolutions.net</div>
           <input class="answer-line" type="text" placeholder="Email addresses found:">
           <input class="answer-line" type="text" placeholder="Subdomains found:">
           <input class="answer-line" type="text" placeholder="IP addresses discovered:">
@@ -189,10 +189,10 @@
 <span class="cmd">shodan</span> search org:"BBC"
 
 <span class="comment"># Search for a specific IP</span>
-<span class="cmd">shodan</span> host 212.58.244.22
+<span class="cmd">shodan</span> host 20.24.202.6
 
 <span class="comment"># Search by hostname</span>
-<span class="cmd">shodan</span> search hostname:bbc.co.uk
+<span class="cmd">shodan</span> search hostname:syntexsolutions.net
 
 <span class="comment"># Useful Shodan dork filters:</span>
 <span class="comment"># org:"Target Company Name"   - all IPs for an organisation</span>
@@ -218,20 +218,20 @@
       <div class="step-header"><div class="step-num">3</div><div class="step-title">Enumerate corporate emails with Hunter.io</div></div>
       <div class="step-body">
         <p>Hunter.io scrapes the web for email addresses associated with a domain and identifies the email format pattern used by the organisation (e.g. firstname.lastname@domain.com). This is invaluable for social engineering preparation and spear-phishing assessment.</p>
-        <pre><span class="comment"># Browser: navigate to hunter.io and search for bbc.co.uk</span>
+        <pre><span class="comment"># Browser: navigate to hunter.io and search for syntexsolutions.net</span>
 <span class="comment"># Free tier shows first 25 results per month</span>
 
 <span class="comment"># API via curl (replace with your free API key):</span>
-<span class="cmd">curl</span> "https://api.hunter.io/v2/domain-search?domain=bbc.co.uk&api_key=YOUR_KEY"
+<span class="cmd">curl</span> "https://api.hunter.io/v2/domain-search?domain=syntexsolutions.net&api_key=YOUR_KEY"
 
 <span class="comment"># Verify a specific email address:</span>
-<span class="cmd">curl</span> "https://api.hunter.io/v2/email-verifier?email=test@bbc.co.uk&api_key=YOUR_KEY"</pre>
+<span class="cmd">curl</span> "https://api.hunter.io/v2/email-verifier?email=test@syntexsolutions.net&api_key=YOUR_KEY"</pre>
         <div class="callout tip">
           <span class="callout-icon">&#10003;</span>
           <div>Hunter.io often reveals the email format before showing individual addresses (e.g. <code>{first}.{last}@company.com</code>). Once you know the format, you can construct email addresses for any employee you find on LinkedIn - which is why LinkedIn is a critical adjacent OSINT source.</div>
         </div>
         <div class="answer-box">
-          <div class="label">Hunter.io findings for bbc.co.uk</div>
+          <div class="label">Hunter.io findings for syntexsolutions.net</div>
           <input class="answer-line" type="text" placeholder="Email format pattern identified:">
           <input class="answer-line" type="text" placeholder="Example verified email addresses:">
         </div>
