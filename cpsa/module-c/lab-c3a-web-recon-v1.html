@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab C3-A: Web Reconnaissance</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --mid: #444; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --red: #8b0000; --red-bg: #fff0f0; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+  .check-btn, .model-btn { margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical; font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  .preflight-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner { background: #161b22; border: 2px solid #3fb950; border-radius: 10px; padding: 36px 44px; text-align: center; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button { background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .preflight-popup-inner button:hover { background: #2ea043; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module C: Background Information Gathering</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB C3-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> C3</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Method:</strong> Passive web recon</span>
+  </div>
+  <h1>Web Reconnaissance and Technology Fingerprinting</h1>
+  <p>Extract intelligence from a target's web presence without triggering IDS alerts - HTTP headers, robots.txt, archived content, job adverts, and WhatWeb fingerprinting all reveal infrastructure details before a single port scan runs.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">No VMs required. All reconnaissance is against public web infrastructure.</p>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Firefox or Chromium is available for web browsing</li>
+    </ul>
+  </div>
+
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
+    </div>
+  </div>
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have identified <strong>Syntex Solutions Ltd</strong>'s primary website. Before any active scanning, extract as much intelligence as possible from their web presence using passive and semi-passive techniques. The goal is to identify technologies, server software, and content paths that inform your later testing.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Retrieve and interpret HTTP response headers for technology disclosure</li>
+      <li>Analyse robots.txt and sitemap.xml for hidden paths</li>
+      <li>Use the Wayback Machine to recover deleted content</li>
+      <li>Extract intelligence from job advertisements</li>
+      <li>Use WhatWeb to fingerprint server technologies</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - HTTP Headers</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Retrieve HTTP response headers</div></div>
+      <div class="step-body">
+        <p>HTTP response headers often disclose the web server version, framework, and security configuration. This is the first thing to check on any web target.</p>
+        <pre><span class="comment"># Fetch headers only with curl (HEAD request)</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> https://bbc.co.uk
+
+<span class="comment"># Follow redirects and show final headers</span>
+<span class="cmd">curl</span> <span class="flag">-sI -L</span> https://bbc.co.uk
+
+<span class="comment"># Verbose output shows request AND response headers</span>
+<span class="cmd">curl</span> <span class="flag">-v</span> https://bbc.co.uk 2>&1 | <span class="cmd">grep</span> <span class="flag">-E</span> "^[<>]"</pre>
+
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>Key headers to look for: <strong>Server</strong> (web server and version), <strong>X-Powered-By</strong> (framework - PHP, ASP.NET), <strong>X-AspNet-Version</strong>, <strong>Via</strong> (CDN or proxy), <strong>Set-Cookie</strong> (session cookie names reveal frameworks - PHPSESSID = PHP, ASP.NET_SessionId = ASP.NET).</div>
+        </div>
+
+        <table>
+          <tr><th>Header</th><th>What to Look For</th><th>Intelligence Value</th></tr>
+          <tr><td>Server</td><td>Apache/2.4.x, nginx/1.x, IIS/10</td><td>Server software and version for vuln research</td></tr>
+          <tr><td>X-Powered-By</td><td>PHP/7.x, ASP.NET 4.x</td><td>Backend language and version</td></tr>
+          <tr><td>Set-Cookie</td><td>PHPSESSID, ASP.NET_SessionId, JSESSIONID</td><td>Confirms framework even when X-Powered-By is hidden</td></tr>
+          <tr><td>X-Frame-Options</td><td>Missing = clickjacking risk</td><td>Security posture indicator</td></tr>
+          <tr><td>Content-Security-Policy</td><td>Missing = XSS less controlled</td><td>Security posture indicator</td></tr>
+        </table>
+
+        <div class="answer-box">
+          <div class="label">What did the HTTP headers reveal?</div>
+          <input class="answer-line" type="text" placeholder="Server header value:">
+          <input class="answer-line" type="text" placeholder="Any X-Powered-By or framework clues:">
+          <input class="answer-line" type="text" placeholder="Cookie names found (if any):">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - robots.txt and sitemap.xml</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Check robots.txt for hidden paths</div></div>
+      <div class="step-body">
+        <p>The <code>robots.txt</code> file instructs search engine crawlers which paths to ignore. Those disallowed paths are often the most interesting ones for testers.</p>
+        <pre><span class="comment"># Fetch robots.txt</span>
+<span class="cmd">curl</span> https://bbc.co.uk/robots.txt
+
+<span class="comment"># Check sitemap.xml for all indexed content</span>
+<span class="cmd">curl</span> https://bbc.co.uk/sitemap.xml | <span class="cmd">head</span> <span class="flag">-50</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Focus:</strong> The exam may ask what robots.txt reveals and why Disallow entries are valuable. Answer: robots.txt discloses paths the owner does not want indexed - these are often admin panels, staging areas, or legacy directories.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">What did robots.txt reveal?</div>
+          <input class="answer-line" type="text" placeholder="Any interesting Disallow paths:">
+          <input class="answer-line" type="text" placeholder="Any User-agent specific rules:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Query the Wayback Machine for archived content</div></div>
+      <div class="step-body">
+        <p>The Wayback Machine at <strong>web.archive.org</strong> archives public websites over time. Deleted pages, old configuration files, and former directory listings may still be accessible.</p>
+        <pre><span class="comment"># Check what years/dates have been archived</span>
+<span class="comment"># Browse to: https://web.archive.org/web/*/bbc.co.uk</span>
+
+<span class="comment"># Use the CDX API to list all archived URLs for a domain</span>
+<span class="cmd">curl</span> "https://web.archive.org/cdx/search/cdx?url=bbc.co.uk&output=text&fl=original&collapse=urlkey&limit=50"</pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>Look for: old login pages, admin interfaces, API endpoints, backup files (.bak, .old), and configuration files (.conf, .cfg) in archived URLs. These may still be live even if removed from current site navigation.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Any interesting archived paths found?</div>
+          <input class="answer-line" type="text" placeholder="Oldest snapshot date:">
+          <input class="answer-line" type="text" placeholder="Any admin/login/config paths spotted:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Technology Fingerprinting</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">WhatWeb - automated technology detection</div></div>
+      <div class="step-body">
+        <p><code>WhatWeb</code> fingerprints web technologies from HTTP headers, HTML source, cookies, and JavaScript. It identifies CMS, frameworks, hosting, and CDNs in a single scan.</p>
+        <pre><span class="comment"># Basic scan</span>
+<span class="cmd">whatweb</span> https://bbc.co.uk
+
+<span class="comment"># Verbose output with all plugin matches</span>
+<span class="cmd">whatweb</span> <span class="flag">-v</span> https://bbc.co.uk
+
+<span class="comment"># Aggressive mode - follow more links (semi-active, use carefully)</span>
+<span class="cmd">whatweb</span> <span class="flag">-a 3</span> https://bbc.co.uk</pre>
+        <div class="answer-box">
+          <div class="label">What technologies did WhatWeb identify?</div>
+          <input class="answer-line" type="text" placeholder="Web server:">
+          <input class="answer-line" type="text" placeholder="CMS or framework:">
+          <input class="answer-line" type="text" placeholder="CDN or hosting provider:">
+          <input class="answer-line" type="text" placeholder="Any version numbers disclosed:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">View page source for additional intelligence</div></div>
+      <div class="step-body">
+        <p>HTML source often contains comments, version strings, internal paths, and references to JavaScript files that reveal the technology stack and sometimes internal infrastructure.</p>
+        <pre><span class="comment"># Download and search source for comments and version strings</span>
+<span class="cmd">curl</span> <span class="flag">-s</span> https://bbc.co.uk | <span class="cmd">grep</span> <span class="flag">-iE</span> "version|generator|powered|comment|internal|/api/"
+
+<span class="comment"># Look for HTML generator meta tag</span>
+<span class="cmd">curl</span> <span class="flag">-s</span> https://bbc.co.uk | <span class="cmd">grep</span> <span class="flag">-i</span> "generator"</pre>
+        <div class="callout warn">
+          <span class="callout-icon">&#9888;</span>
+          <div>HTML comments like <code>&lt;!-- TODO: remove debug endpoint --&gt;</code> or <code>&lt;!-- internal: api.internal.corp.com --&gt;</code> are surprisingly common and reveal internal infrastructure names.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>Answer without looking at notes.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>A target's HTTP response includes the header <code>X-Powered-By: ASP.NET</code> and a cookie named <code>ASP.NET_SessionId</code>. What does this tell you about the technology stack?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>The server is running Microsoft ASP.NET on IIS (Internet Information Services). The X-Powered-By header directly discloses the framework. The ASP.NET_SessionId cookie name confirms ASP.NET even if the header was removed. This tells you the target is Windows-based, running .NET Framework or .NET Core, and you should focus your vulnerability research on known ASP.NET CVEs and IIS misconfigurations.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>Why are entries in a target's <code>robots.txt</code> Disallow list valuable to a tester?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>robots.txt Disallow entries tell search engines not to index those paths - which means the owner is intentionally hiding them. Disallowed paths are often admin panels (/admin/, /wp-admin/), staging directories (/staging/, /dev/), API endpoints (/api/internal/), or legacy applications (/legacy/, /old/). A tester should manually check every disallowed path as these are frequently underprotected.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>A target website has been recently redesigned and the old login portal is no longer accessible. How could you attempt to recover it?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Wayback Machine|web.archive.org|archive.org|wayback|internet archive">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>During web recon you find a job advert for a "Senior PHP/Laravel Developer" for the target company. What does this tell you about their infrastructure that would not be available from HTTP headers?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>The job advert confirms the target runs PHP and specifically the Laravel framework - even if they have removed X-Powered-By headers. This lets you focus testing on Laravel-specific vulnerabilities (mass assignment, debug mode exposure, .env file disclosure at /.env) and PHP-specific issues. Job ads are a high-value passive recon source because organisations cannot suppress them without stopping recruitment.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>What information can you infer from the session cookie name <code>PHPSESSID</code>?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="PHP|php|server is running PHP|php backend">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">&#9733;</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Web recon extracts technology intelligence without port scanning. HTTP headers, cookies, robots.txt, page source, and WhatWeb together build a complete technology profile. Archived content from the Wayback Machine reveals deleted paths that may still be live. Job adverts are a last resort but often the most explicit disclosure of technology choices. CREST examiners expect you to name specific headers and explain what they reveal.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module C - Background Information Gathering &nbsp;|&nbsp; Lab C3-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+function checkPreflight() {
+  var boxes = document.querySelectorAll('#preflight-list input[type="checkbox"]');
+  var allDone = Array.from(boxes).every(function(b) { return b.checked; });
+  if (allDone) { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.add('show'); }
+}
+function closePreflight() { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.remove('show'); }
+function checkAnswer(btn) {
+  var box = btn.parentElement; var input = box.querySelector('input.answer-line'); var feedback = box.querySelector('.answer-feedback');
+  if (!input || !feedback) return;
+  var student = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+  var correct = (input.getAttribute('data-answer') || '').trim().toLowerCase();
+  var alts = correct.split('|').map(function(s) { return s.trim(); });
+  var ok = alts.some(function(a) { return student === a || student.indexOf(a) !== -1 || a.indexOf(student) !== -1; });
+  feedback.removeAttribute('hidden');
+  if (ok) { feedback.className = 'answer-feedback correct'; feedback.textContent = '✔ Correct!'; }
+  else { feedback.className = 'answer-feedback wrong'; feedback.textContent = '✘ Not quite - try again.'; }
+}
+function showModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.removeAttribute('hidden'); btn.textContent = 'Hide Model Answer'; btn.onclick = function() { hideModel(btn); };
+}
+function hideModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.setAttribute('hidden', ''); btn.textContent = 'Model Answer'; btn.onclick = function() { showModel(btn); };
+}
+</script>
+</body>
+</html>

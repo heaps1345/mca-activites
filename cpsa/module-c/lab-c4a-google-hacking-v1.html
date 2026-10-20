@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab C4-A: Google Hacking</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --mid: #444; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --red: #8b0000; --red-bg: #fff0f0; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+  .check-btn, .model-btn { margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical; font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  .dork-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .dork-card { background: #1e1e1e; border: 1px solid #333; border-radius: 4px; padding: 12px; }
+  .dork-card .dork-op { color: #9cdcfe; font-weight: 700; font-size: 14px; font-family: monospace; }
+  .dork-card .dork-desc { color: #ccc; font-size: 12px; margin-top: 4px; }
+  .dork-card .dork-ex { color: #ce9178; font-size: 11px; margin-top: 4px; font-family: monospace; }
+  @media (max-width: 600px) { .dork-grid { grid-template-columns: 1fr; } }
+  .preflight-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner { background: #161b22; border: 2px solid #3fb950; border-radius: 10px; padding: 36px 44px; text-align: center; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button { background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .preflight-popup-inner button:hover { background: #2ea043; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module C: Background Information Gathering</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB C4-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> C4</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Method:</strong> Passive - Google dorking</span>
+  </div>
+  <h1>Google Hacking and Search Engine Reconnaissance</h1>
+  <p>Search engines index far more than intended public content. Using advanced operators - known as "Google dorks" - a skilled tester can find exposed files, login panels, configuration data, and indexed directories that the target never meant to share.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">No VMs required. All reconnaissance uses public search engines and browser only.</p>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Firefox or Chromium browser open</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Google Search (google.com) accessible</li>
+    </ul>
+  </div>
+
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
+    </div>
+  </div>
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>During passive recon on <strong>Syntex Solutions Ltd</strong>, you have identified their primary domain. Before any active scanning, use Google dorks and the Google Hacking Database to discover exposed content, sensitive files, and information disclosure issues indexed by search engines.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Use core Google dork operators to narrow search results</li>
+      <li>Combine operators to build targeted reconnaissance queries</li>
+      <li>Use the Google Hacking Database (GHDB) as a dork reference</li>
+      <li>Identify the types of sensitive content commonly found via dorking</li>
+      <li>Understand the legal and ethical boundaries of Google hacking</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - Core Dork Operators</div>
+
+    <p style="font-size:14px;margin-bottom:12px;">Google's advanced operators let you filter search results to specific domains, file types, URL patterns, and page content. Learning these operators is essential for passive OSINT.</p>
+
+    <div class="dork-grid">
+      <div class="dork-card">
+        <div class="dork-op">site:</div>
+        <div class="dork-desc">Restrict results to one domain</div>
+        <div class="dork-ex">site:example.com</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">filetype: / ext:</div>
+        <div class="dork-desc">Find specific file types</div>
+        <div class="dork-ex">site:example.com filetype:pdf</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">inurl:</div>
+        <div class="dork-desc">Find URLs containing a keyword</div>
+        <div class="dork-ex">site:example.com inurl:admin</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">intitle:</div>
+        <div class="dork-desc">Find pages with keyword in title</div>
+        <div class="dork-ex">intitle:"index of" site:example.com</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">intext:</div>
+        <div class="dork-desc">Find pages containing body text</div>
+        <div class="dork-ex">intext:"password" site:example.com</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">cache:</div>
+        <div class="dork-desc">View Google's cached copy</div>
+        <div class="dork-ex">cache:example.com/login</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">-</div>
+        <div class="dork-desc">Exclude a term from results</div>
+        <div class="dork-ex">site:example.com -www</div>
+      </div>
+      <div class="dork-card">
+        <div class="dork-op">" "</div>
+        <div class="dork-desc">Exact phrase match</div>
+        <div class="dork-ex">"admin panel" site:example.com</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div><strong>Legal boundary:</strong> Viewing Google search results and Google's cached pages is passive recon - no direct connection to the target. Accessing a live page you found via dorking is a direct connection. Know where the line is before any engagement.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Practical Dork Queries</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Enumerate subdomains via site: operator</div></div>
+      <div class="step-body">
+        <p>The <code>site:</code> operator without <code>www</code> reveals all subdomains Google has indexed for a target. This is passive enumeration with no direct target contact.</p>
+        <pre><span class="comment">-- Run these in Google (use bbc.co.uk as a safe practice target) --</span>
+
+<span class="comment">All indexed pages for the domain:</span>
+site:bbc.co.uk
+
+<span class="comment">Exclude www to see subdomains:</span>
+site:bbc.co.uk -www.bbc.co.uk
+
+<span class="comment">Find subdomains only (using inurl to find dots before domain):</span>
+site:bbc.co.uk -inurl:www</pre>
+        <div class="answer-box">
+          <div class="label">What subdomains were revealed?</div>
+          <input class="answer-line" type="text" placeholder="List interesting subdomains found:">
+          <input class="answer-line" type="text" placeholder="Approximate number of indexed pages:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Find exposed file types</div></div>
+      <div class="step-body">
+        <p>Documents, spreadsheets, and config files are frequently indexed by accident. These often contain internal data, employee names, or system information.</p>
+        <pre><span class="comment">Find PDFs (often contain internal document metadata):</span>
+site:bbc.co.uk filetype:pdf
+
+<span class="comment">Find Excel spreadsheets:</span>
+site:bbc.co.uk filetype:xlsx OR filetype:xls
+
+<span class="comment">Find exposed config files (dangerous on real targets):</span>
+site:example.com ext:cfg OR ext:conf OR ext:ini OR ext:env
+
+<span class="comment">Find text/log files:</span>
+site:example.com ext:txt OR ext:log</pre>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Focus:</strong> Know these file types by heart - .pdf, .xls, .xlsx, .doc, .docx, .txt, .bak, .sql, .cfg, .conf, .env, .log. The exam may ask which file types are most valuable in passive recon.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Most interesting file types found on bbc.co.uk:</div>
+          <input class="answer-line" type="text" placeholder="File types and example URLs:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Find login panels and admin interfaces</div></div>
+      <div class="step-body">
+        <p>Admin panels and login forms exposed to the internet are high-value targets. Google often indexes them even when not linked from the main site.</p>
+        <pre><span class="comment">Find admin panels:</span>
+site:example.com inurl:admin
+site:example.com inurl:login
+site:example.com inurl:wp-admin
+
+<span class="comment">Find pages with login in the title:</span>
+site:example.com intitle:"login"
+site:example.com intitle:"admin panel"
+site:example.com intitle:"administrator"
+
+<span class="comment">Find phpMyAdmin (database management tool):</span>
+inurl:phpmyadmin/index.php site:example.com</pre>
+        <div class="answer-box">
+          <div class="label">Notes on login/admin panels discovered:</div>
+          <input class="answer-line" type="text" placeholder="Admin panel paths found:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Find open directory listings</div></div>
+      <div class="step-body">
+        <p>Apache and IIS web servers show directory listings when <code>index.html</code> is absent. These expose the entire file structure of that directory.</p>
+        <pre><span class="comment">Classic open directory dork:</span>
+intitle:"index of" site:example.com
+
+<span class="comment">Find specific exposed directories:</span>
+intitle:"index of" "backup" site:example.com
+intitle:"index of" "uploads" site:example.com
+intitle:"index of" ".git" site:example.com</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>An exposed <code>.git</code> directory is critical severity - it allows an attacker to reconstruct the entire source code of the application including all previous commits, credentials hardcoded in history, and internal architecture.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Google Hacking Database (GHDB)</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Use GHDB for pre-built dork queries</div></div>
+      <div class="step-body">
+        <p>The Google Hacking Database at <strong>exploit-db.com/google-hacking-database</strong> is a community-maintained library of thousands of dork queries, categorised by type.</p>
+        <pre><span class="comment">GHDB categories to know:</span>
+- Files containing passwords
+- Sensitive directories
+- Pages containing login portals
+- Various online devices (webcams, printers)
+- Vulnerable servers
+- Error messages
+- Files containing usernames</pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>On a real engagement, open GHDB, filter by "Files Containing Passwords" or "Sensitive Directories", copy the dork, and add <code>site:target.com</code> to restrict it to your target. This takes minutes and can find critical findings immediately.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Useful GHDB dorks you found:</div>
+          <input class="answer-line" type="text" placeholder="Dork #1 (category + query):">
+          <input class="answer-line" type="text" placeholder="Dork #2 (category + query):">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>Answer without looking at notes.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>Which Google dork operator would you use to find all pages indexed for a specific target domain?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="site:|site: operator">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>Write a Google dork query to find all PDF files indexed on example.com.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="site:example.com filetype:pdf|site:example.com ext:pdf">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>What does the dork <code>intitle:"index of"</code> look for, and why is it significant?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>It finds web pages with "index of" in the title, which is the default heading Apache and IIS use when serving a directory listing. Directory listings expose the full file tree of that folder - you can see and download every file without needing to know URLs in advance. They are significant because they may expose backup files, configuration files, source code, database dumps, and other sensitive content that was never intended to be public.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>You find an exposed <code>.git</code> directory on a target. What is the significance and what does it allow an attacker to do?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>An exposed .git directory is a critical finding. Git stores the entire version history of the repository locally. By downloading the .git directory, an attacker can reconstruct the full source code of the application using `git checkout`. This can reveal: hardcoded credentials or API keys in old commits (even if removed later), internal architecture and database schemas, commented-out debug code, and the full application logic for finding vulnerabilities. The tool `git-dumper` automates recovery from exposed .git directories.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>What is the name of the community database that catalogues Google dork queries by category?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Google Hacking Database|GHDB|ghdb|exploit-db|google hacking database">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">&#9733;</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> Google hacking is a powerful passive technique requiring no tools beyond a browser. The site:, filetype:, inurl:, intitle:, intext: and cache: operators are your core toolkit. Directory listings (intitle:"index of") and exposed admin panels are the highest-value quick wins. The GHDB provides thousands of pre-built dorks. Always clarify with the client whether passive OSINT using public search engines is in scope - it usually is, but confirm.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module C - Background Information Gathering &nbsp;|&nbsp; Lab C4-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+function checkPreflight() {
+  var boxes = document.querySelectorAll('#preflight-list input[type="checkbox"]');
+  var allDone = Array.from(boxes).every(function(b) { return b.checked; });
+  if (allDone) { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.add('show'); }
+}
+function closePreflight() { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.remove('show'); }
+function checkAnswer(btn) {
+  var box = btn.parentElement; var input = box.querySelector('input.answer-line'); var feedback = box.querySelector('.answer-feedback');
+  if (!input || !feedback) return;
+  var student = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+  var correct = (input.getAttribute('data-answer') || '').trim().toLowerCase();
+  var alts = correct.split('|').map(function(s) { return s.trim(); });
+  var ok = alts.some(function(a) { return student === a || student.indexOf(a) !== -1 || a.indexOf(student) !== -1; });
+  feedback.removeAttribute('hidden');
+  if (ok) { feedback.className = 'answer-feedback correct'; feedback.textContent = '✔ Correct!'; }
+  else { feedback.className = 'answer-feedback wrong'; feedback.textContent = '✘ Not quite - try again.'; }
+}
+function showModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.removeAttribute('hidden'); btn.textContent = 'Hide Model Answer'; btn.onclick = function() { hideModel(btn); };
+}
+function hideModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.setAttribute('hidden', ''); btn.textContent = 'Model Answer'; btn.onclick = function() { showModel(btn); };
+}
+</script>
+</body>
+</html>

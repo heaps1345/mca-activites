@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab C6-A: OSINT Sources and Tools</title>
+<style>
+  :root { --orange: #E84E0F; --black: #1A1A1A; --dark: #2a2a2a; --mid: #444; --light: #f5f5f5; --border: #ddd; --green: #2d6a2d; --green-bg: #eafaea; --amber: #7a4f00; --amber-bg: #fff8e1; --red: #8b0000; --red-bg: #fff0f0; --blue: #003580; --blue-bg: #eef4ff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+  .check-btn, .model-btn { margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical; font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  .tool-card { background: #1e1e1e; border: 1px solid #333; border-radius: 4px; padding: 12px; }
+  .tool-card .tool-name { color: var(--orange); font-weight: 700; font-size: 14px; }
+  .tool-card .tool-url { color: #6a9955; font-size: 11px; font-family: monospace; }
+  .tool-card .tool-desc { color: #ccc; font-size: 12px; margin-top: 4px; }
+  @media (max-width: 600px) { .tool-grid { grid-template-columns: 1fr; } }
+  .preflight-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner { background: #161b22; border: 2px solid #3fb950; border-radius: 10px; padding: 36px 44px; text-align: center; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button { background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .preflight-popup-inner button:hover { background: #2ea043; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+    <div class="course-title">CREST CPSA - Module C: Background Information Gathering</div>
+  </div>
+  <div class="lab-badge">LAB C6-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> C6</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Method:</strong> Passive OSINT</span>
+  </div>
+  <h1>OSINT Sources, Tools, and theHarvester</h1>
+  <p>Beyond DNS and WHOIS, a range of specialist OSINT tools and public sources can reveal email addresses, employee names, internet-exposed services, and company structure - all without touching the target directly.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">No VMs required. Tools run from Kali terminal and browser.</p>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Internet access confirmed</li>
+    </ul>
+  </div>
+
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
+    </div>
+  </div>
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>Final phase of passive recon against <strong>Syntex Solutions Ltd</strong>. Use specialist OSINT tools to harvest email addresses, discover internet-facing services, and build an employee profile - all without triggering any alerts or making direct contact with the target.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Use theHarvester to collect email addresses and subdomains from public sources</li>
+      <li>Query Shodan to find internet-exposed services and devices</li>
+      <li>Use Hunter.io to enumerate corporate email addresses</li>
+      <li>Query Companies House for UK company and director information</li>
+      <li>Identify the value and limitations of each OSINT source</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - theHarvester</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Harvest emails and subdomains with theHarvester</div></div>
+      <div class="step-body">
+        <p><code>theHarvester</code> queries multiple public sources (search engines, PGP key servers, LinkedIn, Shodan) in one command to collect email addresses and subdomains for a target domain. It is a standard first step in passive recon.</p>
+        <pre><span class="comment"># Basic harvest - query multiple sources</span>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> all
+
+<span class="comment"># Query specific sources (faster)</span>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> google,bing,dnsdumpster
+
+<span class="comment"># Limit results per source</span>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> google <span class="flag">-l</span> 100
+
+<span class="comment"># Save results to file</span>
+<span class="cmd">theHarvester</span> <span class="flag">-d</span> bbc.co.uk <span class="flag">-b</span> all <span class="flag">-f</span> bbc_harvest</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>theHarvester's most reliable sources in 2024: <strong>google</strong>, <strong>bing</strong>, <strong>dnsdumpster</strong>, <strong>crtsh</strong> (certificate transparency), <strong>hunter</strong> (API key needed), and <strong>shodan</strong> (API key needed). Use <code>-b all</code> on engagements but be aware some sources rate-limit quickly.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">theHarvester results for bbc.co.uk</div>
+          <input class="answer-line" type="text" placeholder="Email addresses found:">
+          <input class="answer-line" type="text" placeholder="Subdomains found:">
+          <input class="answer-line" type="text" placeholder="IP addresses discovered:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Shodan</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Find internet-exposed services with Shodan</div></div>
+      <div class="step-body">
+        <p>Shodan is a search engine for internet-connected devices. It continuously scans the entire internet and indexes banners from open ports - revealing servers, IoT devices, industrial control systems, and misconfigured services.</p>
+        <pre><span class="comment"># CLI search (requires free API key - shodan.io)</span>
+<span class="cmd">shodan</span> search org:"BBC"
+
+<span class="comment"># Search for a specific IP</span>
+<span class="cmd">shodan</span> host 212.58.244.22
+
+<span class="comment"># Search by hostname</span>
+<span class="cmd">shodan</span> search hostname:bbc.co.uk
+
+<span class="comment"># Useful Shodan dork filters:</span>
+<span class="comment"># org:"Target Company Name"   - all IPs for an organisation</span>
+<span class="comment"># ssl:"target.com"            - IPs with target in SSL cert</span>
+<span class="comment"># http.title:"Admin Panel" org:"Target"</span></pre>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Focus:</strong> Shodan is described as a search engine for internet-connected devices. Key uses in CPSA: finding open ports and service banners without scanning the target, discovering ICS/SCADA systems, locating default-credential devices, and finding servers with known-vulnerable software versions in their banners.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Shodan results</div>
+          <input class="answer-line" type="text" placeholder="Services/ports found on target IP:">
+          <input class="answer-line" type="text" placeholder="Any interesting banners (versions, software):">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Hunter.io and Email Enumeration</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Enumerate corporate emails with Hunter.io</div></div>
+      <div class="step-body">
+        <p>Hunter.io scrapes the web for email addresses associated with a domain and identifies the email format pattern used by the organisation (e.g. firstname.lastname@domain.com). This is invaluable for social engineering preparation and spear-phishing assessment.</p>
+        <pre><span class="comment"># Browser: navigate to hunter.io and search for bbc.co.uk</span>
+<span class="comment"># Free tier shows first 25 results per month</span>
+
+<span class="comment"># API via curl (replace with your free API key):</span>
+<span class="cmd">curl</span> "https://api.hunter.io/v2/domain-search?domain=bbc.co.uk&api_key=YOUR_KEY"
+
+<span class="comment"># Verify a specific email address:</span>
+<span class="cmd">curl</span> "https://api.hunter.io/v2/email-verifier?email=test@bbc.co.uk&api_key=YOUR_KEY"</pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>Hunter.io often reveals the email format before showing individual addresses (e.g. <code>{first}.{last}@company.com</code>). Once you know the format, you can construct email addresses for any employee you find on LinkedIn - which is why LinkedIn is a critical adjacent OSINT source.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Hunter.io findings for bbc.co.uk</div>
+          <input class="answer-line" type="text" placeholder="Email format pattern identified:">
+          <input class="answer-line" type="text" placeholder="Example verified email addresses:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Corporate and Company Sources</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Query Companies House for UK targets</div></div>
+      <div class="step-body">
+        <p>For UK-registered companies, Companies House at <strong>find-and-update.company-information.service.gov.uk</strong> provides free public access to company registration data, director names, registered addresses, and filed accounts.</p>
+        <pre><span class="comment">Data available from Companies House:</span>
+- Company number and registration date
+- Registered address (may differ from operational address)
+- Current and past directors (full names and DOB month/year)
+- Company accounts (revenue, employee count, assets)
+- Persons with Significant Control (ownership structure)
+- Filing history</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>Director names from Companies House combined with LinkedIn research and the email format from Hunter.io can produce a highly targeted list of valid executive email addresses - critical intelligence for a social engineering assessment.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Companies House findings</div>
+          <input class="answer-line" type="text" placeholder="Director names found:">
+          <input class="answer-line" type="text" placeholder="Registered address:">
+          <input class="answer-line" type="text" placeholder="Approximate headcount (from accounts):">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Additional OSINT tool reference</div></div>
+      <div class="step-body">
+        <p>A broader toolkit for passive OSINT - know these tools and their primary purpose for the exam.</p>
+        <div class="tool-grid">
+          <div class="tool-card">
+            <div class="tool-name">Shodan</div>
+            <div class="tool-url">shodan.io</div>
+            <div class="tool-desc">Search engine for internet-connected devices. Finds open ports, service banners, ICS/SCADA systems.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">Censys</div>
+            <div class="tool-url">search.censys.io</div>
+            <div class="tool-desc">Similar to Shodan - internet-wide scans with SSL cert and ASN search. Often finds different hosts.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">theHarvester</div>
+            <div class="tool-url">Kali built-in</div>
+            <div class="tool-desc">Aggregates email addresses and subdomains from Google, Bing, LinkedIn, and other public sources.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">Hunter.io</div>
+            <div class="tool-url">hunter.io</div>
+            <div class="tool-desc">Discovers corporate email addresses and identifies email format patterns for a domain.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">LinkedIn</div>
+            <div class="tool-url">linkedin.com</div>
+            <div class="tool-desc">Employee names, job titles, technologies used, org structure - without any direct contact.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">Companies House</div>
+            <div class="tool-url">companieshouse.gov.uk</div>
+            <div class="tool-desc">UK company registration, directors, filed accounts, ownership structure.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">Have I Been Pwned</div>
+            <div class="tool-url">haveibeenpwned.com</div>
+            <div class="tool-desc">Check whether target domain emails appear in public breach data.</div>
+          </div>
+          <div class="tool-card">
+            <div class="tool-name">Maltego</div>
+            <div class="tool-url">maltego.com</div>
+            <div class="tool-desc">OSINT aggregation with visual graph - links people, domains, IPs, and social media.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 5 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>Answer without looking at notes.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>Which tool is described as a "search engine for internet-connected devices" and is used to find open ports and service banners without scanning the target?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Shodan|shodan">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>Which Kali Linux tool aggregates email addresses and subdomains from Google, Bing, and other public sources using a single command?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="theHarvester|theharvester|harvester">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>During OSINT against a UK company, you need to find the names of its directors and its registered address without contacting the company. What public resource would you use?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Companies House|companieshouse|companies house|company house">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>Explain how you would combine multiple OSINT sources to construct a likely valid email address for a named employee of a target company.</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>1. Use Hunter.io or theHarvester to identify the company's email format (e.g. firstname.lastname@company.com or f.lastname@company.com). 2. Find employee names via LinkedIn by searching the company name and filtering by department or job title. 3. Cross-reference with Companies House for executive/director names. 4. Construct the email address by applying the identified format to the employee's name. 5. Optionally verify using Hunter.io's email verifier or check Have I Been Pwned to confirm the format is active. This entire process requires no direct contact with the target and produces high-confidence email addresses suitable for a social engineering assessment scope.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>What tool provides a graphical view of OSINT findings, linking domains, IPs, people, and social media profiles together?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Maltego|maltego">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">&#9733;</span>
+    <div><strong>Lab Complete - Module C Summary:</strong> You have now covered all six OSINT skill areas in the CREST CPSA Module C syllabus: WHOIS and RIRs (C1), DNS enumeration (C2), web reconnaissance (C3), Google hacking (C4), email header analysis (C5), and OSINT sources and tools (C6). The key principle across all six skills is that passive recon leaves no trace on the target. CREST examiners will test your ability to identify which tool or technique is appropriate for a given recon task - and to know where passive reconnaissance ends and active scanning begins.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module C - Background Information Gathering &nbsp;|&nbsp; Lab C6-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+function checkPreflight() {
+  var boxes = document.querySelectorAll('#preflight-list input[type="checkbox"]');
+  var allDone = Array.from(boxes).every(function(b) { return b.checked; });
+  if (allDone) { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.add('show'); }
+}
+function closePreflight() { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.remove('show'); }
+function checkAnswer(btn) {
+  var box = btn.parentElement; var input = box.querySelector('input.answer-line'); var feedback = box.querySelector('.answer-feedback');
+  if (!input || !feedback) return;
+  var student = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+  var correct = (input.getAttribute('data-answer') || '').trim().toLowerCase();
+  var alts = correct.split('|').map(function(s) { return s.trim(); });
+  var ok = alts.some(function(a) { return student === a || student.indexOf(a) !== -1 || a.indexOf(student) !== -1; });
+  feedback.removeAttribute('hidden');
+  if (ok) { feedback.className = 'answer-feedback correct'; feedback.textContent = '✔ Correct!'; }
+  else { feedback.className = 'answer-feedback wrong'; feedback.textContent = '✘ Not quite - try again.'; }
+}
+function showModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.removeAttribute('hidden'); btn.textContent = 'Hide Model Answer'; btn.onclick = function() { hideModel(btn); };
+}
+function hideModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.setAttribute('hidden', ''); btn.textContent = 'Model Answer'; btn.onclick = function() { showModel(btn); };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab C1-A: WHOIS and RIRs</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .info-card { background: var(--light); border-left: 4px solid var(--orange); padding: 12px 16px; }
+  .info-card .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .info-card .value { font-weight: 700; font-size: 15px; color: var(--black); font-family: monospace; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
+  .check-btn, .model-btn {
+    margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px;
+    font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block;
+  }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950;
+    border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical;
+    font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  td.fill[contenteditable] { background: #fffde7; font-style: normal; color: #333; outline: none; cursor: text; }
+  td.fill[contenteditable]:focus { background: #fff9c4; box-shadow: inset 0 0 0 2px var(--orange); }
+  td.fill[contenteditable]:empty::before { content: attr(data-placeholder); color: #aaa; font-style: italic; }
+
+  .preflight-popup {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center;
+  }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner {
+    background: #161b22; border: 2px solid #3fb950; border-radius: 10px;
+    padding: 36px 44px; text-align: center; max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button {
+    background: #3fb950; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .preflight-popup-inner button:hover { background: #2ea043; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module C: Background Information Gathering</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB C1-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> C1</span>
+    <span><strong>Duration:</strong> 30 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Method:</strong> Passive OSINT</span>
+  </div>
+  <h1>WHOIS Lookups and Regional Internet Registries</h1>
+  <p>Use WHOIS and RIR databases to identify domain registration details, IP address ownership, ASN assignments, and abuse contacts for a target organisation - all from publicly available sources.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">Confirm the following before starting the lab. No VMs are required - this lab is passive OSINT only.</p>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open and ready</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> You have internet access from your Kali machine</li>
+    </ul>
+  </div>
+
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
+    </div>
+  </div>
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>You have been engaged to perform a penetration test against <strong>Syntex Solutions Ltd</strong>. Before any scanning begins, you must conduct passive reconnaissance to map the organisation's internet-facing footprint using WHOIS and RIR lookups. This is entirely passive - no packets are sent to the target.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Query WHOIS for domain registration and registrant details</li>
+      <li>Identify which Regional Internet Registry (RIR) owns a given IP range</li>
+      <li>Look up ASN assignments to map an organisation's IP space</li>
+      <li>Find abuse and technical contacts from RIR records</li>
+      <li>Understand what WHOIS privacy protection hides and what it does not</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Reference - The Five RIRs</div>
+    <table>
+      <tr><th>RIR</th><th>Full Name</th><th>Region</th><th>Website</th></tr>
+      <tr><td><strong>ARIN</strong></td><td>American Registry for Internet Numbers</td><td>North America</td><td>arin.net</td></tr>
+      <tr><td><strong>RIPE NCC</strong></td><td>Reseaux IP Europeens Network Coordination Centre</td><td>Europe, Middle East, Central Asia</td><td>ripe.net</td></tr>
+      <tr><td><strong>APNIC</strong></td><td>Asia-Pacific Network Information Centre</td><td>Asia-Pacific</td><td>apnic.net</td></tr>
+      <tr><td><strong>LACNIC</strong></td><td>Latin America and Caribbean Network Information Centre</td><td>Latin America, Caribbean</td><td>lacnic.net</td></tr>
+      <tr><td><strong>AFRINIC</strong></td><td>African Network Information Centre</td><td>Africa</td><td>afrinic.net</td></tr>
+    </table>
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div><strong>CREST Exam Focus:</strong> You will be given an IP address and asked which RIR holds its registration records. Know the five RIRs and their regions cold.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - Domain WHOIS</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Query WHOIS for a domain</div></div>
+      <div class="step-body">
+        <p>Use the <code>whois</code> command to retrieve domain registration details. In this lab we use <code>bbc.co.uk</code> as a publicly accessible example target.</p>
+        <pre><span class="cmd">whois</span> bbc.co.uk</pre>
+        <p>Look for these key fields in the output: <code>Registrant</code>, <code>Registrar</code>, <code>Creation Date</code>, <code>Expiry Date</code>, <code>Name Servers</code>.</p>
+        <div class="callout warn">
+          <span class="callout-icon">&#9888;</span>
+          <div>Many modern domains use <strong>WHOIS privacy protection</strong> (also called proxy registration). The registrant fields show a privacy service address rather than real contact details. Check the name servers - those are rarely hidden.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record your findings from the WHOIS output</div>
+          <input class="answer-line" type="text" placeholder="Registrar:">
+          <input class="answer-line" type="text" placeholder="Name Servers (first two):">
+          <input class="answer-line" type="text" placeholder="Creation Date:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Query a specific WHOIS server</div></div>
+      <div class="step-body">
+        <p>By default <code>whois</code> queries IANA, which redirects to the correct TLD registry. You can specify the server directly with <code>-h</code>.</p>
+        <pre><span class="comment"># Query Nominet directly for .uk domains</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.nic.uk bbc.co.uk
+
+<span class="comment"># Query Verisign for .com domains</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.verisign-grs.com google.com</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>Different TLD registries hold different information. Going directly to the authoritative server often gives more complete data than generic WHOIS tools.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - IP Address and ASN Lookups</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Look up an IP address in WHOIS</div></div>
+      <div class="step-body">
+        <p>WHOIS also covers IP addresses. The response tells you who owns the IP block, the registered organisation, and abuse contact details.</p>
+        <pre><span class="comment"># Look up the owner of a public IP</span>
+<span class="cmd">whois</span> 212.58.244.22
+
+<span class="comment"># This is a BBC IP - look for the netname and org fields</span></pre>
+        <div class="answer-box">
+          <div class="label">What organisation owns this IP block?</div>
+          <input class="answer-line" type="text" placeholder="Organisation / netname:">
+          <input class="answer-line" type="text" placeholder="Which RIR holds these records (look for source: field)?">
+          <input class="answer-line" type="text" placeholder="IP range (inetnum):">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Find an organisation's ASN</div></div>
+      <div class="step-body">
+        <p>An Autonomous System Number (ASN) identifies all IP ranges belonging to one organisation. Finding the ASN lets you enumerate all their publicly announced IP space.</p>
+        <pre><span class="comment"># Look up ASN ownership</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net AS2818
+
+<span class="comment"># Query BGP routing table via a looking glass</span>
+<span class="comment"># bgp.he.net is a public resource - search for an org name</span></pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>In a real engagement, use <strong>bgp.he.net</strong> in your browser to search an organisation by name and see all their ASNs and announced prefixes. This gives you the full IP footprint without any active probing.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">What is the organisation name for AS2818?</div>
+          <input class="answer-line" type="text" placeholder="Organisation:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Find prefixes announced by an ASN</div></div>
+      <div class="step-body">
+        <p>Once you have an ASN, you can enumerate all IP prefixes they announce via BGP. This is entirely passive - you are reading publicly available routing data.</p>
+        <pre><span class="comment"># List all routes announced by AS2818</span>
+<span class="cmd">whois</span> <span class="flag">-h</span> whois.radb.net -- <span class="flag">-i origin</span> AS2818 | <span class="cmd">grep</span> <span class="flag">^route</span></pre>
+        <div class="answer-box">
+          <div class="label">How many IP prefixes did you find? List two of them.</div>
+          <input class="answer-line" type="text" placeholder="Number of prefixes:">
+          <input class="answer-line" type="text" placeholder="Prefix 1:">
+          <input class="answer-line" type="text" placeholder="Prefix 2:">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>These are the types of questions that appear in the CPSA written paper. Answer without looking at your notes first.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>An IP address <code>41.x.x.x</code> is found during passive reconnaissance. Which RIR holds the registration records for this address?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="AFRINIC|afrinic">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>Which RIR would you query to find ownership records for an IP address in the <code>200.x.x.x</code> range?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="LACNIC|lacnic">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>You query WHOIS for a target domain and get back a privacy service address instead of registrant details. What information can you still reliably obtain from the WHOIS record?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Even with WHOIS privacy enabled, you can reliably obtain: name servers (NS records) - these point to DNS infrastructure you can enumerate; registrar name; creation and expiry dates; domain status flags. Name servers are rarely proxied and often reveal the hosting provider or CDN.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What is an ASN and why is it useful during passive reconnaissance?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>An Autonomous System Number (ASN) uniquely identifies an organisation's network on the internet. During passive recon, it is useful because a single ASN can reveal all IP prefixes announced by that organisation via BGP. This lets you map their entire publicly routable IP footprint from public routing databases without sending any packets to the target.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>You are tasked with passively mapping all IP space belonging to a UK-based company. List the steps you would take using WHOIS and RIR resources.</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>1. WHOIS the company's domain to get registrant details and name servers. 2. Resolve the domain to get at least one IP address. 3. WHOIS the IP to find the netblock and organisation name. 4. Search RIPE NCC (ripe.net) for the organisation name to enumerate all registered IP ranges. 5. Search bgp.he.net for the organisation's ASN and list all announced prefixes. 6. Cross-reference to confirm ownership. All of this is passive - no packets sent to target.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">&#9733;</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> WHOIS is your starting point for passive recon. Domains reveal registrars, name servers, and registration dates. IP lookups reveal the owning organisation and which RIR to query for more. ASNs are the most powerful lever - one ASN number maps an entire organisation's routable IP space. CREST examiners expect you to know all five RIRs and their geographic coverage.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module C - Background Information Gathering &nbsp;|&nbsp; Lab C1-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+function checkPreflight() {
+  var boxes = document.querySelectorAll('#preflight-list input[type="checkbox"]');
+  var allDone = Array.from(boxes).every(function(b) { return b.checked; });
+  if (allDone) {
+    var popup = document.getElementById('preflight-popup');
+    if (popup) popup.classList.add('show');
+  }
+}
+function closePreflight() {
+  var popup = document.getElementById('preflight-popup');
+  if (popup) popup.classList.remove('show');
+}
+function checkAnswer(btn) {
+  var box = btn.parentElement;
+  var input = box.querySelector('input.answer-line');
+  var feedback = box.querySelector('.answer-feedback');
+  if (!input || !feedback) return;
+  var student = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+  var correct = (input.getAttribute('data-answer') || '').trim().toLowerCase();
+  var alts = correct.split('|').map(function(s) { return s.trim(); });
+  var ok = alts.some(function(a) { return student === a || student.indexOf(a) !== -1 || a.indexOf(student) !== -1; });
+  feedback.removeAttribute('hidden');
+  if (ok) {
+    feedback.className = 'answer-feedback correct';
+    feedback.textContent = '✔ Correct!';
+  } else {
+    feedback.className = 'answer-feedback wrong';
+    feedback.textContent = '✘ Not quite - try again.';
+  }
+}
+function showModel(btn) {
+  var box = btn.parentElement;
+  var div = box.querySelector('.model-answer');
+  if (!div) return;
+  div.removeAttribute('hidden');
+  btn.textContent = 'Hide Model Answer';
+  btn.onclick = function() { hideModel(btn); };
+}
+function hideModel(btn) {
+  var box = btn.parentElement;
+  var div = box.querySelector('.model-answer');
+  if (!div) return;
+  div.setAttribute('hidden', '');
+  btn.textContent = 'Model Answer';
+  btn.onclick = function() { showModel(btn); };
+}
+</script>
+</body>
+</html>
