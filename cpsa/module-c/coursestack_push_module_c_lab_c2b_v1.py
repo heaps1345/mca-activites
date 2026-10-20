@@ -104,15 +104,22 @@ def create_lesson(chapter_id, name):
 
 
 def set_lesson_content(lesson_id, iframe_url):
-    content_block = {
-        "id": uid(),
-        "type": "embed",
-        "data": {
-            "url": iframe_url,
-            "height": 900
+    """POST full content object - confirmed working pattern from SC-300 / Module A v6."""
+    payload = {
+        "content": {
+            "type": "lesson",
+            "id": uid(),
+            "items": [
+                {
+                    "id": uid(),
+                    "type": "iframe",
+                    "url": iframe_url,
+                    "aspect_height": 9,
+                    "aspect_width": 16
+                }
+            ]
         }
     }
-    payload = {"content": [content_block]}
     status, data = api_post(
         f"/api/content/{COURSE_ID}/lessons/{lesson_id}",
         payload
