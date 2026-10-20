@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab C2-B: DNS Zone Transfer (AXFR)</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: 700; }
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+  .callout.danger { background: var(--red-bg); border-left: 4px solid var(--red); color: var(--red); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+  .check-btn, .model-btn { margin-top: 8px; padding: 7px 16px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; }
+  .check-btn { background: var(--orange); color: #fff; }
+  .check-btn:hover { opacity: 0.88; }
+  .model-btn { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .model-btn:hover { background: #30363d; color: #fff; }
+  .answer-feedback { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 4px; }
+  .answer-feedback.correct { background: rgba(46,160,67,0.15); color: #3fb950; border: 1px solid #3fb950; }
+  .answer-feedback.wrong { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid #f85149; }
+  .model-answer { margin-top: 10px; background: rgba(46,160,67,0.1); border: 1px solid #3fb950; border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #d2f4d8; line-height: 1.6; }
+  .answer-area { width: 100%; min-height: 80px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #e6edf3; resize: vertical; font-family: inherit; box-sizing: border-box; }
+  .answer-area:focus { outline: none; border-color: var(--orange); }
+  .preflight-popup { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.55); z-index: 9999; align-items: center; justify-content: center; }
+  .preflight-popup.show { display: flex; }
+  .preflight-popup-inner { background: #161b22; border: 2px solid #3fb950; border-radius: 10px; padding: 36px 44px; text-align: center; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .preflight-popup-inner .pp-icon { font-size: 48px; margin-bottom: 12px; }
+  .preflight-popup-inner h2 { color: #3fb950; font-size: 22px; margin-bottom: 8px; }
+  .preflight-popup-inner p { color: #8b949e; font-size: 14px; margin-bottom: 20px; }
+  .preflight-popup-inner button { background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .preflight-popup-inner button:hover { background: #2ea043; }
+  .record-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 3px; margin-right: 4px; font-family: monospace; }
+  .tag-a { background: #003580; color: #fff; }
+  .tag-mx { background: #2d6a2d; color: #fff; }
+  .tag-txt { background: #7b2d8b; color: #fff; }
+  .tag-ns { background: #7a4f00; color: #fff; }
+  .tag-soa { background: #8b0000; color: #fff; }
+  .tag-cname { background: #444; color: #fff; }
+  .tag-ptr { background: #1a6b6b; color: #fff; }
+  .zone-file { background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 16px; margin: 12px 0; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; }
+  .zf-comment { color: #6a9955; }
+  .zf-type { color: #9cdcfe; }
+  .zf-data { color: #ce9178; }
+  .zf-name { color: #4ec9b0; }
+  .zf-juicy { color: #f9c74f; font-weight: 700; }
+  .vuln-box { background: #1a0000; border: 2px solid #8b0000; border-radius: 6px; padding: 16px 20px; margin: 16px 0; }
+  .vuln-box h4 { color: #f85149; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .vuln-box p { font-size: 13px; color: #ccc; margin-bottom: 6px; }
+  .vuln-box code { color: #f9c74f; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div style="font-weight:700;font-size:15px;color:#fff;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module C: Background Information Gathering</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB C2-B</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Syllabus Ref:</strong> C2</span>
+    <span><strong>Duration:</strong> 30 minutes</span>
+    <span><strong>Difficulty:</strong> Beginner</span>
+    <span><strong>Method:</strong> Live AXFR against lab target</span>
+  </div>
+  <h1>DNS Zone Transfer - Live AXFR Lab</h1>
+  <p>Perform a successful DNS zone transfer against a deliberately misconfigured name server. Extract and analyse the full zone file - names, IPs, and intelligence breadcrumbs left by the fictitious target organisation.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#128270; Pre-Flight Checks</h3>
+    <p class="preflight-intro">No VMs required. You query the lab DNS server directly from your Kali terminal. Internet access only.</p>
+    <ul class="preflight-checklist" id="preflight-list">
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Kali Linux terminal is open</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> Internet access confirmed (<code>ping 8.8.8.8</code>)</li>
+      <li><input type="checkbox" onchange="this.closest('li').classList.toggle('checked', this.checked); checkPreflight()"> <code>dig</code> is available (<code>dig -v</code>)</li>
+    </ul>
+  </div>
+
+  <div class="preflight-popup" id="preflight-popup" onclick="closePreflight()">
+    <div class="preflight-popup-inner" onclick="event.stopPropagation()">
+      <div class="pp-icon">&#x1F680;</div>
+      <h2>Away you go!</h2>
+      <p>All pre-flight checks complete. You are ready to start the lab.</p>
+      <button onclick="closePreflight()">Start Lab</button>
+    </div>
+  </div>
+
+  <div class="scenario-box">
+    <h3>Scenario</h3>
+    <p>During passive reconnaissance on a client engagement you have identified the target domain: <strong>syntexsolutions.net</strong>. Initial NS queries reveal the authoritative name server is <strong>ns1.syntexsolutions.net</strong>. You attempt a zone transfer - and it succeeds. The BIND9 server is misconfigured with <code>allow-transfer { any; };</code> - a finding in its own right. Extract every record and document what the zone reveals.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li>Understand what a DNS zone transfer (AXFR) is and why open AXFR is a vulnerability</li>
+      <li>Perform a successful AXFR against a deliberately misconfigured BIND9 server</li>
+      <li>Parse and categorise the records returned in a zone transfer</li>
+      <li>Extract intelligence from DNS records - internal hostnames, IP ranges, service names</li>
+      <li>Identify and document the misconfiguration as a reportable finding</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Background - What is a Zone Transfer?</div>
+
+    <p style="font-size:14px;margin-bottom:12px;">A DNS zone contains every record for a domain - A records mapping hostnames to IPs, MX records for mail, CNAMEs for aliases, TXT records for services and policies. Zone transfers (AXFR queries) exist so secondary name servers can replicate zone data from the primary.</p>
+
+    <div class="callout danger">
+      <span class="callout-icon">&#9888;</span>
+      <div><strong>The vulnerability:</strong> When a name server is configured to allow AXFR from <em>any</em> source (not just trusted secondaries), any attacker can request a complete copy of the zone. This exposes internal hostnames, IP addresses, service names, and infrastructure detail that should never be publicly visible.</div>
+    </div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div><strong>CREST Exam Focus:</strong> Know the dig AXFR syntax, what the output looks like, and why unrestricted AXFR is a vulnerability. Examiners may ask you to identify it in a scan output or explain the remediation.</div>
+    </div>
+
+    <table>
+      <tr><th>Term</th><th>What it means</th></tr>
+      <tr><td><strong>AXFR</strong></td><td>Full zone transfer - returns all records in the zone</td></tr>
+      <tr><td><strong>IXFR</strong></td><td>Incremental zone transfer - returns only changes since a serial number</td></tr>
+      <tr><td><strong>SOA</strong></td><td>Start of Authority - the first record returned; contains the zone serial and admin email</td></tr>
+      <tr><td><strong>allow-transfer { any; };</strong></td><td>BIND9 misconfiguration that allows any host to request a zone transfer</td></tr>
+      <tr><td><strong>Secure configuration</strong></td><td><code>allow-transfer { 10.0.0.2; };</code> - restrict to trusted secondary NS IPs only</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - Locate the Name Server</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Query NS records to find the authoritative name server</div></div>
+      <div class="step-body">
+        <p>Before attempting a zone transfer, identify the authoritative name server for the domain. NS records tell you where to direct your AXFR request.</p>
+        <pre><span class="comment"># Query the authoritative NS records for the target domain</span>
+<span class="cmd">dig</span> syntexsolutions.net <span class="flag">NS</span>
+
+<span class="comment"># Also check the SOA for the primary NS and admin email</span>
+<span class="cmd">dig</span> syntexsolutions.net <span class="flag">SOA</span></pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>The SOA record's second field is the zone administrator's email address - the first dot is replaced by @. So <code>admin.syntexsolutions.net</code> in the SOA means <code>admin@syntexsolutions.net</code>. Record this - it is a recon finding.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record your findings</div>
+          <input class="answer-line" type="text" placeholder="Primary name server (NS record):">
+          <input class="answer-line" type="text" placeholder="Admin email from SOA (convert dot to @):">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Perform the Zone Transfer</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Request a full zone transfer with dig AXFR</div></div>
+      <div class="step-body">
+        <p>The AXFR query type requests a full copy of the zone. Direct it at the authoritative name server using the <code>@server</code> syntax.</p>
+        <pre><span class="comment"># Zone transfer via the authoritative NS (once DNS propagates)</span>
+<span class="cmd">dig</span> <span class="flag">axfr</span> syntexsolutions.net @ns1.syntexsolutions.net
+
+<span class="comment"># If DNS hasn't propagated yet, query the server directly by IP</span>
+<span class="cmd">dig</span> <span class="flag">axfr</span> syntexsolutions.net <span class="flag">@20.24.202.6</span>
+
+<span class="comment"># Pipe to less for easier reading</span>
+<span class="cmd">dig</span> axfr syntexsolutions.net @20.24.202.6 | less
+
+<span class="comment"># Count the total records returned</span>
+<span class="cmd">dig</span> axfr syntexsolutions.net @20.24.202.6 | grep -v "^;" | grep -v "^$" | <span class="cmd">wc</span> -l</pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>A successful AXFR begins with the SOA record and ends with the SOA record again. If you see <code>;; Transfer failed.</code> or <code>REFUSED</code>, the server is correctly configured and rejecting your request. Against syntexsolutions.net, you should receive the full zone.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Zone transfer result</div>
+          <input class="answer-line" type="text" placeholder="Did the transfer succeed? (yes/no):">
+          <input class="answer-line" type="text" placeholder="How many records were returned (from wc -l):">
+          <input class="answer-line" type="text" placeholder="Serial number from the SOA record:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Save the zone output to a file</div></div>
+      <div class="step-body">
+        <p>Capture the full zone to a file for analysis. On a real engagement this goes into your evidence folder.</p>
+        <pre><span class="comment"># Save the full zone transfer output</span>
+<span class="cmd">dig</span> axfr syntexsolutions.net @20.24.202.6 &gt; syntex_zone.txt
+
+<span class="comment"># Verify it captured properly</span>
+<span class="cmd">wc</span> -l syntex_zone.txt
+<span class="cmd">head</span> -20 syntex_zone.txt
+
+<span class="comment"># Strip comments and blank lines - clean record list only</span>
+<span class="cmd">grep</span> -v "^;" syntex_zone.txt | grep -v "^$" | grep -v "^$" &gt; syntex_clean.txt</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Analyse the Zone Output</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Extract A records - hosts and IP addresses</div></div>
+      <div class="step-body">
+        <p>A records map hostnames to IP addresses. In a zone transfer these reveal every named host in the organisation's DNS - including internal ones that should never be public.</p>
+        <pre><span class="comment"># Filter all A records from the zone</span>
+<span class="cmd">grep</span> <span class="flag">"\bIN\b.*\bA\b"</span> syntex_zone.txt | grep -v AAAA
+
+<span class="comment"># Sort and deduplicate IPs</span>
+<span class="cmd">grep</span> "\bIN\b.*\bA\b" syntex_zone.txt | awk '{print $NF}' | sort -u
+
+<span class="comment"># Look for internal-looking names (dev, internal, staging, vpn, mgmt...)</span>
+<span class="cmd">grep</span> "\bIN\b.*\bA\b" syntex_zone.txt | grep -iE "dev|internal|staging|vpn|mgmt|admin|test|priv|db|sql|backup"</pre>
+        <div class="callout info">
+          <span class="callout-icon">&#8505;</span>
+          <div>Look for hostnames that hint at internal infrastructure: <code>dev-</code>, <code>internal-</code>, <code>staging-</code>, <code>mgmt-</code>, <code>db-</code>, <code>vpn-</code>. These are hosts the organisation assumed were private - they are now in your target list.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">A records - what did you find?</div>
+          <input class="answer-line" type="text" placeholder="IP of www.syntexsolutions.net:">
+          <input class="answer-line" type="text" placeholder="Any internal-looking hostnames (list 2-3):">
+          <input class="answer-line" type="text" placeholder="Any private IP ranges visible (10.x, 192.168.x)?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Extract TXT records - breadcrumbs and intelligence</div></div>
+      <div class="step-body">
+        <p>TXT records often contain far more than SPF and DMARC. Administrators use them for domain verification tokens, internal notes, and service markers - many of which were never intended to be public.</p>
+        <pre><span class="comment"># Extract all TXT records</span>
+<span class="cmd">grep</span> <span class="flag">"\bTXT\b"</span> syntex_zone.txt
+
+<span class="comment"># Look specifically for non-standard content</span>
+<span class="cmd">grep</span> "\bTXT\b" syntex_zone.txt | grep -v "v=spf" | grep -v "v=DMARC"</pre>
+        <div class="callout warn">
+          <span class="callout-icon">&#9888;</span>
+          <div>The syntexsolutions.net zone contains TXT records with breadcrumbs - notes, internal references, and hints that a penetration tester would document and explore further. Read them carefully.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">TXT record findings</div>
+          <input class="answer-line" type="text" placeholder="What does the SPF record reveal about mail infrastructure?">
+          <input class="answer-line" type="text" placeholder="Any non-standard or unusual TXT record content?">
+          <input class="answer-line" type="text" placeholder="Any internal references, usernames, or service names?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Extract MX, CNAME, and SRV records</div></div>
+      <div class="step-body">
+        <p>MX records reveal the mail infrastructure. CNAME records expose hosting providers and internal aliases. SRV records may reveal internal services (VoIP, XMPP, etc).</p>
+        <pre><span class="comment"># Mail exchangers</span>
+<span class="cmd">grep</span> <span class="flag">"\bMX\b"</span> syntex_zone.txt
+
+<span class="comment"># CNAME aliases (may reveal hosting providers or CDNs)</span>
+<span class="cmd">grep</span> <span class="flag">"\bCNAME\b"</span> syntex_zone.txt
+
+<span class="comment"># SRV records (internal services)</span>
+<span class="cmd">grep</span> <span class="flag">"\bSRV\b"</span> syntex_zone.txt
+
+<span class="comment"># NS records (additional name servers)</span>
+<span class="cmd">grep</span> <span class="flag">"\bNS\b"</span> syntex_zone.txt</pre>
+        <div class="answer-box">
+          <div class="label">Service infrastructure</div>
+          <input class="answer-line" type="text" placeholder="Mail server (MX record):">
+          <input class="answer-line" type="text" placeholder="Any CNAME records pointing outside the domain?">
+          <input class="answer-line" type="text" placeholder="Any SRV records revealing internal services?">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Document the Finding</div>
+
+    <div class="vuln-box">
+      <h4>&#9888; Vulnerability: Unrestricted DNS Zone Transfer (AXFR)</h4>
+      <p>The name server at <code>20.24.202.6</code> (ns1.syntexsolutions.net) is configured with <code>allow-transfer { any; };</code> in BIND9, permitting any host to retrieve a complete copy of the DNS zone.</p>
+      <p><strong>CVSSv3 Base Score:</strong> 5.3 (Medium) - Network, Low complexity, No privileges required, No user interaction, Low confidentiality impact</p>
+      <p><strong>Impact:</strong> Full DNS zone enumeration including internal hostnames, IP addresses, and service records not intended for public disclosure.</p>
+      <p><strong>Remediation:</strong> Replace <code>allow-transfer { any; };</code> in <code>/etc/named.conf</code> with <code>allow-transfer { &lt;secondary-NS-IP&gt;; };</code> - restricting transfers to trusted secondary name servers only.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Build your finding summary</div></div>
+      <div class="step-body">
+        <p>Summarise what the zone transfer revealed in report-ready format. A good finding note describes the vulnerability, the evidence, and what an attacker gains from it.</p>
+        <div class="answer-box">
+          <div class="label">Finding note - complete this in your own words</div>
+          <textarea class="answer-area" placeholder="The zone transfer against ns1.syntexsolutions.net revealed [X] DNS records including...&#10;&#10;Internal hostnames discovered: ...&#10;&#10;Intelligence extracted from TXT records: ...&#10;&#10;Impact: an attacker could use this to...&#10;&#10;Remediation: ..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 5 - Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>Answer without looking at notes. These test understanding, not memorisation.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>Write the dig command to perform a full zone transfer of <code>target.com</code> against name server <code>ns1.target.com</code>.</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="dig axfr target.com @ns1.target.com|dig AXFR target.com @ns1.target.com">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>A zone transfer returns the output below. What does the first and last record type tell you about the transfer?</p>
+      <pre style="margin:10px 0;"><span class="output">syntexsolutions.net.  3600  IN  SOA  ns1.syntexsolutions.net. ...
+...
+syntexsolutions.net.  3600  IN  SOA  ns1.syntexsolutions.net. ...</span></pre>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>A successful AXFR response is always bounded by the SOA record - the zone starts and ends with it. The first SOA marks the beginning of the zone transfer, and the second SOA marks the end. If you only see one SOA and an error, the transfer was incomplete. The SOA record also contains the zone serial number, which tells you how recently the zone was updated, and the administrator's email address.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>The zone transfer reveals a record: <code>internal-erp.syntexsolutions.net. IN A 10.0.5.20</code>. Why is this significant even though 10.0.5.20 is a private (RFC 1918) address?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Even though 10.0.5.20 is not directly reachable from the internet, the hostname reveals the existence of an internal ERP system. An attacker who later gains any internal access (via phishing, VPN compromise, or a foothold on a DMZ host) now has a pre-built target list including the server name and its internal IP. The naming convention also tells you the system is an ERP - which suggests a high-value target for business data. Recon intelligence compounds over time: a private IP today becomes a pivot target tomorrow.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What BIND9 configuration line causes unrestricted zone transfers, and what should it be replaced with?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Vulnerable config line:" data-answer="allow-transfer { any; };|allow-transfer{any;};|allow-transfer { any }">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+        <div style="margin-top:8px;">
+          <input class="answer-line" type="text" placeholder="Secure replacement (restrict to secondary NS IP only):">
+        </div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>During a zone transfer you find the record: <code>_autodiscover._tcp.syntexsolutions.net. IN SRV 0 0 443 mail.syntexsolutions.net.</code>. What does this tell you?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>This is a Microsoft Exchange Autodiscover SRV record. It tells you the organisation is running a Microsoft mail platform (Exchange or Exchange Online / Microsoft 365) and that the autodiscover service is reachable at mail.syntexsolutions.net on port 443 (HTTPS). This is a valuable recon finding - it confirms the email platform, reveals a hostname to investigate, and the autodiscover endpoint is a known target for credential harvesting and internal relay abuse. On an engagement, you would attempt to access https://mail.syntexsolutions.net/autodiscover/ and check for legacy Exchange endpoints like OWA, EWS, and ActiveSync.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout exam">
+    <span class="callout-icon">&#9733;</span>
+    <div><strong>Lab Complete - Key Takeaways:</strong> A successful zone transfer is one of the highest-yield findings in passive reconnaissance - it hands you the organisation's entire DNS map in a single query. The AXFR syntax is <code>dig axfr &lt;domain&gt; @&lt;nameserver&gt;</code>. Always attempt it against every NS record you find. The vulnerability is the BIND9 misconfiguration <code>allow-transfer { any; };</code> - remediation is restricting transfers to trusted secondary NS IPs only. TXT records in a zone often contain intelligence beyond SPF - read every one.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module C - Background Information Gathering &nbsp;|&nbsp; Lab C2-B &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+function checkPreflight() {
+  var boxes = document.querySelectorAll('#preflight-list input[type="checkbox"]');
+  var allDone = Array.from(boxes).every(function(b) { return b.checked; });
+  if (allDone) { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.add('show'); }
+}
+function closePreflight() { var popup = document.getElementById('preflight-popup'); if (popup) popup.classList.remove('show'); }
+function checkAnswer(btn) {
+  var box = btn.parentElement;
+  var input = box.querySelector('input.answer-line[data-answer]');
+  var feedback = box.querySelector('.answer-feedback');
+  if (!input || !feedback) return;
+  var student = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+  var correct = (input.getAttribute('data-answer') || '').trim().toLowerCase();
+  var alts = correct.split('|').map(function(s) { return s.trim(); });
+  var ok = alts.some(function(a) { return student === a || student.indexOf(a) !== -1 || a.indexOf(student) !== -1; });
+  feedback.removeAttribute('hidden');
+  if (ok) { feedback.className = 'answer-feedback correct'; feedback.textContent = '✔ Correct!'; }
+  else { feedback.className = 'answer-feedback wrong'; feedback.textContent = '✘ Not quite - try again.'; }
+}
+function showModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.removeAttribute('hidden'); btn.textContent = 'Hide Model Answer'; btn.onclick = function() { hideModel(btn); };
+}
+function hideModel(btn) {
+  var box = btn.parentElement; var div = box.querySelector('.model-answer'); if (!div) return;
+  div.setAttribute('hidden', ''); btn.textContent = 'Model Answer'; btn.onclick = function() { showModel(btn); };
+}
+</script>
+</body>
+</html>
