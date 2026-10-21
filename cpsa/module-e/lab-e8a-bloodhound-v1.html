@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E8-A: BloodHound and Attack Path Analysis | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .concept-box { background: #1a1f2e; border: 1px solid #2d3a5a; border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .concept-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #9fa8da; margin-bottom: 12px; }
+  .concept-box p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .concept-box p:last-child { margin-bottom: 0; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  pre .warn { color: #ffa657; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .callout.info strong { color: #90caf9; }
+  .why-box { background: #1a2a1a; border: 1px solid #2d4a2d; border-left: 4px solid var(--mca-green); border-radius: 4px; padding: 16px 20px; margin: 14px 0; font-size: 13px; }
+  .why-box strong { color: var(--mca-green); display: block; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .why-box p { color: #ccc; margin: 0; }
+  .edge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+  .edge-card { background: #1a1a2e; border: 1px solid #2d3a5a; border-radius: 4px; padding: 14px; }
+  .edge-card h4 { color: var(--mca-orange); font-size: 13px; margin-bottom: 6px; font-family: 'Courier New', monospace; }
+  .edge-card p { font-size: 12px; color: #888; line-height: 1.5; }
+  .query-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  .query-table th { background: #1a1f2e; color: #9fa8da; text-align: left; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #2d3a5a; }
+  .query-table td { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
+  .query-table td:first-child { font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; transition: border-color 0.2s; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .path-diagram { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 20px; margin: 14px 0; font-family: 'Courier New', monospace; font-size: 13px; line-height: 2; }
+  .path-node { color: #79c0ff; }
+  .path-edge { color: var(--mca-orange); }
+  .path-owned { color: var(--mca-green); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E8-A:</span> BloodHound and Attack Path Analysis</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Active Directory</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">Syntex Solutions Ltd</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 60 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- WHY BLOODHOUND -->
+  <div class="concept-box">
+    <h2>Why BloodHound Changes Everything</h2>
+    <p>Active Directory is not a flat list of users and computers. It is a web of relationships - group memberships, delegation settings, ACL permissions, active logon sessions - and those relationships chain together into attack paths that no manual enumeration can reliably find.</p>
+    <p>BloodHound uses <strong>graph theory</strong> to model the entire domain as a network of nodes (users, computers, groups) and edges (the relationships between them). It then runs mathematical shortest-path algorithms across that graph to answer one question: <strong>what is the shortest chain of relationships that takes a low-privilege user to Domain Admin?</strong></p>
+    <p>This is not a convenience tool. In complex environments BloodHound finds paths that would take days of manual analysis to discover - paths that defenders have never seen because they only look at individual permissions, never the chain.</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>You have obtained low-privilege domain credentials for <strong>jsmith</strong> on the Syntex Solutions domain (<code>syntex.local</code>). Your objective is to use BloodHound CE to map the full attack surface, identify the shortest path to Domain Admin, and document the chain of relationships that makes it possible. No exploitation yet - this is the reconnaissance phase that makes every subsequent attack purposeful.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Understand why graph-based analysis exposes attack paths that manual enumeration misses</li>
+      <li>Start BloodHound CE and ingest domain data using bloodhound-python</li>
+      <li>Run the key built-in queries and interpret what each result means operationally</li>
+      <li>Identify and document a complete attack path from jsmith to Domain Admin</li>
+      <li>Understand what each BloodHound edge type means and why it is exploitable</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>Role</th><th>Credentials</th></tr></thead>
+    <tbody>
+      <tr><td>Kali Linux</td><td><code>&lt;KALI-IP&gt;</code></td><td>Attacker</td><td>-</td></tr>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td>Domain Controller (syntex.local)</td><td>jsmith / Password1</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>Starting BloodHound CE</h3>
+      <span class="phase-tag">Setup</span>
+    </div>
+    <div class="phase-body">
+      <div class="why-box">
+        <strong>Why this matters</strong>
+        <p>BloodHound CE replaced the legacy BloodHound/neo4j stack. It runs as a self-contained web application - no separate database setup required. The web UI is significantly better than the old Electron app and is now the standard tool for AD attack path analysis in professional assessments.</p>
+      </div>
+      <div class="step">
+        <p>BloodHound CE is included in Kali 2025.2+. Start it with:</p>
+        <pre><code><span class="comment"># Start BloodHound CE (runs Neo4j + API server + web UI)</span>
+<span class="cmd">sudo</span> bloodhound-ce start
+
+<span class="comment"># First run takes ~60 seconds to initialise the database</span>
+<span class="comment"># Watch for: "BloodHound CE is ready"</span>
+
+<span class="comment"># If not installed:</span>
+<span class="cmd">sudo</span> apt install bloodhound-ce -y</code></pre>
+      </div>
+      <div class="step">
+        <p>Open the web UI in your browser:</p>
+        <pre><code>https://localhost:8080
+
+<span class="comment"># Default credentials on first run:</span>
+<span class="out">Username: admin
+Password: (shown in terminal output on first start - copy it)</span>
+
+<span class="comment"># You will be prompted to change the password on first login</span></code></pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div><strong>Browser Certificate Warning:</strong> BloodHound CE uses a self-signed certificate. Accept the warning in your browser - this is expected in a lab environment. In a real engagement you would run BloodHound CE behind a proper certificate.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Collecting Domain Data with bloodhound-python</h3>
+      <span class="phase-tag">Data Collection</span>
+    </div>
+    <div class="phase-body">
+      <div class="why-box">
+        <strong>Why we collect from Kali, not the target</strong>
+        <p>SharpHound.exe runs on Windows and is the traditional collector - but it gets flagged by AV and leaves artefacts on the target. bloodhound-python runs entirely from Kali over LDAP and SMB using valid credentials. No binary touches the target. Same data, zero footprint on the Windows machine. This is the preferred method on professional engagements.</p>
+      </div>
+      <div class="step">
+        <p>Run bloodhound-python against the Syntex domain. The <code>-c All</code> flag collects everything - users, groups, computers, sessions, ACLs, trusts, and GPOs:</p>
+        <pre><code><span class="comment"># Collect all AD data from Kali</span>
+<span class="cmd">bloodhound-python</span> \
+  <span class="flag">-u</span> jsmith \
+  <span class="flag">-p</span> Password1 \
+  <span class="flag">-d</span> syntex.local \
+  <span class="flag">-ns</span> &lt;DC01-IP&gt; \
+  <span class="flag">-c</span> All \
+  <span class="flag">--zip</span>
+
+<span class="comment"># --zip packages everything into a single .zip for easy import</span></code></pre>
+        <p>Expected output:</p>
+        <pre><code><span class="out">INFO: Found AD domain: syntex.local
+INFO: Getting TGT for user
+INFO: Connecting to LDAP server: SYNTEX-DC01.syntex.local
+INFO: Found 1 domains
+INFO: Found 1 domain controllers
+INFO: Found 12 computers
+INFO: Found 47 users
+INFO: Found 8 groups
+INFO: Found 3 GPOs
+INFO: Found 24 OUs
+INFO: Enumeration done, writing json files
+INFO: Compressing output into 20241021_bloodhound.zip</span></code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> Know both collectors. SharpHound collects session data more reliably (it queries each machine directly). bloodhound-python is stealthier and runs from Linux. For CPSA you need to know what each collects and why sessions are the most operationally valuable data type - because they show where privileged credentials are in memory <em>right now</em>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>Importing Data into BloodHound CE</h3>
+      <span class="phase-tag">Import</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>In the BloodHound CE web UI, import your collected data:</p>
+        <pre><code><span class="comment"># In the BloodHound CE web UI:</span>
+<span class="comment"># 1. Click the upload icon (top right)</span>
+<span class="comment"># 2. Select your .zip file</span>
+<span class="comment"># 3. Wait for import to complete - watch the progress bar</span>
+<span class="comment"># 4. When done: "File upload complete"</span></code></pre>
+      </div>
+      <div class="step">
+        <p>Verify the import worked by checking node counts in the search bar. You should see users, computers, and groups populated:</p>
+        <pre><code><span class="comment"># In the search bar, type "jsmith" - you should see the user node appear</span>
+<span class="comment"># Click it to open the node panel on the right</span>
+<span class="comment"># You should see: group memberships, sessions, object properties</span></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Understanding BloodHound Edge Types</h3>
+      <span class="phase-tag">Concepts</span>
+    </div>
+    <div class="phase-body">
+      <div class="why-box">
+        <strong>Why edges are the attack</strong>
+        <p>In BloodHound, nodes are objects (users, computers, groups). Edges are relationships between them. Every edge represents something an attacker can <em>do</em> - not just a piece of information, but an action that moves them closer to Domain Admin. Understanding what each edge means is the difference between reading a BloodHound graph and actually using it.</p>
+      </div>
+      <div class="edge-grid">
+        <div class="edge-card">
+          <h4>MemberOf</h4>
+          <p>User or group is a member of another group. Chains of MemberOf can grant inherited privileges the account owner is unaware of.</p>
+        </div>
+        <div class="edge-card">
+          <h4>HasSession</h4>
+          <p>A user has an active logon session on a computer. Their credentials are in LSASS memory on that machine right now. Lateral movement to that host = credential capture.</p>
+        </div>
+        <div class="edge-card">
+          <h4>AdminTo</h4>
+          <p>A user or group has local admin rights on a computer. Allows remote code execution via PsExec, WMI, or WinRM without any exploitation.</p>
+        </div>
+        <div class="edge-card">
+          <h4>GenericWrite</h4>
+          <p>Permission to write arbitrary attributes on an object. On a user: set their SPN for Kerberoasting. On a group: add yourself as a member.</p>
+        </div>
+        <div class="edge-card">
+          <h4>WriteDACL</h4>
+          <p>Permission to modify the object's ACL. Grants the ability to give yourself any permission - effectively full control without appearing in AdminTo.</p>
+        </div>
+        <div class="edge-card">
+          <h4>DCSync</h4>
+          <p>The account has replication rights on the domain. DCSync dumps all password hashes from Active Directory without touching LSASS. Instant full domain compromise.</p>
+        </div>
+        <div class="edge-card">
+          <h4>ForceChangePassword</h4>
+          <p>Permission to reset another account's password without knowing the current one. Change a DA's password and log in as them.</p>
+        </div>
+        <div class="edge-card">
+          <h4>Kerberoastable</h4>
+          <p>Account has a registered SPN. Any authenticated user can request a TGS ticket encrypted with this account's hash and crack it offline.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">5</div>
+      <h3>Running the Key Queries</h3>
+      <span class="phase-tag">Analysis</span>
+    </div>
+    <div class="phase-body">
+      <div class="why-box">
+        <strong>Why query order matters</strong>
+        <p>BloodHound has dozens of built-in queries. On a real engagement you don't run all of them - you run them in order of operational value. Start with the broadest attack path, then drill into the specific opportunities it reveals. Each result shapes what you do next.</p>
+      </div>
+
+      <div class="step">
+        <p><strong>Query 1: Shortest Paths to Domain Admins</strong> - always run this first. It shows every route from any node in the domain to a DA account, ranked by number of hops.</p>
+        <pre><code><span class="comment"># In BloodHound CE: Analysis tab > Shortest Paths > Shortest Paths to Domain Admins</span>
+<span class="comment"># What to look for:</span>
+<span class="out">- Any path with 3 hops or fewer is immediately exploitable
+- HasSession edges are the highest priority - credentials in memory NOW
+- ACL edges (WriteDACL, GenericWrite) mean no exploitation needed</span></code></pre>
+
+        <p>In the Syntex domain you should see a path similar to this:</p>
+        <div class="path-diagram">
+<span class="path-node">JSMITH@SYNTEX.LOCAL</span>
+  <span class="path-edge">--[MemberOf]--&gt;</span>
+<span class="path-node">IT-HELPDESK@SYNTEX.LOCAL</span>
+  <span class="path-edge">--[AdminTo]--&gt;</span>
+<span class="path-node">SYNTEX-WS01.SYNTEX.LOCAL</span>
+  <span class="path-edge">--[HasSession]--&gt;</span>
+<span class="path-node">ADMINISTRATOR@SYNTEX.LOCAL</span>
+  <span class="path-edge">--[MemberOf]--&gt;</span>
+<span class="path-owned">DOMAIN ADMINS@SYNTEX.LOCAL</span>
+        </div>
+
+        <p>Read this chain out loud: jsmith is in IT-Helpdesk. IT-Helpdesk has local admin on SYNTEX-WS01. An Administrator has an active session on SYNTEX-WS01. That Administrator is a Domain Admin. Three pivots from jsmith to full domain compromise.</p>
+      </div>
+
+      <div class="step">
+        <p><strong>Query 2: Find All Domain Admin Sessions</strong> - shows every machine where a DA account is currently logged in. These are your priority lateral movement targets.</p>
+        <pre><code><span class="comment"># Analysis > Domain Information > Find All Domain Admin Sessions</span>
+<span class="out">Expected result: ADMINISTRATOR has an active session on SYNTEX-WS01
+This confirms the HasSession edge in Query 1 is live</span></code></pre>
+      </div>
+
+      <div class="step">
+        <p><strong>Query 3: List all Kerberoastable Accounts</strong> - every account with a registered SPN. These are your offline cracking targets.</p>
+        <pre><code><span class="comment"># Analysis > Kerberos Interaction > List all Kerberoastable Accounts</span>
+<span class="out">Expected results in Syntex domain:
+  svc-backup@syntex.local    (SPN: backup/SYNTEX-DC01)
+  svc-sql@syntex.local       (SPN: MSSQLSvc/SYNTEX-DC01:1433)
+  svc-iis@syntex.local       (SPN: HTTP/SYNTEX-DC01)
+  svc-monitor@syntex.local   (SPN: monitor/SYNTEX-DC01)</span>
+
+<span class="comment"># Click each account to see its privileges</span>
+<span class="comment"># svc-sql is the highest value - SQL service accounts often have DA or local admin</span></code></pre>
+      </div>
+
+      <div class="step">
+        <p><strong>Query 4: Find AS-REP Roastable Users</strong> - accounts with Kerberos pre-authentication disabled. No credentials needed to request their hash.</p>
+        <pre><code><span class="comment"># Analysis > Kerberos Interaction > Find AS-REP Roastable Users (DontReqPreAuth)</span>
+<span class="out">Expected results:
+  mwebb@syntex.local
+  dfox@syntex.local
+  svc-backup@syntex.local    (also Kerberoastable - double opportunity)</span></code></pre>
+      </div>
+
+      <div class="step">
+        <p><strong>Query 5: Find Principals with DCSync Rights</strong> - any account that can dump all AD hashes without touching LSASS. This is instant game-over.</p>
+        <pre><code><span class="comment"># Analysis > Active Directory Rights > Find Principals with DCSync Rights</span>
+<span class="comment"># Look for accounts outside of Domain Admins / Domain Controllers</span>
+<span class="comment"># Any regular user or service account with DCSync rights is a critical finding</span></code></pre>
+      </div>
+
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> You must know these five queries by name and understand what each one reveals. The exam will present you with a BloodHound-style scenario and ask you to identify the attack path or explain why a specific edge is dangerous. HasSession is consistently the most operationally valuable edge - it shows where to go right now, not just what might be possible.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">6</div>
+      <h3>Documenting the Attack Path</h3>
+      <span class="phase-tag">Reporting</span>
+    </div>
+    <div class="phase-body">
+      <div class="why-box">
+        <strong>Why documentation is part of the attack</strong>
+        <p>BloodHound gives you the map. Your job is to translate that map into a clear narrative that explains - to a non-technical reader - exactly why the attack is possible and what the business impact is. A finding that says "BloodHound found a path" is worthless. A finding that says "a standard helpdesk user can reach Domain Admin in three steps because of these specific misconfigurations" is a HIGH finding that gets fixed.</p>
+      </div>
+      <div class="step">
+        <p>For each path identified, document it in this format. This is the structure a CPSA report uses:</p>
+        <pre><code><span class="comment">## Finding: Attack Path to Domain Admin via Session Hijacking</span>
+<span class="comment">## Severity: CRITICAL</span>
+
+<span class="out">Attack Chain:
+  1. jsmith (IT-Helpdesk member) has local admin on SYNTEX-WS01
+     via IT-Helpdesk group membership (AdminTo edge)
+
+  2. The domain Administrator account has an active session on SYNTEX-WS01
+     (HasSession edge - credentials are in LSASS memory)
+
+  3. With local admin on SYNTEX-WS01, attacker can dump LSASS
+     using Mimikatz to extract the Administrator NT hash
+
+  4. NT hash used for Pass-the-Hash to authenticate as Administrator
+     to the Domain Controller
+
+  5. Full domain compromise achieved
+
+Steps to reproduce:
+  evil-winrm -i SYNTEX-WS01 -u jsmith -p Password1
+  [upload mimikatz]
+  sekurlsa::logonpasswords
+  [extract Administrator NTLM hash]
+  impacket-psexec -hashes :&lt;NTHASH&gt; administrator@SYNTEX-DC01</span></code></pre>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>Scope Note:</strong> In this lab, document the path fully but only execute as far as your lab scope allows. In a real CPSA engagement, document everything BloodHound reveals - even paths you do not exploit - because the client needs to see the full attack surface, not just what you clicked on.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> A BloodHound query shows: <code>jsmith --[MemberOf]--> IT-Helpdesk --[AdminTo]--> WS01 --[HasSession]--> Administrator</code>. What does the HasSession edge tell you operationally?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. Administrator has logged into WS01 at some point in the past</div>
+        <div class="option" onclick="answer(this,'q1','b')">B. Administrator has an active logon session on WS01 - their credentials are in LSASS memory right now</div>
+        <div class="option" onclick="answer(this,'q1','c')">C. Administrator can log into WS01 using their credentials</div>
+        <div class="option" onclick="answer(this,'q1','d')">D. WS01 has administrator-level access to the domain</div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> Why does bloodhound-python run from Kali rather than running SharpHound on the target Windows machine?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">bloodhound-python collects the same AD data over LDAP and SMB using valid credentials, but runs entirely on the attacker's Linux machine. No binary is transferred to the target, leaving no artefacts and avoiding AV detection. SharpHound is more reliable for active session collection but is frequently flagged by AV and leaves traces on the target system.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> BloodHound shows that svc-sql has a Kerberoastable edge AND is a member of the Server Operators group. Why is this account the highest priority Kerberoasting target?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. Because it has the most SPNs registered</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. Because Server Operators can log on locally to Domain Controllers - cracking this account's password gives DC access</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. Because service accounts always have weak passwords</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. Because it is also AS-REP roastable</div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q4">
+      <p><strong>Q4.</strong> What is the first BloodHound query you should always run on a new engagement, and why?</p>
+      <button class="reveal-btn" onclick="reveal('a4')">Reveal Answer</button>
+      <div class="kc-answer" id="a4">"Shortest Paths to Domain Admins" - because it immediately shows every route from any node in the domain to a DA account, ranked by number of hops. It gives you the full attack surface in one query and tells you exactly which paths are shortest (and therefore fastest to exploit). Every other query drills into specific opportunities this one reveals.</div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>BloodHound models AD as a graph - it finds attack paths no manual enumeration can reliably discover</li>
+      <li>bloodhound-python collects from Kali with zero footprint on the target - preferred for stealth</li>
+      <li>HasSession edges are the highest operational priority - they show where privileged credentials are in memory right now</li>
+      <li>Always run "Shortest Paths to Domain Admins" first - it maps your entire route before you move</li>
+      <li>Every edge is an action - understand what each one lets you do, not just what it represents</li>
+      <li>Document attack paths in full even if you don't exploit them - the client needs to see the complete attack surface</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e7a-patch-assessment-v1.html" class="nav-link">&larr; Lab E7-A: Patch Assessment</a>
+    <a href="lab-e0-preflight-v1.html" class="nav-link next">Back to Pre-flight &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E8-A: BloodHound and Attack Path Analysis &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'b', q3: 'b' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>
