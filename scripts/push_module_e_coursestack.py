@@ -24,6 +24,39 @@ GITHUB    = "https://heaps1345.github.io/mca-activites/cpsa/module-e"
 
 LABS = [
     {
+        "name": "Module E Pre-flight: Engagement Brief and Environment Check",
+        "url":  f"{GITHUB}/lab-e0-preflight-v1.html",
+        "theory": """## Before You Start - Read This First
+
+This lesson contains two required steps before you begin any Module E lab:
+
+1. **Read and acknowledge the engagement brief** - You are acting as a CREST-authorised penetration tester on an authorised assessment of Syntex Solutions Ltd. The brief sets your scope, rules of engagement, and legal boundaries.
+
+2. **Complete the technical pre-flight checklist** - Confirm your environment is ready: SYNTEX-DC01 is running, you can ping it, and all required tools are installed.
+
+The interactive page below will not unlock the **Begin Lab E1-A** button until both are complete.
+
+### The Scenario
+
+**Client:** Syntex Solutions Ltd - a UK fintech company processing cardholder data under PCI DSS v4.0 and UK GDPR.
+
+**Your role:** CREST-authorised penetration tester with internal network access to the Syntex Windows domain.
+
+**Target:** SYNTEX-DC01 (Windows Server 2016, syntex.local domain controller).
+
+**Goal:** Identify attack paths from unauthenticated network access to Domain Admin and assess cardholder data exposure.
+
+### Rules of Engagement (Summary)
+- No denial of service attacks
+- Do not exfiltrate more cardholder data than needed to evidence a finding
+- If you reach Domain Admin - stop and document, do not make AD changes
+- Log all commands and output for the final report
+- Report CVSS 9.0+ findings to the engagement lead immediately
+
+> ★ **CREST exam point:** In a real engagement, you must have written authorisation before touching any system. The scope document and rules of engagement define what you can and cannot test. Always check scope before running any tool.
+"""
+    },
+    {
         "name": "Lab E1-A: SMB Enumeration",
         "url":  f"{GITHUB}/lab-e1a-smb-enumeration-v1.html",
         "theory": """## SMB Enumeration

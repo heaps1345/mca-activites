@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module E Pre-flight | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h2 { font-size: 18px; color: var(--mca-white); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+  h2 span { color: var(--mca-orange); }
+  .section { margin-bottom: 36px; }
+
+  /* BRIEF */
+  .brief-box { background: #0d1520; border: 1px solid #1a3a5a; border-radius: 6px; padding: 0; overflow: hidden; }
+  .brief-header { background: #1a2d42; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+  .brief-header .stamp { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 3px; text-transform: uppercase; letter-spacing: 1px; }
+  .brief-header .ref { font-size: 12px; color: #7986cb; font-family: 'Courier New', monospace; }
+  .brief-body { padding: 24px 28px; }
+  .brief-body p { font-size: 14px; color: #ccc; margin-bottom: 12px; }
+  .brief-body strong { color: var(--mca-white); }
+  .brief-section { margin-bottom: 18px; }
+  .brief-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 8px; }
+  .brief-section ul { list-style: none; padding: 0; }
+  .brief-section ul li { font-size: 13px; color: #ccc; padding: 3px 0; }
+  .brief-section ul li::before { content: "- "; color: #555; }
+  .brief-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+  .brief-table th { background: #1a2d42; color: #9fa8da; text-align: left; padding: 8px 12px; border-bottom: 1px solid #2d3a5a; }
+  .brief-table td { padding: 8px 12px; border-bottom: 1px solid #1a2a3a; color: #ccc; }
+  .brief-table td:first-child { color: #aaa; width: 160px; }
+  .in-scope { color: var(--mca-green) !important; }
+  .out-scope { color: var(--mca-red) !important; }
+  .acknowledge-bar { background: #0a1a0a; border-top: 1px solid #2d4a2d; padding: 16px 28px; display: flex; align-items: center; gap: 16px; }
+  .acknowledge-bar label { font-size: 14px; color: #ccc; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .acknowledge-bar input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--mca-green); cursor: pointer; }
+  .acknowledge-bar .ack-status { font-size: 12px; color: #555; margin-left: auto; }
+  .acknowledge-bar .ack-status.done { color: var(--mca-green); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 14px; transition: border-color 0.2s, background 0.2s; }
+  .checklist li.checked { background: #1a2d1a; border-color: var(--mca-green); }
+  .checklist li label { display: flex; align-items: flex-start; gap: 14px; cursor: pointer; width: 100%; }
+  .checklist li input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--mca-green); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+  .check-content { flex: 1; }
+  .check-title { font-size: 14px; color: var(--mca-white); font-weight: 600; margin-bottom: 3px; }
+  .check-desc { font-size: 13px; color: #888; }
+  .check-desc code { background: var(--mca-code-bg); padding: 1px 5px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .checklist li.checked .check-title { color: #a5d6a7; }
+
+  /* PROGRESS */
+  .progress-bar-wrap { background: #222; border-radius: 20px; height: 8px; margin: 20px 0; overflow: hidden; }
+  .progress-bar { background: var(--mca-orange); height: 100%; border-radius: 20px; transition: width 0.4s; width: 0%; }
+  .progress-bar.complete { background: var(--mca-green); }
+  .progress-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+
+  /* START BUTTON */
+  .start-section { text-align: center; margin-top: 36px; padding: 28px; background: var(--mca-grey); border-radius: 8px; border: 1px solid #444; }
+  .start-section p { font-size: 14px; color: #888; margin-bottom: 16px; }
+  .start-btn { display: inline-block; background: #333; color: #666; padding: 14px 40px; border-radius: 6px; font-size: 16px; font-weight: 700; text-decoration: none; border: 2px solid #444; cursor: not-allowed; transition: all 0.3s; pointer-events: none; }
+  .start-btn.ready { background: var(--mca-orange); color: #000; border-color: var(--mca-orange); cursor: pointer; pointer-events: all; }
+  .start-btn.ready:hover { background: #ff8c00; }
+  .start-hint { font-size: 12px; color: #555; margin-top: 10px; }
+  .start-hint.ready { color: var(--mca-green); }
+
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .ci { color: var(--mca-yellow); font-size: 18px; flex-shrink: 0; }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .ci { color: var(--mca-blue); font-size: 18px; flex-shrink: 0; }
+
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Module E:</span> Pre-flight - Engagement Brief and Environment Check</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Pre-flight</span>
+    <span class="badge">CREST CPSA</span>
+    <span>Complete this before starting Lab E1-A</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SECTION 1: BRIEF -->
+  <div class="section">
+    <h2><span>01.</span> Engagement Brief - Read Before Proceeding</h2>
+
+    <div class="brief-box">
+      <div class="brief-header">
+        <span class="stamp">Confidential</span>
+        <span class="ref">REF: MCA-CPSA-2024-E01 &nbsp;|&nbsp; Penetration Test Authorisation</span>
+      </div>
+      <div class="brief-body">
+
+        <div class="brief-section">
+          <h4>Client Overview</h4>
+          <p><strong>Syntex Solutions Ltd</strong> is a UK-based financial technology company providing payment processing and digital banking services to retail and SME customers. Syntex processes cardholder data and is subject to <strong>PCI DSS v4.0</strong>, <strong>UK GDPR</strong>, and <strong>FCA SYSC</strong> regulatory obligations.</p>
+          <p>Syntex has engaged My Cyber Academy to conduct an internal infrastructure penetration test of their Windows domain environment, with a focus on identifying attack paths that could lead to Domain Admin compromise or exposure of cardholder data.</p>
+        </div>
+
+        <div class="brief-section">
+          <h4>Authorised Target Environment</h4>
+          <table class="brief-table">
+            <tr><th>Asset</th><th>Details</th><th>Scope</th></tr>
+            <tr><td>SYNTEX-DC01</td><td>Windows Server 2016 Domain Controller, syntex.local</td><td class="in-scope">IN SCOPE</td></tr>
+            <tr><td>SQL Server</td><td>SQL Server Express on SYNTEX-DC01, port 1433</td><td class="in-scope">IN SCOPE</td></tr>
+            <tr><td>SMB Shares</td><td>All shares on SYNTEX-DC01</td><td class="in-scope">IN SCOPE</td></tr>
+            <tr><td>AD Objects</td><td>All users, groups, GPOs in syntex.local</td><td class="in-scope">IN SCOPE</td></tr>
+            <tr><td>Production systems</td><td>Any live customer-facing Syntex infrastructure</td><td class="out-scope">OUT OF SCOPE</td></tr>
+            <tr><td>Third-party services</td><td>Payment processors, cloud tenants</td><td class="out-scope">OUT OF SCOPE</td></tr>
+          </table>
+        </div>
+
+        <div class="brief-section">
+          <h4>Rules of Engagement</h4>
+          <ul>
+            <li>Testing window: Monday to Friday, 08:00 - 18:00 UK time</li>
+            <li>Denial of service attacks are strictly prohibited</li>
+            <li>Do not exfiltrate real cardholder data beyond what is necessary to evidence a finding</li>
+            <li>All commands and output must be logged for inclusion in the final report</li>
+            <li>If you gain Domain Admin access, stop and document - do not make changes to AD</li>
+            <li>Findings must be reported using the CVSS v3.1 scoring framework</li>
+            <li>Any critical finding (CVSS 9.0+) must be verbally reported to the engagement lead immediately</li>
+          </ul>
+        </div>
+
+        <div class="brief-section">
+          <h4>Your Role</h4>
+          <p>You are acting as a <strong>CREST-authorised penetration tester</strong> conducting an authorised assessment. You have been provided with an internal network position (Kali Linux VM) with layer-2 access to the Syntex internal network segment. No credentials have been provided - this is a grey-box assessment starting from network access only.</p>
+        </div>
+
+        <div class="brief-section">
+          <h4>Key Contacts</h4>
+          <table class="brief-table">
+            <tr><th>Role</th><th>Name</th><th>Contact</th></tr>
+            <tr><td>IT Security Manager</td><td>James Barker</td><td>j.barker@syntex.local</td></tr>
+            <tr><td>Engagement Lead (MCA)</td><td>Your instructor</td><td>Via CourseStack</td></tr>
+          </table>
+        </div>
+
+      </div>
+      <div class="acknowledge-bar">
+        <label>
+          <input type="checkbox" id="brief-ack" onchange="updateState()">
+          I have read and understood the engagement brief, scope, and rules of engagement
+        </label>
+        <span class="ack-status" id="ack-status">Pending</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: PRE-FLIGHT CHECKS -->
+  <div class="section">
+    <h2><span>02.</span> Technical Pre-flight Checklist</h2>
+
+    <div class="callout info">
+      <span class="ci">ℹ</span>
+      <div>Tick each item once confirmed. The <strong>Begin Lab E1-A</strong> button will unlock only when the brief is acknowledged and all checks are complete.</div>
+    </div>
+
+    <div class="progress-label" id="progress-label">0 of 10 checks complete</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <ul class="checklist" id="checklist">
+
+      <li id="item-0">
+        <label>
+          <input type="checkbox" onchange="tick(0)">
+          <div class="check-content">
+            <div class="check-title">SYNTEX-DC01 VM is running</div>
+            <div class="check-desc">In the CourseStack lab panel, confirm SYNTEX-DC01 shows status <code>Running</code>. If not, start it and wait 60 seconds for boot.</div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-1">
+        <label>
+          <input type="checkbox" onchange="tick(1)">
+          <div class="check-content">
+            <div class="check-title">Note your DC01 IP address</div>
+            <div class="check-desc">Find the SYNTEX-DC01 IP in the CourseStack lab panel and write it down. You will use it throughout all Module E labs as <code>&lt;DC01-IP&gt;</code>.</div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-2">
+        <label>
+          <input type="checkbox" onchange="tick(2)">
+          <div class="check-content">
+            <div class="check-title">Kali Linux is running and updated</div>
+            <div class="check-desc">Your Kali attack VM is powered on. Run <code>sudo apt update</code> to confirm network connectivity from Kali.</div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-3">
+        <label>
+          <input type="checkbox" onchange="tick(3)">
+          <div class="check-content">
+            <div class="check-title">Can ping SYNTEX-DC01 from Kali</div>
+            <div class="check-desc">Run <code>ping -c 3 &lt;DC01-IP&gt;</code> from your Kali terminal. Confirm you receive replies before proceeding.</div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-4">
+        <label>
+          <input type="checkbox" onchange="tick(4)">
+          <div class="check-content">
+            <div class="check-title">Impacket suite is installed</div>
+            <div class="check-desc">Run <code>GetUserSPNs.py --help</code> to confirm Impacket is available. If not: <code>pip3 install impacket</code></div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-5">
+        <label>
+          <input type="checkbox" onchange="tick(5)">
+          <div class="check-content">
+            <div class="check-title">Responder is installed</div>
+            <div class="check-desc">Run <code>responder --help</code>. Confirm it shows version info. Responder is pre-installed on Kali - if missing: <code>sudo apt install responder</code></div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-6">
+        <label>
+          <input type="checkbox" onchange="tick(6)">
+          <div class="check-content">
+            <div class="check-title">CrackMapExec is installed</div>
+            <div class="check-desc">Run <code>crackmapexec --version</code>. On newer Kali it may be <code>nxc</code> (NetExec) - either works for these labs.</div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-7">
+        <label>
+          <input type="checkbox" onchange="tick(7)">
+          <div class="check-content">
+            <div class="check-title">Hashcat is installed and rockyou.txt is present</div>
+            <div class="check-desc">Run <code>hashcat --version</code>. Confirm rockyou.txt exists: <code>ls /usr/share/wordlists/rockyou.txt</code>. If compressed: <code>gunzip /usr/share/wordlists/rockyou.txt.gz</code></div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-8">
+        <label>
+          <input type="checkbox" onchange="tick(8)">
+          <div class="check-content">
+            <div class="check-title">Evil-WinRM is installed</div>
+            <div class="check-desc">Run <code>evil-winrm --version</code>. If missing: <code>gem install evil-winrm</code></div>
+          </div>
+        </label>
+      </li>
+
+      <li id="item-9">
+        <label>
+          <input type="checkbox" onchange="tick(9)">
+          <div class="check-content">
+            <div class="check-title">enum4linux-ng is installed</div>
+            <div class="check-desc">Run <code>enum4linux-ng --help</code>. If missing: <code>sudo apt install enum4linux-ng</code> or clone from GitHub.</div>
+          </div>
+        </label>
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- START BUTTON -->
+  <div class="start-section">
+    <p id="start-msg">Complete the engagement brief and all pre-flight checks to unlock the first lab.</p>
+    <a href="lab-e1a-smb-enumeration-v1.html" class="start-btn" id="start-btn">Begin Lab E1-A: SMB Enumeration &rarr;</a>
+    <div class="start-hint" id="start-hint">Waiting for brief acknowledgement and all checks...</div>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Pre-flight Checklist &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+  const TOTAL_CHECKS = 10;
+  let checks = new Array(TOTAL_CHECKS).fill(false);
+  let briefAcked = false;
+
+  function tick(i) {
+    checks[i] = !checks[i];
+    const li = document.getElementById('item-' + i);
+    li.classList.toggle('checked', checks[i]);
+    updateState();
+  }
+
+  function updateState() {
+    briefAcked = document.getElementById('brief-ack').checked;
+    document.getElementById('ack-status').textContent = briefAcked ? '✓ Acknowledged' : 'Pending';
+    document.getElementById('ack-status').className = 'ack-status' + (briefAcked ? ' done' : '');
+
+    const done = checks.filter(Boolean).length;
+    const pct = (done / TOTAL_CHECKS) * 100;
+    const bar = document.getElementById('progress-bar');
+    bar.style.width = pct + '%';
+    bar.className = 'progress-bar' + (done === TOTAL_CHECKS ? ' complete' : '');
+    document.getElementById('progress-label').textContent = done + ' of ' + TOTAL_CHECKS + ' checks complete';
+
+    const allReady = briefAcked && done === TOTAL_CHECKS;
+    const btn = document.getElementById('start-btn');
+    const hint = document.getElementById('start-hint');
+    btn.className = 'start-btn' + (allReady ? ' ready' : '');
+    if (allReady) {
+      document.getElementById('start-msg').textContent = "You're good to go. All checks passed and brief acknowledged.";
+      hint.textContent = '✓ Ready - click to begin';
+      hint.className = 'start-hint ready';
+    } else {
+      const remaining = [];
+      if (!briefAcked) remaining.push('acknowledge the brief');
+      const left = TOTAL_CHECKS - done;
+      if (left > 0) remaining.push(left + ' check' + (left > 1 ? 's' : '') + ' remaining');
+      hint.textContent = 'Still need to: ' + remaining.join(' and ');
+      hint.className = 'start-hint';
+    }
+  }
+</script>
+</body>
+</html>
