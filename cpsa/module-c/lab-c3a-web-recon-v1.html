@@ -196,9 +196,13 @@
 
 <span class="comment"># Check sitemap.xml for all indexed content</span>
 <span class="cmd">curl</span> https://syntexsolutions.net/sitemap.xml | <span class="cmd">head</span> <span class="flag">-50</span></pre>
+        <div class="callout warn" style="border-left:4px solid #c0392b;background:#fdf3f2;">
+          <span class="callout-icon">&#9888;</span>
+          <div><strong>robots.txt is NOT a security control.</strong> It is a crawling suggestion to search engines - nothing more. Attackers ignore it completely. A <code>Disallow: /admin</code> entry does not prevent access to <code>/admin</code>; it advertises that the path exists. Every Disallow entry is a recon lead, not a barrier.</div>
+        </div>
         <div class="callout exam">
           <span class="callout-icon">&#127919;</span>
-          <div><strong>CREST Exam Focus:</strong> The exam may ask what robots.txt reveals and why Disallow entries are valuable. Answer: robots.txt discloses paths the owner does not want indexed - these are often admin panels, staging areas, or legacy directories.</div>
+          <div><strong>CREST Exam Focus:</strong> The exam specifically tests whether you know robots.txt is NOT a security control. Disallow entries disclose paths the owner does not want indexed - these are often admin panels, staging areas, or legacy directories. The correct answer is always: robots.txt provides no access restriction whatsoever.</div>
         </div>
         <div class="answer-box">
           <div class="label">What did robots.txt reveal?</div>

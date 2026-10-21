@@ -233,9 +233,31 @@
   <div class="section">
     <div class="section-title">Part 2 - Zone Transfer Attempt</div>
 
+    <div style="background:#1a1a1a;color:#fff;border-radius:6px;padding:18px 20px;margin-bottom:18px;">
+      <div style="font-size:13px;font-weight:700;color:#E84E0F;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Zone Transfers - What You Need to Know</div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:6px 10px 6px 0;font-weight:700;color:#E84E0F;white-space:nowrap;">AXFR</td>
+          <td style="padding:6px 0;">Full zone transfer - returns every DNS record in the zone in one response. This is the one examiners test on.</td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:6px 10px 6px 0;font-weight:700;color:#E84E0F;white-space:nowrap;">IXFR</td>
+          <td style="padding:6px 0;">Incremental zone transfer - returns only records that have changed since a given SOA serial. Used by legitimate secondary nameservers to stay in sync.</td>
+        </tr>
+        <tr style="border-bottom:1px solid #333;">
+          <td style="padding:6px 10px 6px 0;font-weight:700;color:#E84E0F;white-space:nowrap;">Vulnerability</td>
+          <td style="padding:6px 0;"><code style="background:#333;padding:2px 5px;border-radius:3px;color:#E84E0F;">allow-transfer { any; };</code> in BIND9 - allows any host to request the full zone. Should be restricted to trusted secondary NS IPs only.</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 10px 6px 0;font-weight:700;color:#E84E0F;white-space:nowrap;">Impact</td>
+          <td style="padding:6px 0;">A successful AXFR hands an attacker the complete DNS map - every internal hostname, IP, mail server, and service record - in a single unauthenticated query. Critical misconfiguration.</td>
+        </tr>
+      </table>
+    </div>
+
     <div class="callout exam">
       <span class="callout-icon">&#127919;</span>
-      <div><strong>CREST Exam Focus:</strong> A successful AXFR gives you every DNS record in the zone - a complete map of internal and external hosts. Examiners expect you to know the command and what it reveals.</div>
+      <div><strong>CREST Exam Focus:</strong> Zone transfers are specifically called out in the CPSA syllabus and appear in exams. Know the AXFR command, what a successful result looks like (starts and ends with SOA), why unrestricted AXFR is a vulnerability, and the remediation (restrict <code>allow-transfer</code> to secondary NS IPs). This is one of the highest-value findings in passive DNS recon.</div>
     </div>
 
     <div class="step">
