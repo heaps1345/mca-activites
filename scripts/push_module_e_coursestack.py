@@ -15,6 +15,10 @@ from requests.auth import HTTPBasicAuth
 import time
 import uuid
 
+
+def uid():
+    return str(uuid.uuid4()).replace("-", "")
+
 API_KEY   = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
 BASE      = "https://app.coursestack.com"
 COURSE_ID = "b9d920c3-4a8e-4227-af24-3c5f32fc7350"
@@ -420,16 +424,16 @@ def create_lesson_with_content(chapter_id, name, theory_md, lab_url):
     print(f"  Pushing content to lesson: {real_id}")
     result2 = post(f"/api/content/{COURSE_ID}/lessons/{real_id}", {
         "content": {
-            "id": str(uuid.uuid4()),
+            "id": uid(),
             "type": "lesson",
             "items": [
                 {
-                    "id": str(uuid.uuid4()),
+                    "id": uid(),
                     "type": "text",
                     "markdown": theory_md
                 },
                 {
-                    "id": str(uuid.uuid4()),
+                    "id": uid(),
                     "type": "iframe",
                     "url": lab_url,
                     "aspect_height": 9,
