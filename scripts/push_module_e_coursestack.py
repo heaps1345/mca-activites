@@ -421,10 +421,11 @@ def create_lesson_with_content(chapter_id, name, theory_md, lab_url):
     time.sleep(0.5)
 
     # Step 2 - push content (API requires id on content block and each item)
-    print(f"  Pushing content to lesson: {real_id}")
+    content_id = uid()
+    print(f"  Pushing content to lesson: {real_id} (content_id={content_id})")
     result2 = post(f"/api/content/{COURSE_ID}/lessons/{real_id}", {
         "content": {
-            "id": uid(),
+            "id": content_id,
             "type": "lesson",
             "items": [
                 {
