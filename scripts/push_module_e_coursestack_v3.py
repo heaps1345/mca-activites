@@ -102,7 +102,7 @@ def make_iframe(url):
 # THEORY LESSON CONTENT - aligned to lab syllabus order
 # -------------------------------------------------------
 
-E01_MD = """## E-01: SMB Enumeration
+E01_MD = r"""## E-01: SMB Enumeration
 
 SMB (Server Message Block) is Microsoft's file and printer sharing protocol. It runs on port 445 and is present on virtually every Windows host. For a penetration tester it is one of the richest sources of information and one of the most frequently misconfigured services on the network.
 
@@ -170,7 +170,7 @@ smbclient //TARGET/FINANCE -U jsmith%Password1
 > ★ **CREST CPSA:** Know the difference between SMBv1 and SMBv2/v3. SMBv1 is the EternalBlue attack surface (MS17-010). SMB signing disabled means NTLM relay is viable. Both are HIGH findings and both are present in many production environments.
 """
 
-E02_MD = """## E-02: Credential Access
+E02_MD = r"""## E-02: Credential Access
 
 Credential access is the pivot point of every Windows engagement. Once you hold credentials - whether a cleartext password, an NT hash, or a Kerberos ticket - your attack options multiply exponentially. This lesson covers the three primary paths to credential capture from a network position.
 
@@ -234,7 +234,7 @@ hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt --force
 > ★ **CREST CPSA:** Three hash types, three Hashcat modes: NT hash = mode 1000 (can be passed). NetNTLMv2 = mode 5600 (must crack or relay). Kerberos TGS = mode 13100 (crack offline). Know these cold - they come up in every Windows scenario question.
 """
 
-E03_MD = """## E-03: Windows Privilege Escalation
+E03_MD = r"""## E-03: Windows Privilege Escalation
 
 Local privilege escalation is the step between a foothold and full domain access. You have a low-privilege shell on a Windows machine. Your objective is SYSTEM. These are the techniques that appear consistently in real environments and in the CREST CPSA exam.
 
@@ -328,7 +328,7 @@ lsadump::dcsync /domain:syntex.local /all /csv
 > ★ **CREST CPSA:** AlwaysInstallElevated is a HIGH finding because it requires no vulnerability in any software - it is a deliberate policy misconfiguration that grants any user SYSTEM access. Always check for it. Always report it. AlwaysInstallElevated = BOTH keys set to 1.
 """
 
-E03B_MD = """## E-03b: ACLs, Registry and File Permissions
+E03B_MD = r"""## E-03b: ACLs, Registry and File Permissions
 
 Windows uses Access Control Lists to define who can do what to every object in the operating system - files, registry keys, services, AD objects. Misconfigurations in ACLs are some of the most common and most impactful findings on Windows engagements, because they grant privilege escalation without exploiting any vulnerability.
 
@@ -400,7 +400,7 @@ BloodHound maps all of these edges automatically. Always check the "Outbound Obj
 > ★ **CREST CPSA:** Report world-writable scheduled task scripts as CRITICAL if the task runs as SYSTEM. The attack requires no tools - just `Set-Content`. Always document the full chain: writable script + task runs as SYSTEM = instant SYSTEM shell.
 """
 
-E04A_MD = """## E-04a: Active Directory Enumeration
+E04A_MD = r"""## E-04a: Active Directory Enumeration
 
 Active Directory enumeration is the reconnaissance phase of every Windows domain engagement. The goal is to understand the terrain completely before choosing an attack path. Good enumeration means you never make a move without knowing exactly what it will give you.
 
@@ -473,7 +473,7 @@ Find-InterestingDomainAcl -ResolveGUIDs | Where-Object {$_.IdentityReference -li
 > ★ **CREST CPSA:** Always check the Description field on every user account - passwords stored there is a real-world finding that appears in actual exam scenarios. And always run Find-DomainUserLocation before planning lateral movement - it tells you exactly where to go next.
 """
 
-E04B_MD = """## E-04b: Password Policy and Password Spraying
+E04B_MD = r"""## E-04b: Password Policy and Password Spraying
 
 Password policy defines the minimum security bar for every account in the domain. A weak policy means weak passwords. A weak password means your spray works. Understanding the policy before you spray is not optional - spraying without knowing the lockout threshold will lock accounts and get you caught.
 
@@ -546,7 +546,7 @@ enum4linux -u jsmith -p Password1 -U <DC01-IP> | grep "user:" | awk -F"'" '{prin
 > ★ **CREST CPSA:** Always enumerate the lockout policy BEFORE spraying. Spraying without this knowledge is a red flag in your methodology and will lock accounts in a real engagement. The examiner will ask how you ensured you did not trigger lockouts.
 """
 
-E05A_MD = """## E-05a: Kerberos Attacks - Kerberoasting and AS-REP Roasting
+E05A_MD = r"""## E-05a: Kerberos Attacks - Kerberoasting and AS-REP Roasting
 
 Kerberos is the default authentication protocol for Active Directory. It is also the source of two of the most reliably exploitable attack techniques in the Windows attack chain. Both produce offline-crackable hashes. Both require no special privileges. Both are present in the majority of Active Directory environments.
 
@@ -612,7 +612,7 @@ hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt
 > ★ **CREST CPSA:** AS-REP Roasting requires NO credentials. Always attempt it before you have any domain access - you might get credentials that let you enumerate further. Memorise: Kerberoasting = 13100 (GetUserSPNs.py), AS-REP = 18200 (GetNPUsers.py). These modes appear in exam questions directly.
 """
 
-E05B_MD = """## E-05b: SAM Database, Cached Credentials and DCC2
+E05B_MD = r"""## E-05b: SAM Database, Cached Credentials and DCC2
 
 Once you have SYSTEM on a Windows machine, multiple credential stores become available. Understanding what each one contains and what you can do with the hashes it yields is essential - not all hashes are equal.
 
@@ -691,7 +691,7 @@ impacket-psexec syntex.local/administrator@<TARGET-IP> -hashes :<NTHASH>
 > ★ **CREST CPSA:** DCC2 cannot be passed - this is a guaranteed exam question. NT hashes can be passed. NetNTLMv2 hashes cannot be passed (they must be cracked or relayed). Know the three hash types and what you can do with each one. Mode 2100 for DCC2, mode 1000 for NT hashes, mode 5600 for NetNTLMv2.
 """
 
-E06_MD = """## E-06: SQL Server Exploitation
+E06_MD = r"""## E-06: SQL Server Exploitation
 
 SQL Server is a common presence on Windows networks, particularly in environments running line-of-business applications. A misconfigured SQL Server instance is not just a database finding - it is often a direct path to SYSTEM on the host and lateral movement across the network.
 
@@ -777,7 +777,7 @@ hashcat -m 1731 sql_hashes.txt wordlist.txt
 > ★ **CREST CPSA:** xp_cmdshell enabled on a SQL Server running as SYSTEM is a CRITICAL finding - it is a one-command SYSTEM shell. Always check the service account context first (`xp_cmdshell 'whoami'`) - the OS privileges you gain depend entirely on what the SQL service is running as.
 """
 
-E07_MD = """## E-07: Patch Level Assessment and WSUS
+E07_MD = r"""## E-07: Patch Level Assessment and WSUS
 
 Patch level assessment tells you whether the target is vulnerable to known public exploits. A single unpatched critical vulnerability on a Domain Controller can mean instant domain compromise. WSUS (Windows Server Update Services) misconfigurations can turn the patching infrastructure itself into an attack vector.
 
@@ -842,7 +842,7 @@ Patch findings should always include:
 > ★ **CREST CPSA:** WSUS over HTTP is a critical misconfiguration because it turns the patching system - the mechanism meant to make hosts more secure - into an attack vector. The WSUS HTTP attack delivers code execution as SYSTEM to every unpatched host that checks in. Always check the WUServer registry value.
 """
 
-E08_MD = """## E-08: BloodHound and Attack Path Analysis
+E08_MD = r"""## E-08: BloodHound and Attack Path Analysis
 
 BloodHound uses graph theory to map Active Directory relationships and expose attack paths that are invisible to manual enumeration. It is the single most powerful Active Directory assessment tool available to a penetration tester, and understanding how to use it and interpret its output is a core CPSA skill.
 
