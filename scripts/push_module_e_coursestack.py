@@ -12,8 +12,6 @@ Or pull direct from GitHub:
 
 import requests
 from requests.auth import HTTPBasicAuth
-import json
-import uuid
 import time
 
 API_KEY   = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
@@ -143,7 +141,7 @@ lsadump::dcsync /domain:syntex.local /all
     {
         "name": "Lab E4-A: Active Directory Enumeration",
         "url":  f"{GITHUB}/lab-e4a-ad-enumeration-v1.html",
-        "theory": """## Active Directory Enumeration
+        "theory": r"""## Active Directory Enumeration
 
 With a valid domain credential, you can query the entire AD structure via LDAP. The goal is to map the attack path to Domain Admin.
 
@@ -246,18 +244,16 @@ The SQL Server service account has SeImpersonatePrivilege. This allows escalatio
 def post(endpoint, payload):
     r = requests.post(f"{BASE}{endpoint}", auth=auth, json=payload, timeout=15)
     if r.status_code not in (200, 201):
-        print(f"  ERROR {r.status_code}: {r.text[:200]}")
+        print(f"  ERROR {r.status_code}: {r.text[:300]}")
         return None
-    return r.json()
+    try:
+        return r.json()
+    except Exception:
+        return {"ok": True}
 
 
 def create_lesson_with_content(chapter_id, name, theory_md, lab_url):
-    lesson_id = str(uuid.uuid4())
-    content_id = str(uuid.uuid4())
-    text_id    = str(uuid.uuid4())
-    iframe_id  = str(uuid.uuid4())
-
-    # Step 1 - create shell
+    # Step 1 - create lesson shell (no client-generated IDs)
     print(f"  Creating lesson shell: {name}")
     result = post(f"/api/content/{COURSE_ID}/lessons", {
         "chapter_id": chapter_id,
@@ -266,24 +262,31 @@ def create_lesson_with_content(chapter_id, name, theory_md, lab_url):
     })
     if not result:
         return None
-    real_id = result.get("id") or result.get("lesson", {}).get("id") or lesson_id
+
+    # Extract lesson ID from whatever shape the response comes back as
+    real_id = (
+        result.get("id")
+        or result.get("lesson_id")
+        or (result.get("lesson") or {}).get("id")
+        or (result.get("data") or {}).get("id")
+    )
+    if not real_id:
+        print(f"  WARNING: could not extract lesson ID from response: {result}")
+        return None
 
     time.sleep(0.5)
 
-    # Step 2 - push content
-    print(f"  Pushing content to: {real_id}")
+    # Step 2 - push content (no client-generated IDs - API assigns them)
+    print(f"  Pushing content to lesson: {real_id}")
     result2 = post(f"/api/content/{COURSE_ID}/lessons/{real_id}", {
         "content": {
             "type": "lesson",
-            "id": content_id,
             "items": [
                 {
-                    "id": text_id,
                     "type": "text",
                     "markdown": theory_md
                 },
                 {
-                    "id": iframe_id,
                     "type": "iframe",
                     "url": lab_url,
                     "aspect_height": 9,
@@ -312,7 +315,15 @@ def main():
         print("FAILED to create chapter - check API key / course ID")
         return
 
-    chapter_id = ch.get("id") or ch.get("chapter", {}).get("id")
+    chapter_id = (
+        ch.get("id")
+        or ch.get("chapter_id")
+        or (ch.get("chapter") or {}).get("id")
+        or (ch.get("data") or {}).get("id")
+    )
+    if not chapter_id:
+        print(f"FAILED to extract chapter ID from response: {ch}")
+        return
     print(f"  Chapter ID: {chapter_id}")
     print()
 
