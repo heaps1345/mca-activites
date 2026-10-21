@@ -113,30 +113,104 @@ nslookup syntexsolutions.net    # Windows alternative
 
 ### DNS Zone Transfers
 
-A DNS zone contains every record for a domain. Zone transfers (AXFR queries) exist so secondary nameservers can replicate zone data from the primary.
+A DNS zone contains every record for a domain. Zone transfers (AXFR queries) exist so secondary nameservers can replicate zone data from the primary. When misconfigured, they hand an attacker a complete map of the target's DNS infrastructure in a single unauthenticated query.
 
 | Transfer Type | What It Does |
 |--------------|-------------|
 | **AXFR** | Full zone transfer - returns ALL records in the zone |
-| **IXFR** | Incremental zone transfer - returns only changes since a serial number |
+| **IXFR** | Incremental zone transfer - returns only changes since a given serial number |
 
-**The vulnerability:** When a nameserver is configured to allow AXFR from any source (not just trusted secondaries), any attacker can request a complete copy of the zone. This exposes every internal hostname, IP address, mail server, and service name in a single unauthenticated query.
+**The vulnerability:** A nameserver configured to allow AXFR from any source exposes every internal hostname, IP address, mail server, and service record to anyone who asks - no credentials, no exploitation, no noise.
 
 ```bash
-# Attempt a zone transfer
+# Attempt a zone transfer against the nameserver hostname
 dig axfr syntexsolutions.net @ns1.syntexsolutions.net
 
-# Direct to IP if DNS propagation is incomplete
+# Target the IP directly (useful if DNS hasn't fully propagated)
 dig axfr syntexsolutions.net @20.24.202.6
 ```
 
-A successful AXFR **begins and ends with the SOA record**. If you see `Transfer failed` or `REFUSED`, the server is correctly configured.
+A successful AXFR **begins and ends with the SOA record**. If you see `Transfer failed` or `REFUSED`, the server is correctly locked down.
 
-**The misconfiguration (BIND9):**
+### BIND9 - Common Misconfigurations
+
+BIND9 is the most widely deployed nameserver software on Linux. Several default or careless configuration options create exploitable conditions.
+
+**1. Unrestricted Zone Transfers**
 ```
-allow-transfer { any; };     # Vulnerable - allows anyone
-allow-transfer { 10.0.0.2; }; # Secure - trusted secondary NS only
+// named.conf - VULNERABLE
+allow-transfer { any; };
+
+// named.conf - SECURE (restrict to trusted secondary NS only)
+allow-transfer { 10.0.0.2; };
 ```
+
+**2. Open Recursion**
+
+A recursive resolver answers queries on behalf of clients - it should only do this for internal clients, never the open internet. An internet-facing recursive resolver can be abused for DNS amplification DDoS attacks.
+
+```
+// VULNERABLE - resolves queries for anyone
+recursion yes;
+allow-recursion { any; };
+
+// SECURE - internal clients only
+recursion yes;
+allow-recursion { 192.168.0.0/24; 127.0.0.1; };
+```
+
+**3. Unrestricted Queries**
+
+`allow-query` controls who can query the nameserver at all. Left open, it allows reconnaissance from any source.
+
+```
+// VULNERABLE
+allow-query { any; };
+
+// SECURE - authoritative-only server should restrict queries
+allow-query { any; };          // acceptable for public authoritative NS
+allow-query { 192.168.0.0/24; }; // internal resolver - restrict to LAN
+```
+
+**4. Version Disclosure via CHAOS Queries**
+
+BIND9 responds to CHAOS class TXT queries for `version.bind` by default, revealing the exact software version. This lets an attacker immediately identify unpatched servers.
+
+```bash
+# Query the BIND version (CHAOS class)
+dig chaos txt version.bind @ns1.syntexsolutions.net
+dig chaos txt version.bind @20.24.202.6
+
+# Also try hostname.bind - reveals the server's hostname
+dig chaos txt hostname.bind @20.24.202.6
+```
+
+Example response from a vulnerable server:
+```
+version.bind.   0   CH  TXT  "9.11.3-1ubuntu1.15-Ubuntu"
+```
+
+This immediately tells an attacker the OS family, BIND version, and whether it is patched.
+
+**Remediation - suppress version disclosure:**
+```
+// named.conf options block
+options {
+    version "not disclosed";
+    hostname "not disclosed";
+};
+```
+
+### The Full DNS Attack Flow
+
+When enumerating a target's DNS, follow this sequence:
+
+1. **Identify nameservers** - `dig syntexsolutions.net NS`
+2. **Grab the SOA** - `dig syntexsolutions.net SOA` - admin email is in the RNAME field
+3. **Fingerprint the software** - `dig chaos txt version.bind @<ns-ip>` - note the version
+4. **Attempt zone transfer** - `dig axfr syntexsolutions.net @<ns-ip>` - if successful, stop here, you have everything
+5. **Brute-force subdomains** - if AXFR fails, enumerate with dnsrecon / dnsenum
+6. **Certificate transparency** - `crt.sh` for passive subdomain discovery
 
 ### Subdomain Enumeration
 
@@ -158,7 +232,7 @@ amass enum -d syntexsolutions.net
 curl -s "https://crt.sh/?q=%.syntexsolutions.net&output=json" | jq '.[].name_value' | sort -u
 ```
 
-> **CREST Exam Focus:** Zone transfers are specifically tested in the CPSA exam. Know the AXFR command, what a successful result looks like (SOA at start and end), why unrestricted AXFR is a vulnerability, and the BIND9 remediation. A successful zone transfer is one of the highest-yield passive reconnaissance findings.
+> **CREST Exam Focus:** Zone transfers are specifically tested in the CPSA exam. Know the AXFR command, what a successful result looks like (SOA at start and end), and the BIND9 remediation. Also know that `dig chaos txt version.bind` reveals the BIND version and is suppressed with `version "not disclosed";` in named.conf. Open recursion (`allow-recursion { any; }`) enables DNS amplification attacks. A successful zone transfer is one of the highest-yield passive reconnaissance findings.
 """
 
 # Raw string used here to avoid SyntaxWarning on \| in the grep command
