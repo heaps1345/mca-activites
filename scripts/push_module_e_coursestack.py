@@ -139,6 +139,38 @@ lsadump::dcsync /domain:syntex.local /all
 """
     },
     {
+        "name": "Lab E3-B: ACLs, Registry and File Permissions",
+        "url":  f"{GITHUB}/lab-e3b-acl-permissions-v1.html",
+        "theory": """## ACLs, Registry and File Permissions (CPSA B13)
+
+With SYSTEM on the DC, auditing file system and registry ACLs identifies overly permissive access controls that could be exploited for persistence or lateral movement - and documents misconfigurations for the report.
+
+### Key Tools
+- **icacls** - Built-in Windows ACL viewer; outputs permission flags for files and directories
+- **Get-Acl** (PowerShell) - Full ACL object including owner, DACL, and SACL
+- **accesschk.exe** (Sysinternals) - Fast ACL sweep, can filter by user or group
+- **reg query** - Read registry ACLs from the command line
+
+### icacls Permission Flags
+| Flag | Meaning |
+|------|---------|
+| F | Full control |
+| M | Modify |
+| RX | Read and execute |
+| W | Write only |
+| OI | Object inherit (applies to files in directory) |
+| CI | Container inherit (applies to subdirectories) |
+
+### High-Value Targets to Check
+- Service binary directories (especially unquoted paths from PrivEsc)
+- HKLM\\SYSTEM\\CurrentControlSet\\Services (service ImagePath keys)
+- C:\\Windows\\Temp and C:\\Temp (writable by low-priv users)
+- PATH directories - writable PATH = DLL/binary hijack
+
+> ★ **Exam point (CPSA B13):** Misconfigured ACLs on service directories, registry keys, and PATH entries are the three primary ACL-based attack paths. Know how to enumerate all three and the `icacls` flags that indicate write access (W, M, F).
+"""
+    },
+    {
         "name": "Lab E4-A: Active Directory Enumeration",
         "url":  f"{GITHUB}/lab-e4a-ad-enumeration-v1.html",
         "theory": r"""## Active Directory Enumeration
@@ -174,6 +206,40 @@ bloodhound-python -u svc-backup -p Password1 -d syntex.local -ns <DC-IP> -c All
 """
     },
     {
+        "name": "Lab E4-B: Password Policy and Password Spraying",
+        "url":  f"{GITHUB}/lab-e4b-password-policy-spray-v1.html",
+        "theory": """## Password Policy Assessment and Safe Spraying (CPSA E4)
+
+With a valid username list from AD enumeration, you can assess the domain password policy and execute a controlled password spray. The key constraint: spray safely to avoid account lockout.
+
+### Extract the Password Policy
+```bash
+# From Kali with one valid credential
+crackmapexec smb <DC-IP> -u svc-backup -p Password1 --pass-pol
+```
+
+### Key Policy Values to Document
+| Setting | Weak Threshold | Finding |
+|---------|---------------|---------|
+| Min password length | < 12 characters | MEDIUM |
+| Lockout threshold | > 5 attempts | HIGH |
+| Lockout observation window | < 30 minutes | HIGH |
+| Max password age | > 90 days | MEDIUM |
+
+### Safe Spray Formula
+Safe attempts per window = Lockout threshold - 1
+
+If lockout threshold = 5 and window = 30 minutes:
+- You can try 4 passwords per 30 minutes without triggering lockout
+- Always use --no-bruteforce with CME to send exactly one password per account
+
+### Fine-Grained Password Policies (FGPP)
+Check for FGPP - different user groups may have stricter or weaker policies than the default domain policy. FGPPs are stored in the Password Settings Container in AD.
+
+> ★ **Exam point (CPSA E4):** You MUST document the domain password policy before spraying. Spraying without checking the lockout threshold and observation window is a serious operational error that can lock out production accounts. The safe spray limit is always threshold minus 1.
+"""
+    },
+    {
         "name": "Lab E5-A: Kerberos Attacks",
         "url":  f"{GITHUB}/lab-e5a-kerberos-attacks-v1.html",
         "theory": """## Kerberos Attacks - Kerberoasting and AS-REP Roasting
@@ -205,9 +271,44 @@ hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt
 """
     },
     {
+        "name": "Lab E5-B: SAM Dump and Cached Domain Credentials",
+        "url":  f"{GITHUB}/lab-e5b-sam-dump-v1.html",
+        "theory": """## SAM Dump and Cached Domain Credentials (CPSA E5)
+
+With SYSTEM or Domain Admin access, extract every password hash stored on the DC. SAM holds local account NT hashes. The registry SECURITY hive holds up to 10 cached domain logon hashes (DCC2).
+
+### Hash Types - Know Which Can Be Passed
+
+| Hash | Hashcat Mode | Can Pass? | Tool |
+|------|-------------|-----------|------|
+| NT (NTLM) | 1000 | YES - PTH | Evil-WinRM -H, CME -H |
+| DCC2 | 2100 | NO - crack only | secretsdump offline |
+| NetNTLMv2 | 5600 | NO - crack/relay | Responder + Hashcat |
+| Kerberos TGS | 13100 | NO - crack only | GetUserSPNs.py |
+
+### Remote Dump (Preferred - No Files on Target)
+```bash
+secretsdump.py syntex.local/da-account:Password@<DC-IP>
+```
+
+### Manual Hive Extraction (When No Remote Access)
+```powershell
+# On target with SYSTEM shell
+reg save HKLM\\SAM C:\\Windows\\Temp\\sam.hive
+reg save HKLM\\SYSTEM C:\\Windows\\Temp\\system.hive
+reg save HKLM\\SECURITY C:\\Windows\\Temp\\security.hive
+```
+Then transfer to Kali and process: `secretsdump.py -sam sam.hive -system system.hive -security security.hive LOCAL`
+
+Always delete hive files from the target after transfer.
+
+> ★ **Exam point (CPSA E5):** DCC2 hashes CANNOT be passed over the network. They are stored so Windows can authenticate domain users when the DC is unreachable (offline logon). Hashcat mode 2100 cracks them - but it is slow due to 10,240 PBKDF2 iterations. Use NT hashes for Pass-the-Hash where possible to save time.
+"""
+    },
+    {
         "name": "Lab E6-A: SQL Server Exploitation",
         "url":  f"{GITHUB}/lab-e6a-sql-exploitation-v1.html",
-        "theory": """## SQL Server Exploitation - xp_cmdshell and Data Extraction
+        "theory": r"""## SQL Server Exploitation - xp_cmdshell and Data Extraction
 
 SQL Server with a weak sa password provides direct OS command execution via xp_cmdshell.
 
@@ -236,6 +337,44 @@ The SQL Server service account has SeImpersonatePrivilege. This allows escalatio
 - InternalCredentials table exposes domain admin password
 
 > ★ **Exam point:** SQL Server = port 1433. xp_cmdshell requires sysadmin role. SeImpersonatePrivilege on a service account = SYSTEM via Potato exploit. Always mask PAN to first 6 + last 4 digits in reports.
+"""
+    },
+    {
+        "name": "Lab E7-A: Patch Level Assessment and WSUS Review",
+        "url":  f"{GITHUB}/lab-e7a-patch-assessment-v1.html",
+        "theory": """## Patch Level Assessment and WSUS Configuration (CPSA E5, E6)
+
+The final assessment task: document the patch posture of the Windows environment. An unpatched DC is a standalone HIGH/CRITICAL finding, especially when missing patches map to publicly known exploits.
+
+### Three Enumeration Methods
+
+```powershell
+# 1. systeminfo - quick list, build number, last hotfix
+systeminfo | findstr /i "hotfix\\|os version\\|build"
+
+# 2. wmic qfe - full details with install dates (CSV export)
+wmic qfe get HotFixID,InstalledOn,Description /format:csv > patches.csv
+
+# 3. Get-HotFix - PowerShell, sortable by date
+Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5
+```
+
+### WSUS Registry Audit
+```
+HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate
+  WUServer        - WSUS server URL (check for http:// vs https://)
+  NoAutoUpdate    - 1 = automatic updates DISABLED (bad)
+  AUOptions       - 2 = notify only (no auto-install)
+```
+
+### WSUS HTTP vs HTTPS
+- HTTP (port 8530): update stream can be intercepted - HIGH finding
+- HTTPS (port 8531): encrypted update channel - correct configuration
+
+### Automated CVE Mapping
+Watson.exe maps your current build number to unpatched CVEs automatically. Always use it to provide evidence-backed CVE claims in the report.
+
+> ★ **Exam point (CPSA E5/E6):** Know all three patch enumeration methods. In the report, always include: last patch date, current build number, specific CVEs with CVSS scores, and the business impact of each. Never claim a CVE without verifying the fixing KB is absent. WSUS over HTTP is a reportable finding in its own right.
 """
     },
 ]

