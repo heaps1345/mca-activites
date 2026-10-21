@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E4-A: Active Directory Enumeration | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root { --mca-orange: #FF6B00; --mca-dark: #1a1a1a; --mca-grey: #2d2d2d; --mca-text: #e0e0e0; --mca-white: #ffffff; --mca-green: #4CAF50; --mca-red: #f44336; --mca-yellow: #FFC107; --mca-blue: #2196F3; --mca-code-bg: #0d1117; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--mca-dark); color: var(--mca-text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.65; }
+  .lab-header { background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%); border-bottom: 3px solid var(--mca-orange); padding: 28px 32px 20px; }
+  .lab-header h1 { font-size: 26px; font-weight: 700; color: var(--mca-white); margin-bottom: 6px; }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: #aaa; }
+  .lab-meta .badge { background: var(--mca-grey); border: 1px solid #444; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .scenario-box { background: var(--mca-grey); border-left: 4px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives { background: #1e2d1e; border: 1px solid #2d4a2d; border-radius: 4px; padding: 18px 24px; margin-bottom: 28px; }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+  .env-table th { background: var(--mca-grey); color: var(--mca-orange); text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--mca-orange); }
+  .env-table td { padding: 10px 14px; border-bottom: 1px solid #333; }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code { background: var(--mca-code-bg); padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: var(--mca-orange); font-size: 12px; }
+  .phase { margin-bottom: 36px; border: 1px solid #333; border-radius: 6px; overflow: hidden; }
+  .phase-header { background: var(--mca-grey); padding: 14px 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #444; }
+  .phase-num { background: var(--mca-orange); color: #000; font-weight: 700; font-size: 14px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag { margin-left: auto; font-size: 11px; color: #888; background: #222; border: 1px solid #444; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  pre { background: var(--mca-code-bg); border: 1px solid #30363d; border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  .callout { border-radius: 4px; padding: 14px 18px; margin: 14px 0; font-size: 13px; display: flex; gap: 12px; align-items: flex-start; }
+  .callout-icon { font-size: 18px; flex-shrink: 0; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .knowledge-check { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 20px 24px; margin: 28px 0; }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option { background: var(--mca-grey); border: 1px solid #444; border-radius: 4px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
+  .option:hover { border-color: var(--mca-orange); }
+  .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .reveal-btn { background: transparent; border: 1px solid var(--mca-orange); color: var(--mca-orange); padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+  .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .ldap-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .ldap-table th { background: #1a2a1a; color: var(--mca-green); text-align: left; padding: 8px 12px; border-bottom: 1px solid #2d4a2d; }
+  .ldap-table td { padding: 8px 12px; border-bottom: 1px solid #222; font-family: 'Courier New', monospace; font-size: 12px; color: #ccc; }
+  .ldap-table tr:nth-child(even) td { background: #111; }
+  .takeaways { background: var(--mca-grey); border-top: 3px solid var(--mca-orange); border-radius: 4px; padding: 20px 24px; margin-top: 32px; }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer { background: #111; border-top: 1px solid #333; padding: 18px 32px; text-align: center; font-size: 12px; color: #555; margin-top: 48px; }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link { background: var(--mca-grey); border: 1px solid #444; color: #aaa; padding: 10px 20px; border-radius: 4px; font-size: 13px; text-decoration: none; }
+  .nav-link:hover, .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta"><span style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span></div>
+  <h1><span>Lab E4-A:</span> Active Directory Enumeration - LDAP and BloodHound</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Active Directory</span>
+    <span class="badge">CREST CPSA</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 60 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>You have a valid domain credential (<strong>svc-backup / Password1</strong>) from the SMB share enumeration. Use this to perform comprehensive Active Directory enumeration via LDAP and BloodHound. The goal is to identify all high-value targets, Kerberoastable accounts, and attack paths to Domain Admin before running any further exploits.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Query Active Directory via LDAP using ldapsearch and ldapdomaindump</li>
+      <li>Identify Kerberoastable and AS-REP Roastable accounts from LDAP attributes</li>
+      <li>Run SharpHound to collect BloodHound graph data</li>
+      <li>Interpret BloodHound attack paths to identify the shortest route to Domain Admin</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>IP</th><th>Credential</th><th>Domain</th></tr></thead>
+    <tbody>
+      <tr><td>SYNTEX-DC01</td><td><code>&lt;DC01-IP&gt;</code></td><td><code>svc-backup / Password1</code></td><td>syntex.local</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>LDAP Enumeration with ldapsearch</h3>
+      <span class="phase-tag">ldapsearch</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>LDAP is the query interface to Active Directory. Any authenticated domain user can query it. Start by confirming the base DN and domain structure:</p>
+        <pre><code><span class="comment"># Test anonymous LDAP bind first</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-H</span> <span class="str">ldap://&lt;DC01-IP&gt;</span> <span class="flag">-x</span> <span class="flag">-s</span> base namingContexts
+
+<span class="comment"># Authenticated enumeration - all users</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-H</span> <span class="str">ldap://&lt;DC01-IP&gt;</span> <span class="flag">-x</span> <span class="flag">-D</span> <span class="str">"svc-backup@syntex.local"</span> <span class="flag">-w</span> <span class="str">Password1</span> \
+  <span class="flag">-b</span> <span class="str">"DC=syntex,DC=local"</span> <span class="str">"(objectClass=user)"</span> <span class="str">sAMAccountName description</span>
+
+<span class="out">dn: CN=Administrator,CN=Users,DC=syntex,DC=local
+sAMAccountName: Administrator
+
+dn: CN=jsmith,CN=Users,DC=syntex,DC=local
+sAMAccountName: jsmith
+description: User account for J. Smith - temp password Welcome1
+
+dn: CN=svc-backup,CN=Users,DC=syntex,DC=local
+sAMAccountName: svc-backup</span>
+</code></pre>
+        <p>Note the description field on jsmith - administrators frequently store passwords there. This is always worth querying.</p>
+      </div>
+      <div class="step">
+        <p>Key LDAP queries for penetration testing. Run each one:</p>
+        <table class="ldap-table">
+          <thead><tr><th>Target</th><th>Filter</th><th>Why It Matters</th></tr></thead>
+          <tbody>
+            <tr><td>Kerberoastable accounts</td><td>(servicePrincipalName=*)</td><td>Accounts with SPNs - can request TGS tickets for offline cracking</td></tr>
+            <tr><td>AS-REP Roastable</td><td>(userAccountControl:1.2.840.113556.1.4.803:=4194304)</td><td>Pre-auth disabled - hash requestable without credentials</td></tr>
+            <tr><td>Domain Admins</td><td>(memberOf=CN=Domain Admins,...)</td><td>Priority targets for session hunting</td></tr>
+            <tr><td>Disabled accounts</td><td>(userAccountControl:1.2.840.113556.1.4.803:=2)</td><td>Often still have permissions configured</td></tr>
+            <tr><td>Password in description</td><td>(description=*pass*)</td><td>Administrators store creds in descriptions</td></tr>
+          </tbody>
+        </table>
+        <pre><code><span class="comment"># Kerberoastable accounts (SPNs set)</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-H</span> <span class="str">ldap://&lt;DC01-IP&gt;</span> <span class="flag">-x</span> <span class="flag">-D</span> <span class="str">"svc-backup@syntex.local"</span> <span class="flag">-w</span> <span class="str">Password1</span> \
+  <span class="flag">-b</span> <span class="str">"DC=syntex,DC=local"</span> <span class="str">"(servicePrincipalName=*)"</span> sAMAccountName servicePrincipalName
+
+<span class="out">sAMAccountName: svc-backup
+servicePrincipalName: MSSQLSvc/SYNTEX-DC01.syntex.local:1433
+servicePrincipalName: HTTP/SYNTEX-DC01.syntex.local</span>
+</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Comprehensive Dump with ldapdomaindump</h3>
+      <span class="phase-tag">ldapdomaindump</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>ldapdomaindump performs a full AD dump and outputs structured HTML and JSON files for offline analysis. It is faster than running individual ldapsearch queries:</p>
+        <pre><code><span class="comment"># Full AD dump to a local directory</span>
+<span class="cmd">mkdir</span> syntex_ldap
+<span class="cmd">ldapdomaindump</span> <span class="flag">-u</span> <span class="str">"syntex.local\svc-backup"</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-o</span> syntex_ldap/
+
+<span class="comment"># Files generated:</span>
+<span class="out">syntex_ldap/
+  domain_users.html       - All users with attributes
+  domain_groups.html      - All groups and members
+  domain_computers.html   - All computer objects
+  domain_policy.html      - Domain password policy
+  domain_trusts.html      - Domain trust relationships
+  domain_users.json       - Machine-readable user data</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Check the password policy - this determines whether password spraying is safe without triggering lockouts:</p>
+        <pre><code><span class="comment"># View the domain password policy</span>
+<span class="cmd">crackmapexec</span> smb <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="flag">--pass-pol</span>
+
+<span class="out">Minimum password length: 6
+Password complexity: Disabled
+Lockout threshold: 0 (no lockout)
+Lockout duration: None</span>
+<span class="comment"># No lockout threshold - password spraying is safe in this environment</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> Always check the password policy before spraying. Lockout threshold of 0 means no lockout (safe). A threshold of 3-5 means you must spray slowly with gaps between attempts to avoid locking out accounts. Locking out accounts is a significant negative finding on any engagement.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>BloodHound Collection with SharpHound</h3>
+      <span class="phase-tag">SharpHound + BloodHound</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>BloodHound uses graph theory to map AD relationships and calculate attack paths. SharpHound is the data collector - run it on the target domain, then import the output into BloodHound for analysis.</p>
+        <p>Option 1: Run SharpHound directly from your Evil-WinRM shell (requires upload to target):</p>
+        <pre><code><span class="comment"># Upload SharpHound to the target via Evil-WinRM</span>
+*Evil-WinRM* PS C:\Users\svc-backup&gt; upload SharpHound.exe
+
+<span class="comment"># Run SharpHound - collect all data</span>
+*Evil-WinRM* PS C:\Users\svc-backup&gt; .\SharpHound.exe <span class="flag">-c All</span>
+
+<span class="out">[*] Collection Methods: Group, LocalAdmin, Session, Trusts, ACL, Container, RDP, ObjectProps, DCOM, SPNTargets, PSRemote
+[*] Completed 183 objects
+[*] Writing output to 20241021132155_BloodHound.zip</span>
+
+<span class="comment"># Download the zip back to Kali</span>
+*Evil-WinRM* PS C:\Users\svc-backup&gt; download 20241021132155_BloodHound.zip
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Option 2: Run the Python BloodHound collector from Kali (no binary needed on target):</p>
+        <pre><code><span class="comment"># bloodhound-python - runs from Kali, queries DC over LDAP/SMB</span>
+<span class="cmd">bloodhound-python</span> <span class="flag">-u</span> svc-backup <span class="flag">-p</span> Password1 <span class="flag">-d</span> syntex.local <span class="flag">-ns</span> &lt;DC01-IP&gt; <span class="flag">-c All</span>
+
+<span class="out">[*] Found AD domain: syntex.local
+[*] Getting TGT for user
+[*] Connecting to LDAP server: SYNTEX-DC01.syntex.local
+[*] Found 8 domains
+[*] Found 4 users
+[*] Found 52 groups
+[*] Enumeration done in 00h:00m:42s</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Start BloodHound and import the data:</p>
+        <pre><code><span class="comment"># Start Neo4j (required database backend)</span>
+<span class="cmd">sudo</span> neo4j start
+
+<span class="comment"># Start BloodHound GUI</span>
+<span class="cmd">bloodhound</span> &amp;
+
+<span class="comment"># In BloodHound GUI:</span>
+<span class="comment"># 1. Login: neo4j / neo4j (change on first login)</span>
+<span class="comment"># 2. Click Upload Data (top right)</span>
+<span class="comment"># 3. Select the BloodHound .zip file</span>
+<span class="comment"># 4. Wait for import to complete</span>
+</code></pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div><strong>Key BloodHound Queries to run after import:</strong> Find Shortest Paths to Domain Admins, Find all Domain Admin accounts, List all Kerberoastable Accounts, Find Principals with DCSync Rights, Find Computers where Domain Users are Local Admin.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Interpreting BloodHound Attack Paths</h3>
+      <span class="phase-tag">BloodHound Analysis</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>In the BloodHound search bar, run pre-built queries from the Analysis tab. For the Syntex domain, you should find:</p>
+        <pre><code><span class="comment"># Query 1: Shortest path from svc-backup to Domain Admins</span>
+<span class="comment"># BloodHound GUI: Analysis > Find Shortest Paths to Domain Admins</span>
+<span class="comment"># Expected result: svc-backup -> [GenericWrite on jsmith?] or via Kerberoasting path</span>
+
+<span class="comment"># Query 2: All Kerberoastable accounts</span>
+<span class="comment"># BloodHound GUI: Analysis > List all Kerberoastable Accounts</span>
+<span class="out">svc-backup (servicePrincipalName set, not DA)</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>BloodHound uses <strong>edge types</strong> to describe relationships. Know these for CPSA:</p>
+        <pre><code><span class="comment"># Critical BloodHound edges:</span>
+<span class="out">MemberOf        - User is a member of this group
+AdminTo         - User has local admin rights on this computer
+HasSession      - A privileged user has an active session on this computer
+CanRDP          - User can RDP to this host
+GenericWrite    - User can write to an AD object (ACL abuse)
+WriteDACL       - User can modify an object's DACL
+DCSync          - User has replication rights (can dump all hashes)</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> BloodHound's "Shortest Paths to Domain Admins" is the first query you run on every engagement. Without it you move blind. The path BloodHound shows is pre-calculated from the collected data - it shows <em>exactly</em> which hops are needed to reach DA, in order. Follow that path.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> You find a user with a description field that reads "Temp password: Summer2024!". What type of finding is this, and what severity?</p>
+      <button class="reveal-btn" onclick="reveal('a1')">Reveal Answer</button>
+      <div class="kc-answer" id="a1">This is a credential exposure finding - HIGH severity. LDAP description fields are readable by any authenticated domain user. Storing passwords in user descriptions is equivalent to leaving them in a publicly accessible text file. The credential should be tested against all network services and documented as a critical misconfiguration.</div>
+    </div>
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> BloodHound shows a HasSession edge from "Administrator" to "WORKSTATION01". What does this mean for your attack?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q2','a')">A. Administrator is installed on WORKSTATION01</div>
+        <div class="option" onclick="answer(this,'q2','b')">B. Administrator has an active logon session on WORKSTATION01 - compromise it and dump LSASS to get the DA hash</div>
+        <div class="option" onclick="answer(this,'q2','c')">C. WORKSTATION01 is in the Administrators group</div>
+        <div class="option" onclick="answer(this,'q2','d')">D. Administrator has remote desktop access to WORKSTATION01</div>
+      </div>
+    </div>
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> The domain password policy shows Lockout threshold: 0. What does this mean for password spraying?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. No spraying is possible - accounts are immediately locked</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. Spraying is safe - there is no lockout policy configured</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. You can only spray once per account</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. Accounts lock after zero attempts - do not spray</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>LDAP exposes the entire AD directory to any authenticated domain user - no special rights needed</li>
+      <li>Always check the Description field on user objects - administrators frequently store passwords there</li>
+      <li>ldapdomaindump gives you structured HTML output for all AD objects in a single command</li>
+      <li>BloodHound "Shortest Paths to Domain Admins" is always your first query - it defines the attack plan</li>
+      <li>HasSession edges are the most valuable BloodHound finding - they show where you can dump DA credentials</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <a href="lab-e3a-windows-privesc-v1.html" class="nav-link">&larr; Lab E3-A: Windows Privesc</a>
+    <a href="lab-e5a-kerberos-attacks-v1.html" class="nav-link next">Next: Lab E5-A - Kerberos Attacks &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E4-A: AD Enumeration &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q2: 'b', q3: 'b' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => { if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct'); });
+  }
+}
+function reveal(id) { document.getElementById(id).classList.add('show'); event.target.style.display='none'; }
+</script>
+</body>
+</html>

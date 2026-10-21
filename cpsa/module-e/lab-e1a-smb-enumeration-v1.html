@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab E1-A: SMB Enumeration | CPSA Module E | My Cyber Academy</title>
+<style>
+  :root {
+    --mca-orange: #FF6B00;
+    --mca-dark: #1a1a1a;
+    --mca-grey: #2d2d2d;
+    --mca-light-grey: #3d3d3d;
+    --mca-text: #e0e0e0;
+    --mca-white: #ffffff;
+    --mca-green: #4CAF50;
+    --mca-red: #f44336;
+    --mca-yellow: #FFC107;
+    --mca-blue: #2196F3;
+    --mca-code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--mca-dark);
+    color: var(--mca-text);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .lab-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1a00 100%);
+    border-bottom: 3px solid var(--mca-orange);
+    padding: 28px 32px 20px;
+  }
+  .lab-header .breadcrumb {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .lab-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--mca-white);
+    margin-bottom: 6px;
+  }
+  .lab-header h1 span { color: var(--mca-orange); }
+  .lab-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #aaa;
+  }
+  .lab-meta .badge {
+    background: var(--mca-grey);
+    border: 1px solid #444;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  .lab-meta .badge.orange { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  .scenario-box {
+    background: var(--mca-grey);
+    border-left: 4px solid var(--mca-orange);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+  .scenario-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-orange); margin-bottom: 10px; }
+  .scenario-box p { font-size: 14px; color: #ccc; }
+  .objectives {
+    background: #1e2d1e;
+    border: 1px solid #2d4a2d;
+    border-radius: 4px;
+    padding: 18px 24px;
+    margin-bottom: 28px;
+  }
+  .objectives h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--mca-green); margin-bottom: 12px; }
+  .objectives ul { list-style: none; }
+  .objectives ul li { padding: 4px 0; font-size: 14px; }
+  .objectives ul li::before { content: "✓ "; color: var(--mca-green); font-weight: bold; }
+  .env-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  .env-table th {
+    background: var(--mca-grey);
+    color: var(--mca-orange);
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--mca-orange);
+  }
+  .env-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #333;
+    vertical-align: top;
+  }
+  .env-table tr:nth-child(even) td { background: #222; }
+  .env-table code {
+    background: var(--mca-code-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    color: var(--mca-orange);
+    font-size: 12px;
+  }
+  .preflight {
+    background: #1a1a2e;
+    border: 1px solid #2d2d5a;
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+  .preflight h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #7986cb; margin-bottom: 14px; }
+  .preflight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .preflight-item {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .preflight-item .label { color: #888; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+  .preflight-item code {
+    display: block;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    word-break: break-all;
+  }
+  .phase {
+    margin-bottom: 36px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .phase-header {
+    background: var(--mca-grey);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid #444;
+  }
+  .phase-num {
+    background: var(--mca-orange);
+    color: #000;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .phase-header h3 { font-size: 16px; color: var(--mca-white); }
+  .phase-header .phase-tag {
+    margin-left: auto;
+    font-size: 11px;
+    color: #888;
+    background: #222;
+    border: 1px solid #444;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+  .phase-body { padding: 20px 24px; }
+  .step { margin-bottom: 22px; }
+  .step p { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+  .step strong { color: var(--mca-white); }
+  pre {
+    background: var(--mca-code-bg);
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 10px 0;
+  }
+  pre code { color: #e6edf3; }
+  pre .comment { color: #8b949e; }
+  pre .cmd { color: #79c0ff; }
+  pre .flag { color: #ffa657; }
+  pre .str { color: #a5d6ff; }
+  pre .out { color: #3fb950; }
+  .callout {
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout.crest { background: #1a1f2e; border: 1px solid #2d3a5a; }
+  .callout.crest .callout-icon { color: #7986cb; }
+  .callout.crest strong { color: #9fa8da; }
+  .callout.warn { background: #2a1f00; border: 1px solid #5a3a00; }
+  .callout.warn .callout-icon { color: var(--mca-yellow); }
+  .callout.info { background: #0d1f2d; border: 1px solid #1a3a5a; }
+  .callout.info .callout-icon { color: var(--mca-blue); }
+  .knowledge-check {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .knowledge-check h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .kc-question { margin-bottom: 20px; }
+  .kc-question p { font-size: 14px; margin-bottom: 10px; color: #e0e0e0; }
+  .kc-question .options { display: flex; flex-direction: column; gap: 8px; }
+  .kc-question .option {
+    background: var(--mca-grey);
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .kc-question .option:hover { border-color: var(--mca-orange); }
+  .kc-question .option.correct { background: #1e3a1e; border-color: var(--mca-green); color: #a5d6a7; }
+  .kc-question .option.wrong { background: #3a1e1e; border-color: var(--mca-red); color: #ef9a9a; }
+  .kc-question .reveal-btn {
+    background: transparent;
+    border: 1px solid var(--mca-orange);
+    color: var(--mca-orange);
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .kc-question .reveal-btn:hover { background: var(--mca-orange); color: #000; }
+  .kc-answer { display: none; background: #0d1f0d; border: 1px solid #2d4a2d; border-radius: 4px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #a5d6a7; }
+  .kc-answer.show { display: block; }
+  .takeaways {
+    background: var(--mca-grey);
+    border-top: 3px solid var(--mca-orange);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .takeaways h3 { color: var(--mca-orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .takeaways ul { list-style: none; }
+  .takeaways ul li { padding: 5px 0; font-size: 14px; color: #ccc; }
+  .takeaways ul li::before { content: "→ "; color: var(--mca-orange); }
+  .lab-footer {
+    background: #111;
+    border-top: 1px solid #333;
+    padding: 18px 32px;
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-top: 48px;
+  }
+  .lab-footer span { color: var(--mca-orange); }
+  .nav-links { display: flex; justify-content: space-between; margin-top: 32px; }
+  .nav-link {
+    background: var(--mca-grey);
+    border: 1px solid #444;
+    color: #aaa;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .nav-link:hover { border-color: var(--mca-orange); color: var(--mca-orange); }
+  .nav-link.next { border-color: var(--mca-orange); color: var(--mca-orange); }
+  @media (max-width: 600px) {
+    .preflight-grid { grid-template-columns: 1fr; }
+    .lab-meta { gap: 10px; }
+    .container { padding: 20px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-meta">
+    <span class="breadcrumb">CPSA &rsaquo; Module E &rsaquo; Windows Security Assessment</span>
+  </div>
+  <h1><span>Lab E1-A:</span> SMB Enumeration</h1>
+  <div class="lab-meta">
+    <span class="badge orange">Module E</span>
+    <span class="badge">Windows</span>
+    <span class="badge">CREST CPSA</span>
+    <span class="badge">Syntex Solutions Ltd</span>
+    <span>Difficulty: Intermediate</span>
+    <span>Estimated time: 45 min</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="scenario-box">
+    <h2>Engagement Scenario</h2>
+    <p>You are conducting an internal network penetration test against Syntex Solutions Ltd, a UK-based fintech firm regulated under PCI DSS v4.0. Your Kali Linux attack host has been placed on the internal network segment. The Windows Domain Controller (<strong>SYNTEX-DC01</strong>) is in scope. Your first task is to enumerate the SMB service to identify shares, sessions, users, and misconfigurations that will underpin the rest of the assessment.</p>
+  </div>
+
+  <div class="objectives">
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Identify SMB version and signing status using Nmap</li>
+      <li>Enumerate null sessions, shares, and users with enum4linux-ng</li>
+      <li>Access readable SMB shares and extract credential artefacts</li>
+      <li>Map SMB findings to CREST CPSA examination topics</li>
+    </ul>
+  </div>
+
+  <table class="env-table">
+    <thead><tr><th>Host</th><th>Role</th><th>IP Address</th><th>OS</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Kali Linux</td><td>Attack Host</td><td><code>Your Kali IP</code></td><td>Kali Linux</td><td>Your machine</td></tr>
+      <tr><td>SYNTEX-DC01</td><td>Target DC</td><td><code>&lt;DC01-IP&gt;</code></td><td>Windows Server 2016</td><td>Domain: syntex.local</td></tr>
+    </tbody>
+  </table>
+
+  <div class="preflight">
+    <h2>Pre-Flight Checks</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:14px;">Verify your environment before starting. All checks must pass.</p>
+    <div class="preflight-grid">
+      <div class="preflight-item">
+        <div class="label">Connectivity to DC</div>
+        <code>ping -c 4 &lt;DC01-IP&gt;</code>
+      </div>
+      <div class="preflight-item">
+        <div class="label">SMB port open</div>
+        <code>nc -zv &lt;DC01-IP&gt; 445</code>
+      </div>
+      <div class="preflight-item">
+        <div class="label">enum4linux-ng installed</div>
+        <code>enum4linux-ng --help</code>
+      </div>
+      <div class="preflight-item">
+        <div class="label">smbclient available</div>
+        <code>smbclient --version</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">1</div>
+      <h3>SMB Version and Signing Detection</h3>
+      <span class="phase-tag">Nmap NSE</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Start with an Nmap scan targeting SMB-related ports. The <strong>smb-security-mode</strong> and <strong>smb2-security-mode</strong> scripts reveal whether message signing is enforced - a critical finding that determines whether relay attacks are viable.</p>
+        <pre><code><span class="comment"># SMB version and security mode detection</span>
+<span class="cmd">nmap</span> <span class="flag">-p 445,139</span> <span class="flag">--script</span> <span class="str">smb-security-mode,smb2-security-mode,smb-protocols</span> -sV <span class="str">&lt;DC01-IP&gt;</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Also run the full SMB enumeration script set to identify the OS version, domain name, and any immediately visible shares:</p>
+        <pre><code><span class="cmd">nmap</span> <span class="flag">-p 445</span> <span class="flag">--script</span> <span class="str">"smb-enum-*"</span> <span class="str">&lt;DC01-IP&gt;</span>
+</code></pre>
+        <p>Look for this output in the results - it indicates SMB signing is <strong>not required</strong>, making NTLM relay attacks possible:</p>
+        <pre><code><span class="out">| smb2-security-mode:
+|   3.1.1:
+|_    Message signing enabled but not required</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> SMB signing disabled or set to "not required" is a critical finding. It means any captured NetNTLMv2 hash can be <em>relayed</em> rather than cracked - bypassing password complexity entirely. Always check this before deciding between relay and capture attacks.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">2</div>
+      <h3>Null Session Enumeration with enum4linux-ng</h3>
+      <span class="phase-tag">enum4linux-ng</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>enum4linux-ng is the modern replacement for enum4linux. Run a full null session enumeration against the DC. A null session is an unauthenticated SMB connection - historically common, often still present in Windows Server environments with legacy configuration.</p>
+        <pre><code><span class="comment"># Full null session enumeration</span>
+<span class="cmd">enum4linux-ng</span> <span class="flag">-A</span> <span class="str">&lt;DC01-IP&gt;</span>
+</code></pre>
+        <p>The <code>-A</code> flag runs all checks. Key sections to note in the output:</p>
+        <pre><code><span class="comment"># Domain information - confirms syntex.local</span>
+<span class="out">[+] Domain: SYNTEX
+[+] Domain SID: S-1-5-21-...</span>
+
+<span class="comment"># User enumeration via RID cycling</span>
+<span class="out">[+] Users via RPC (null session):
+  Administrator (RID 500)
+  syntex-admin (RID 1000)
+  jsmith (RID 1001)
+  svc-backup (RID 1002)</span>
+
+<span class="comment"># Share enumeration</span>
+<span class="out">[+] Shares via RPC on &lt;DC01-IP&gt;:
+  ADMIN$  - Remote Admin
+  C$      - Default share
+  FINANCE - Syntex Finance Data
+  IT-ADMIN - IT Administration
+  BACKUP  - Backup Storage
+  PUBLIC  - Public Share
+  IPC$    - Remote IPC</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>If null sessions are restricted, try with guest credentials:</p>
+        <pre><code><span class="cmd">enum4linux-ng</span> <span class="flag">-A</span> <span class="flag">-u</span> <span class="str">""</span> <span class="flag">-p</span> <span class="str">""</span> <span class="str">&lt;DC01-IP&gt;</span></code></pre>
+      </div>
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>Note:</strong> Null session enumeration is noisy. On a real engagement, this will generate Windows Event IDs 4624 (anonymous logon) and 4634 (logoff). On the Syntex DC, Defender and the local firewall are disabled, so you will not be blocked - but record your findings as evidence anyway.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">3</div>
+      <h3>Share Enumeration and Access Testing</h3>
+      <span class="phase-tag">smbclient</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>List all available shares with smbclient using a null session:</p>
+        <pre><code><span class="cmd">smbclient</span> <span class="flag">-L</span> <span class="str">//&lt;DC01-IP&gt;</span> <span class="flag">-N</span>
+</code></pre>
+        <p>Now test access to each non-default share. The FINANCE and BACKUP shares are of particular interest:</p>
+        <pre><code><span class="comment"># Test FINANCE share (null session)</span>
+<span class="cmd">smbclient</span> <span class="str">//&lt;DC01-IP&gt;/FINANCE</span> <span class="flag">-N</span>
+
+<span class="comment"># Test BACKUP share</span>
+<span class="cmd">smbclient</span> <span class="str">//&lt;DC01-IP&gt;/BACKUP</span> <span class="flag">-N</span>
+
+<span class="comment"># Test PUBLIC share - likely readable by all</span>
+<span class="cmd">smbclient</span> <span class="str">//&lt;DC01-IP&gt;/PUBLIC</span> <span class="flag">-N</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Once connected to a share, list and retrieve files:</p>
+        <pre><code><span class="comment"># Inside smbclient interactive prompt</span>
+smb: \> ls
+smb: \> get credentials.txt
+smb: \> get backup_config.txt
+smb: \> exit
+</code></pre>
+        <p>The BACKUP share contains a credential file. Download it and examine the contents:</p>
+        <pre><code><span class="comment"># View the retrieved file</span>
+<span class="cmd">cat</span> credentials.txt
+<span class="out">
+[Backup Service]
+Username: svc-backup
+Password: Password1
+Target: \\SYNTEX-DC01\BACKUP
+Created: 2023-10-01 by IT Admin
+</span>
+</code></pre>
+      </div>
+      <div class="callout crest">
+        <span class="callout-icon">★</span>
+        <div><strong>CREST CPSA Exam Point:</strong> Credentials stored in SMB shares are a HIGH finding in any assessment report. Document: share name, file name, credential found, and the level of access it grants. <code>svc-backup</code> with <code>Password1</code> is your first valid domain credential - it unlocks authenticated enumeration in subsequent labs.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">4</div>
+      <h3>Authenticated SMB Enumeration</h3>
+      <span class="phase-tag">smbmap + CrackMapExec</span>
+    </div>
+    <div class="phase-body">
+      <div class="step">
+        <p>Now use the <code>svc-backup</code> credential to perform authenticated enumeration with smbmap. This reveals share permissions you cannot see anonymously:</p>
+        <pre><code><span class="comment"># smbmap with valid credentials - shows READ/WRITE access per share</span>
+<span class="cmd">smbmap</span> <span class="flag">-H</span> <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="flag">-d</span> <span class="str">syntex.local</span>
+
+<span class="out">[+] IP: &lt;DC01-IP&gt;:445  Name: SYNTEX-DC01
+  Disk        Permissions   Comment
+  ----        -----------   -------
+  ADMIN$      NO ACCESS     Remote Admin
+  C$          NO ACCESS     Default share
+  FINANCE     READ ONLY     Syntex Finance Data
+  IT-ADMIN    READ ONLY     IT Administration
+  BACKUP      READ, WRITE   Backup Storage
+  PUBLIC      READ, WRITE   Public Share</span>
+</code></pre>
+      </div>
+      <div class="step">
+        <p>Use CrackMapExec to validate the credential and enumerate users and groups quickly:</p>
+        <pre><code><span class="comment"># Verify credential is valid - look for [+] symbol</span>
+<span class="cmd">crackmapexec</span> smb <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span>
+
+<span class="comment"># Enumerate domain users</span>
+<span class="cmd">crackmapexec</span> smb <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="flag">--users</span>
+
+<span class="comment"># Enumerate domain groups</span>
+<span class="cmd">crackmapexec</span> smb <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="flag">--groups</span>
+
+<span class="comment"># Check shares with authenticated session</span>
+<span class="cmd">crackmapexec</span> smb <span class="str">&lt;DC01-IP&gt;</span> <span class="flag">-u</span> <span class="str">svc-backup</span> <span class="flag">-p</span> <span class="str">Password1</span> <span class="flag">--shares</span>
+</code></pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div><strong>SMBv1 Check:</strong> The Syntex DC has SMBv1 enabled. Verify this with: <code>nmap -p 445 --script smb-protocols &lt;DC01-IP&gt;</code>. SMBv1 is a HIGH severity finding - it is deprecated, unsupported, and was the transport used by EternalBlue/WannaCry. Include it in the report even if no exploit is attempted.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="knowledge-check">
+    <h3>Knowledge Check</h3>
+
+    <div class="kc-question" id="q1">
+      <p><strong>Q1.</strong> You run an Nmap scan and see: <em>"Message signing enabled but not required"</em>. What attack does this directly enable?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q1','a')">A. Kerberoasting</div>
+        <div class="option" onclick="answer(this,'q1','b')">B. NTLM relay attack</div>
+        <div class="option" onclick="answer(this,'q1','c')">C. Pass-the-Hash</div>
+        <div class="option" onclick="answer(this,'q1','d')">D. AS-REP Roasting</div>
+      </div>
+    </div>
+
+    <div class="kc-question" id="q2">
+      <p><strong>Q2.</strong> enum4linux-ng returns a list of domain users via RID cycling without providing any credentials. What SMB misconfiguration does this confirm?</p>
+      <button class="reveal-btn" onclick="reveal('a2')">Reveal Answer</button>
+      <div class="kc-answer" id="a2">Null sessions are enabled. The server accepts unauthenticated SMB connections and allows RPC queries over IPC$ without credentials. This exposes the full user list - which feeds directly into password spraying, Kerberoasting target selection, and social engineering.</div>
+    </div>
+
+    <div class="kc-question" id="q3">
+      <p><strong>Q3.</strong> You find <code>svc-backup / Password1</code> in a file on the BACKUP share. What is the correct severity rating for this finding in a CPSA report?</p>
+      <div class="options">
+        <div class="option" onclick="answer(this,'q3','a')">A. Low - it is only a service account</div>
+        <div class="option" onclick="answer(this,'q3','b')">B. Medium - credentials in shares are expected</div>
+        <div class="option" onclick="answer(this,'q3','c')">C. High - cleartext credentials on an accessible network share</div>
+        <div class="option" onclick="answer(this,'q3','d')">D. Informational - the password is weak anyway</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="takeaways">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>SMB signing "not required" enables relay attacks - always check before choosing capture vs relay</li>
+      <li>Null sessions expose user lists, groups, shares, and domain info without authentication</li>
+      <li>Credentials stored in SMB shares are a HIGH finding regardless of account type</li>
+      <li>enum4linux-ng and CrackMapExec are the primary tools for SMB enumeration at CPSA level</li>
+      <li>The credential found here (svc-backup / Password1) enables authenticated enumeration in all subsequent labs</li>
+    </ul>
+  </div>
+
+  <div class="nav-links">
+    <span></span>
+    <a href="lab-e2a-credential-access-v1.html" class="nav-link next">Next: Lab E2-A - Credential Access &rarr;</a>
+  </div>
+
+</div>
+
+<div class="lab-footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA Preparation &nbsp;|&nbsp; Module E: Windows Security Assessment<br>
+  Lab E1-A: SMB Enumeration &nbsp;|&nbsp; &copy; 2024 My Cyber Academy Ltd &nbsp;|&nbsp; All rights reserved
+</div>
+
+<script>
+const correctAnswers = { q1: 'b', q3: 'c' };
+function answer(el, qid, choice) {
+  const opts = document.querySelectorAll('#' + qid + ' .option');
+  opts.forEach(o => { o.classList.remove('correct','wrong'); o.style.pointerEvents='none'; });
+  el.classList.add(choice === correctAnswers[qid] ? 'correct' : 'wrong');
+  if (choice !== correctAnswers[qid]) {
+    opts.forEach(o => {
+      if (o.textContent.trim().startsWith(correctAnswers[qid].toUpperCase() + '.')) o.classList.add('correct');
+    });
+  }
+}
+function reveal(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  el.previousElementSibling.style.display = 'none';
+}
+</script>
+
+</body>
+</html>
