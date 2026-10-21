@@ -13,6 +13,7 @@ Or pull direct from GitHub:
 import requests
 from requests.auth import HTTPBasicAuth
 import time
+import uuid
 
 API_KEY   = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
 BASE      = "https://app.coursestack.com"
@@ -415,17 +416,20 @@ def create_lesson_with_content(chapter_id, name, theory_md, lab_url):
 
     time.sleep(0.5)
 
-    # Step 2 - push content (no client-generated IDs - API assigns them)
+    # Step 2 - push content (API requires id on content block and each item)
     print(f"  Pushing content to lesson: {real_id}")
     result2 = post(f"/api/content/{COURSE_ID}/lessons/{real_id}", {
         "content": {
+            "id": str(uuid.uuid4()),
             "type": "lesson",
             "items": [
                 {
+                    "id": str(uuid.uuid4()),
                     "type": "text",
                     "markdown": theory_md
                 },
                 {
+                    "id": str(uuid.uuid4()),
                     "type": "iframe",
                     "url": lab_url,
                     "aspect_height": 9,
