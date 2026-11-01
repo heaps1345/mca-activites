@@ -46,10 +46,10 @@ def get_chapters():
     return r.json()
 
 def create_chapter(title):
-    payload = {"title": title}
+    payload = {"title": title, "name": title}
     r = session.post(f"{BASE_URL}/api/content/{COURSE_ID}/chapters", json=payload)
     if not r.ok:
-        print(f"Chapter create failed {r.status_code}: {r.text}")
+        print(f"Chapter create failed {r.status_code}: {r.text[:500]}")
         r.raise_for_status()
     return r.json()
 
