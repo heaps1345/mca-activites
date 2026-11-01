@@ -46,7 +46,7 @@ def get_chapters():
     return r.json()
 
 def create_chapter(title):
-    payload = {"title": title, "name": title}
+    payload = {"name": title}
     r = session.post(f"{BASE_URL}/api/content/{COURSE_ID}/chapters", json=payload)
     if not r.ok:
         print(f"Chapter create failed {r.status_code}: {r.text[:500]}")
@@ -91,24 +91,23 @@ def make_lesson(chapter_id, title, items):
 # CHAPTER
 # -----------------------------------------------------------------------
 
+CHAPTER_ID = "7d68c2cc-003d-4cde-90f6-b780ac86660e"  # Module 04 - Networking Equipment
+
 def find_or_create_chapter():
+    if CHAPTER_ID:
+        print(f"Using hardcoded chapter ID: {CHAPTER_ID}")
+        return CHAPTER_ID
     chapters = get_chapters()
     target_title = "Module 04 - Networking Equipment"
-    print(f"DEBUG chapters response type: {type(chapters)}")
-    print(f"DEBUG chapters keys: {list(chapters.keys()) if isinstance(chapters, dict) else 'list'}")
-    print(f"DEBUG raw: {json.dumps(chapters)[:500]}")
     chapter_list = chapters if isinstance(chapters, list) else chapters.get("chapters", [])
     for ch in chapter_list:
-        if target_title.lower() in ch.get("title", "").lower():
-            print(f"Found existing chapter: {ch['title']} ({ch['id']})")
+        ch_name = ch.get("name", "") or ch.get("title", "")
+        if target_title.lower() in ch_name.lower():
+            print(f"Found existing chapter: {ch_name} ({ch['id']})")
             return ch["id"]
-    print(f"Chapter not found in list, attempting create: {target_title}")
-    try:
-        ch = create_chapter(target_title)
-        return ch.get("id") or ch.get("chapter", {}).get("id")
-    except Exception as e:
-        print(f"Create failed: {e}")
-        raise
+    print(f"Creating chapter: {target_title}")
+    ch = create_chapter(target_title)
+    return ch.get("id") or ch.get("chapter", {}).get("id")
 
 # -----------------------------------------------------------------------
 # LESSON CONTENT

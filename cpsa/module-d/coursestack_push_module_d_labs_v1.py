@@ -89,13 +89,19 @@ def make_lesson(chapter_id, title, items):
 # CHAPTER - find existing Module D chapter (created by theory script)
 # -----------------------------------------------------------------------
 
+CHAPTER_ID = "7d68c2cc-003d-4cde-90f6-b780ac86660e"  # Module 04 - Networking Equipment
+
 def find_chapter():
+    if CHAPTER_ID:
+        print(f"Using hardcoded chapter ID: {CHAPTER_ID}")
+        return CHAPTER_ID
     chapters = get_chapters()
     target_title = "Module 04 - Networking Equipment"
     chapter_list = chapters if isinstance(chapters, list) else chapters.get("chapters", [])
     for ch in chapter_list:
-        if target_title.lower() in ch.get("title", "").lower():
-            print(f"Found chapter: {ch['title']} ({ch['id']})")
+        ch_name = ch.get("name", "") or ch.get("title", "")
+        if target_title.lower() in ch_name.lower():
+            print(f"Found chapter: {ch_name} ({ch['id']})")
             return ch["id"]
     raise RuntimeError(
         f"Chapter '{target_title}' not found. "
