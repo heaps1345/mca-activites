@@ -92,14 +92,21 @@ def make_lesson(chapter_id, title, items):
 def find_or_create_chapter():
     chapters = get_chapters()
     target_title = "Module 04 - Networking Equipment"
+    print(f"DEBUG chapters response type: {type(chapters)}")
+    print(f"DEBUG chapters keys: {list(chapters.keys()) if isinstance(chapters, dict) else 'list'}")
+    print(f"DEBUG raw: {json.dumps(chapters)[:500]}")
     chapter_list = chapters if isinstance(chapters, list) else chapters.get("chapters", [])
     for ch in chapter_list:
         if target_title.lower() in ch.get("title", "").lower():
             print(f"Found existing chapter: {ch['title']} ({ch['id']})")
             return ch["id"]
-    print(f"Creating chapter: {target_title}")
-    ch = create_chapter(target_title)
-    return ch.get("id") or ch.get("chapter", {}).get("id")
+    print(f"Chapter not found in list, attempting create: {target_title}")
+    try:
+        ch = create_chapter(target_title)
+        return ch.get("id") or ch.get("chapter", {}).get("id")
+    except Exception as e:
+        print(f"Create failed: {e}")
+        raise
 
 # -----------------------------------------------------------------------
 # LESSON CONTENT
