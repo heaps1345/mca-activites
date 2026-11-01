@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
 CourseStack push script - Module F labs (all 8)
-Run AFTER coursestack_push_module_f_theory_v1.py and paste the Chapter ID at line 36.
+Run AFTER coursestack_push_module_f_theory_v1.py
+Chapter ID is already set below.
 """
 
 import uuid
-import json
+import time
 import requests
 
 API_KEY = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
 COURSE_ID = "b9d920c3-4a8e-4227-af24-3c5f32fc7350"
 BASE_URL = "https://app.coursestack.com"
 GITHUB_BASE = "https://heaps1345.github.io/mca-activites/cpsa/module-f"
-
-# ---- PASTE CHAPTER ID HERE after running theory script ----
 CHAPTER_ID = "643abf9f-81d1-480c-a4b9-cfebe9198935"
-# -----------------------------------------------------------
 
-AUTH = (API_KEY, "")
-HEADERS = {"Content-Type": "application/json"}
+session = requests.Session()
+session.auth = (API_KEY, "")
+session.headers.update({"Content-Type": "application/json"})
 
 
 def text_item(markdown_text):
@@ -35,14 +34,40 @@ def embed_item(url):
     }
 
 
-def create_lesson(chapter_id, title, items):
-    url = f"{BASE_URL}/api/v1/chapters/{chapter_id}/lessons"
-    payload = {"title": title, "items": items}
-    r = requests.post(url, auth=AUTH, headers=HEADERS, json=payload)
-    r.raise_for_status()
-    lesson_id = r.json().get("id") or r.json().get("lesson", {}).get("id")
-    print(f"  Created lesson '{title}' -> {lesson_id}")
-    return lesson_id
+def create_lesson(name, chapter_id):
+    payload = {"name": name, "type": "lesson", "chapter_id": chapter_id}
+    r = session.post(f"{BASE_URL}/api/content/{COURSE_ID}/lessons", json=payload)
+    if not r.ok:
+        print(f"  ERROR {r.status_code}: {r.text[:300]}")
+        r.raise_for_status()
+    data = r.json()
+    return data.get("lesson", data).get("id") or data.get("id")
+
+
+def push_lesson_content(lesson_id, items):
+    content = {
+        "content": {
+            "type": "lesson",
+            "id": str(uuid.uuid4()),
+            "items": items,
+        }
+    }
+    r = session.post(
+        f"{BASE_URL}/api/content/{COURSE_ID}/lessons/{lesson_id}",
+        json=content,
+    )
+    if not r.ok:
+        print(f"  CONTENT ERROR {r.status_code}: {r.text[:300]}")
+        r.raise_for_status()
+
+
+def make_lesson(name, chapter_id, items):
+    print(f"  Creating: {name}")
+    lesson_id = create_lesson(name, chapter_id)
+    time.sleep(0.5)
+    push_lesson_content(lesson_id, items)
+    time.sleep(0.5)
+    print(f"    OK -> {lesson_id}")
 
 
 LABS = [
@@ -114,13 +139,7 @@ LABS = [
 
 
 def main():
-    if not CHAPTER_ID:
-        print("ERROR: CHAPTER_ID is empty.")
-        print("Run coursestack_push_module_f_theory_v1.py first, then paste the Chapter ID at line 36.")
-        return
-
     print(f"Pushing {len(LABS)} Module F lab lessons to chapter {CHAPTER_ID}...\n")
-
     for lab in LABS:
         lab_url = f"{GITHUB_BASE}/{lab['slug']}"
         items = [
@@ -128,9 +147,8 @@ def main():
             embed_item(lab_url),
             text_item(f"[Open lab in new tab]({lab_url})"),
         ]
-        create_lesson(CHAPTER_ID, lab["title"], items)
-
-    print(f"\nDone. {len(LABS)} lessons created under chapter {CHAPTER_ID}.")
+        make_lesson(lab["title"], CHAPTER_ID, items)
+    print(f"\nDone. {len(LABS)} lessons created.")
 
 
 if __name__ == "__main__":
