@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab F6-A: Web Service Assessment</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #f78166; --green: #3fb950;
+    --blue: #58a6ff; --yellow: #d29922; --purple: #bc8cff; --cyan: #39d353; --red: #f85149;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  .header-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header-meta { margin-left: auto; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .info-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-card .value { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0; display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .obj-num { background: var(--blue); color: var(--bg); font-size: 11px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .step-header:hover { background: var(--surface2); }
+  .step-num { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .step-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .step.open .step-arrow { transform: rotate(90deg); }
+  .step-body { padding: 0 18px 18px; display: none; }
+  .step.open .step-body { display: block; }
+  .step-body p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin: 10px 0; position: relative; }
+  .cmd { color: var(--cyan); }
+  .comment { color: var(--muted); font-style: italic; }
+  .out { color: var(--green); }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+  .copy-btn:hover { color: var(--text); }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; display: flex; gap: 10px; }
+  .callout.info { background: rgba(88,166,255,0.08); border-left: 3px solid var(--blue); }
+  .callout.warn { background: rgba(210,153,34,0.08); border-left: 3px solid var(--yellow); }
+  .callout.tip { background: rgba(63,185,80,0.08); border-left: 3px solid var(--green); }
+  .callout.danger { background: rgba(248,81,73,0.08); border-left: 3px solid var(--red); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+  .check-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .check-item:hover { border-color: var(--blue); }
+  .check-item input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+  .check-item label { font-size: 14px; cursor: pointer; flex: 1; }
+  .check-item.checked label { color: var(--muted); text-decoration: line-through; }
+  .progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s; }
+  .progress-label { font-size: 12px; color: var(--muted); }
+  .answer-box { margin-top: 12px; }
+  .answer-box label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .answer-box input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Consolas', monospace; font-size: 13px; padding: 8px 12px; border-radius: 6px; width: 100%; }
+  .answer-box input:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 9px 20px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-primary { background: var(--blue); color: var(--bg); }
+  .btn-sm { padding: 5px 14px; font-size: 13px; }
+  .result-msg { margin-top: 8px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+  .result-msg.correct { background: rgba(63,185,80,0.12); color: var(--green); display: block; }
+  .result-msg.wrong { background: rgba(248,81,73,0.1); color: var(--red); display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--surface2); color: var(--muted); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">MODULE F</div>
+  <h1>Lab F6-A: Web Service Assessment</h1>
+  <div class="header-meta">
+    <span>⏱ 30-35 min</span>
+    <span>🎯 Intermediate</span>
+    <span>🖥 SYNTEX-LNX01</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">Ports</div><div class="value">TCP 80, 443</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F3 - Network Services</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Overview</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">Web services are present on almost every infrastructure engagement. This lab covers web server fingerprinting, banner analysis, information disclosure via misconfiguration (directory listing, phpinfo), and systematic credential harvesting from exposed web content. These are reconnaissance techniques performed before any active exploitation.</p>
+    <div class="callout info">
+      <span>ℹ️</span>
+      <div>This lab focuses on passive web enumeration - reading what the server exposes without active exploitation. Many CPSA findings in web assessments come from server misconfiguration rather than application vulnerabilities.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li><span class="obj-num">1</span>Fingerprint the web server using banner grabbing and Nmap scripts</li>
+      <li><span class="obj-num">2</span>Identify information disclosure via directory listing</li>
+      <li><span class="obj-num">3</span>Extract system configuration from phpinfo()</li>
+      <li><span class="obj-num">4</span>Harvest credentials from exposed backup and development files</li>
+      <li><span class="obj-num">5</span>Perform directory brute-forcing with gobuster/dirbuster</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tools Required</div>
+    <div class="tag-list">
+      <span class="tag">nmap</span>
+      <span class="tag">curl</span>
+      <span class="tag">gobuster</span>
+      <span class="tag">nikto</span>
+      <span class="tag">whatweb</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Steps</div>
+
+    <div class="step open" id="step1">
+      <div class="step-header" onclick="toggleStep('step1')">
+        <div class="step-num">1</div>
+        <div class="step-title">Web Server Fingerprinting</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Identify the web server software, version, and technologies before browsing to the site.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Banner grab via curl</span>
+<span class="cmd">curl -I http://&lt;TARGET_IP&gt;/</span>
+
+<span class="out">HTTP/1.1 200 OK
+Date: ...
+Server: Apache/2.4.41 (Ubuntu)
+X-Powered-By: PHP/7.4.3
+Content-Type: text/html; charset=UTF-8</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Nmap HTTP scripts</span>
+<span class="cmd">nmap -p 80,443 -sV --script http-headers,http-server-header,http-title &lt;TARGET_IP&gt;</span>
+
+<span class="comment"># WhatWeb for technology detection</span>
+<span class="cmd">whatweb http://&lt;TARGET_IP&gt;</span></pre>
+        <div class="callout tip">
+          <span>💡</span>
+          <div><code>Server: Apache/2.4.41 (Ubuntu)</code> and <code>X-Powered-By: PHP/7.4.3</code> are both information disclosure findings. Production servers should suppress version information. Note these for your report - the CPSA recommendation is <code>ServerTokens Prod</code> for Apache.</div>
+        </div>
+        <div class="answer-box">
+          <label>What Apache version is running?</label>
+          <input type="text" id="q1" placeholder="e.g. 2.4.41" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('q1','2.4.41','q1-result')">Check</button>
+          <div class="result-msg" id="q1-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-header" onclick="toggleStep('step2')">
+        <div class="step-num">2</div>
+        <div class="step-title">Directory Listing Discovery</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>The home page links to several directories. Browse to them directly to check for directory listing.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Check each directory from the homepage links</span>
+<span class="cmd">curl http://&lt;TARGET_IP&gt;/backup/
+curl http://&lt;TARGET_IP&gt;/dev/
+curl http://&lt;TARGET_IP&gt;/admin/
+curl http://&lt;TARGET_IP&gt;/config/</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Directory listing gives you file names without needing to guess</span>
+<span class="out">Index of /backup
+[ICO] Name       Last modified   Size  Description
+[TXT] config.bak 2024-10-18     350
+
+[PARENTDIR] Parent Directory</span></pre>
+        <div class="callout danger">
+          <span>🚨</span>
+          <div>Directory listing (Apache <code>Options Indexes</code>) exposes the full directory tree to unauthenticated users. This is a critical misconfiguration - it allows attackers to discover files that were never intended to be publicly accessible.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-header" onclick="toggleStep('step3')">
+        <div class="step-num">3</div>
+        <div class="step-title">Credential Harvesting from Exposed Files</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Retrieve the files exposed by directory listing. Both /backup/ and /dev/ contain plaintext credentials.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">curl http://&lt;TARGET_IP&gt;/backup/config.bak</span>
+
+<span class="out"># Syntex Application Config - BACKUP COPY
+DB_HOST=localhost
+DB_NAME=syntexdb
+DB_USER=syntex_app
+DB_PASS=AppPass2024!
+ADMIN_USER=admin
+ADMIN_PASS=admin123
+SECRET_KEY=syntex_secret_2024</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">curl http://&lt;TARGET_IP&gt;/dev/notes.txt</span>
+
+<span class="out">Dev Notes - NOT FOR PRODUCTION
+TODO: remove hardcoded creds before go-live
+admin / admin123
+jsmith / Password1
+DB: syntex_app / AppPass2024!</span></pre>
+        <div class="callout warn">
+          <span>⚠️</span>
+          <div>You now have three credential sets from web enumeration alone. Add these to your credential list and test against SSH, FTP, the database, and any admin panels in scope.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-header" onclick="toggleStep('step4')">
+        <div class="step-num">4</div>
+        <div class="step-title">phpinfo() Analysis</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>The phpinfo() page reveals detailed server configuration - PHP version, loaded modules, server paths, and environment variables.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">curl http://&lt;TARGET_IP&gt;/phpinfo.php | grep -i "Server\|PHP Version\|document_root\|extension\|disable_functions"</span></pre>
+        <p>Key information to note from phpinfo():</p>
+        <table>
+          <tr><th>Field</th><th>Why It Matters</th></tr>
+          <tr><td>PHP Version</td><td>Check for known CVEs against this version</td></tr>
+          <tr><td>Document Root</td><td>Absolute path helps if LFI/directory traversal found later</td></tr>
+          <tr><td>disable_functions</td><td>Empty = all PHP functions enabled, including system()</td></tr>
+          <tr><td>allow_url_fopen</td><td>On = remote file inclusion possible</td></tr>
+          <tr><td>Server API</td><td>Apache2Handler confirms mod_php, not FPM</td></tr>
+          <tr><td>Loaded Extensions</td><td>MySQLi, curl etc. - database connectivity confirmed</td></tr>
+        </table>
+        <div class="callout danger">
+          <span>🚨</span>
+          <div>phpinfo() is a critical information disclosure finding. It should never be accessible on a production system. It provides enough detail to significantly assist exploitation of other vulnerabilities.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step5">
+      <div class="step-header" onclick="toggleStep('step5')">
+        <div class="step-num">5</div>
+        <div class="step-title">Directory Brute-Forcing</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Even with directory listing, gobuster can find hidden directories and files not linked from the main page.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">gobuster dir -u http://&lt;TARGET_IP&gt; -w /usr/share/wordlists/dirb/common.txt -x php,txt,bak,conf -t 50</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Or with dirsearch</span>
+<span class="cmd">dirsearch -u http://&lt;TARGET_IP&gt; -e php,txt,bak,conf</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Nikto for vulnerability scanning and additional disclosure</span>
+<span class="cmd">nikto -h http://&lt;TARGET_IP&gt;</span></pre>
+        <div class="callout tip">
+          <span>💡</span>
+          <div>Nikto will flag the directory listing, missing security headers, phpinfo, and Apache version disclosure automatically. Its output maps well to CPSA finding categories. Always run it as part of web service assessment.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step6">
+      <div class="step-header" onclick="toggleStep('step6')">
+        <div class="step-num">6</div>
+        <div class="step-title">Missing Security Headers</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Check for missing HTTP security headers - a common CPSA finding category.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">curl -I http://&lt;TARGET_IP&gt;/ | grep -i "x-frame\|x-content\|strict-transport\|content-security\|x-xss"</span>
+
+<span class="comment"># No output = headers missing</span></pre>
+        <table>
+          <tr><th>Missing Header</th><th>Risk</th><th>Severity</th></tr>
+          <tr><td>X-Frame-Options</td><td>Clickjacking attacks possible</td><td><span class="badge badge-yellow">Low-Medium</span></td></tr>
+          <tr><td>X-Content-Type-Options</td><td>MIME sniffing attacks</td><td><span class="badge badge-yellow">Low</span></td></tr>
+          <tr><td>Content-Security-Policy</td><td>XSS amplification</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+          <tr><td>Strict-Transport-Security</td><td>SSL stripping possible</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Completion Checklist</div>
+    <div id="checklist">
+      <div class="check-item" id="c1"><input type="checkbox" onchange="updateCheck('c1')"><label>Identified Apache version and PHP version from headers</label></div>
+      <div class="check-item" id="c2"><input type="checkbox" onchange="updateCheck('c2')"><label>Confirmed directory listing on /backup/ and /dev/</label></div>
+      <div class="check-item" id="c3"><input type="checkbox" onchange="updateCheck('c3')"><label>Retrieved config.bak and extracted database credentials</label></div>
+      <div class="check-item" id="c4"><input type="checkbox" onchange="updateCheck('c4')"><label>Retrieved dev/notes.txt and extracted user credentials</label></div>
+      <div class="check-item" id="c5"><input type="checkbox" onchange="updateCheck('c5')"><label>Accessed phpinfo.php and noted key configuration values</label></div>
+      <div class="check-item" id="c6"><input type="checkbox" onchange="updateCheck('c6')"><label>Confirmed missing security headers</label></div>
+      <div class="check-item" id="c7"><input type="checkbox" onchange="updateCheck('c7')"><label>Run nikto and noted findings</label></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 / 7 complete</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Finding Summary</div>
+    <table>
+      <tr><th>Finding</th><th>Detail</th><th>Severity</th></tr>
+      <tr><td>Server version disclosure</td><td>Apache/2.4.41, PHP/7.4.3 in headers</td><td><span class="badge badge-yellow">Low</span></td></tr>
+      <tr><td>Directory listing enabled</td><td>/backup/, /dev/, /admin/ all listable</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Credentials in /backup/config.bak</td><td>DB password and admin credentials</td><td><span class="badge badge-red">Critical</span></td></tr>
+      <tr><td>Credentials in /dev/notes.txt</td><td>Multiple plaintext credentials</td><td><span class="badge badge-red">Critical</span></td></tr>
+      <tr><td>phpinfo() accessible</td><td>Full PHP and server configuration exposed</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Missing security headers</td><td>No CSP, X-Frame, HSTS, X-Content-Type</td><td><span class="badge badge-yellow">Low-Medium</span></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="step open" id="kc1">
+      <div class="step-header" onclick="toggleStep('kc1')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What Apache directive enables directory listing?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc1-ans" placeholder="Enter directive" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc1-ans','options indexes','kc1-result')">Check</button>
+          <div class="result-msg" id="kc1-result"></div>
+        </div>
+      </div>
+    </div>
+    <div class="step" id="kc2">
+      <div class="step-header" onclick="toggleStep('kc2')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What is the database password found in config.bak?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc2-ans" placeholder="Enter password" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc2-ans','AppPass2024!','kc2-result')">Check</button>
+          <div class="result-msg" id="kc2-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleStep(id) { document.getElementById(id).classList.toggle('open'); }
+function copyPre(btn) {
+  const text = btn.parentElement.innerText.replace('Copy\n','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+function checkAnswer(inputId, correct, resultId) {
+  const val = document.getElementById(inputId).value.trim().toLowerCase();
+  const corr = correct.toLowerCase();
+  const el = document.getElementById(resultId);
+  if (val === corr || val.includes(corr) || corr.includes(val)) {
+    el.className = 'result-msg correct'; el.textContent = '✓ Correct';
+  } else {
+    el.className = 'result-msg wrong'; el.textContent = '✗ Not quite - review the step above';
+  }
+}
+function updateCheck(id) {
+  const item = document.getElementById(id);
+  const cb = item.querySelector('input');
+  if (cb.checked) item.classList.add('checked'); else item.classList.remove('checked');
+  const all = document.querySelectorAll('#checklist .check-item input');
+  const done = document.querySelectorAll('#checklist .check-item input:checked').length;
+  document.getElementById('progress-fill').style.width = (done/all.length*100) + '%';
+  document.getElementById('progress-label').textContent = done + ' / ' + all.length + ' complete';
+}
+</script>
+</body>
+</html>

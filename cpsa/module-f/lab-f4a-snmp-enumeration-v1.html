@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab F4-A: SNMP Enumeration</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f78166;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #d29922;
+    --purple: #bc8cff;
+    --cyan: #39d353;
+    --red: #f85149;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  .header-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header-meta { margin-left: auto; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
+  .header-meta span { display: flex; align-items: center; gap: 5px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .info-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-card .value { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0; display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .obj-num { background: var(--blue); color: var(--bg); font-size: 11px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .step-header:hover { background: var(--surface2); }
+  .step-num { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .step-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .step.open .step-arrow { transform: rotate(90deg); }
+  .step-body { padding: 0 18px 18px; display: none; }
+  .step.open .step-body { display: block; }
+  .step-body p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin: 10px 0; position: relative; }
+  .cmd { color: var(--cyan); }
+  .comment { color: var(--muted); font-style: italic; }
+  .out { color: var(--green); }
+  .highlight { color: var(--yellow); }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+  .copy-btn:hover { color: var(--text); }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; display: flex; gap: 10px; }
+  .callout.info { background: rgba(88,166,255,0.08); border-left: 3px solid var(--blue); }
+  .callout.warn { background: rgba(210,153,34,0.08); border-left: 3px solid var(--yellow); }
+  .callout.tip { background: rgba(63,185,80,0.08); border-left: 3px solid var(--green); }
+  .callout.danger { background: rgba(248,81,73,0.08); border-left: 3px solid var(--red); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+  .check-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .check-item:hover { border-color: var(--blue); }
+  .check-item input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+  .check-item label { font-size: 14px; cursor: pointer; flex: 1; }
+  .check-item.checked label { color: var(--muted); text-decoration: line-through; }
+  .progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s; }
+  .progress-label { font-size: 12px; color: var(--muted); }
+  .answer-box { margin-top: 12px; }
+  .answer-box label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .answer-box input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Consolas', monospace; font-size: 13px; padding: 8px 12px; border-radius: 6px; width: 100%; }
+  .answer-box input:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 9px 20px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary { background: var(--blue); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-sm { padding: 5px 14px; font-size: 13px; }
+  .result-msg { margin-top: 8px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+  .result-msg.correct { background: rgba(63,185,80,0.12); color: var(--green); display: block; }
+  .result-msg.wrong { background: rgba(248,81,73,0.1); color: var(--red); display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--surface2); color: var(--muted); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">MODULE F</div>
+  <h1>Lab F4-A: SNMP Enumeration</h1>
+  <div class="header-meta">
+    <span>⏱ 25-30 min</span>
+    <span>🎯 Intermediate</span>
+    <span>🖥 SYNTEX-LNX01</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">Port</div><div class="value">UDP 161</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F3 - Network Services</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Overview</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">SNMP (Simple Network Management Protocol) is a UDP-based protocol used for network device management. Misconfigured SNMP services expose significant system information including running processes, network interfaces, installed software, and user accounts. This lab covers community string enumeration, MIB walking, and extracting actionable intelligence from SNMP responses.</p>
+    <div class="callout info">
+      <span>ℹ️</span>
+      <div>SNMP v1 and v2c use community strings as cleartext passwords. Default strings (<code>public</code>, <code>private</code>) are extremely common in production environments. CREST assessors are expected to identify and exploit weak community strings as part of host discovery and enumeration.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li><span class="obj-num">1</span>Identify SNMP services using Nmap UDP scanning</li>
+      <li><span class="obj-num">2</span>Enumerate valid community strings using onesixtyone</li>
+      <li><span class="obj-num">3</span>Walk the full MIB tree using snmpwalk</li>
+      <li><span class="obj-num">4</span>Extract system information, running processes, and network interfaces</li>
+      <li><span class="obj-num">5</span>Document findings to CPSA reporting standard</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tools Required</div>
+    <div class="tag-list">
+      <span class="tag">nmap</span>
+      <span class="tag">onesixtyone</span>
+      <span class="tag">snmpwalk</span>
+      <span class="tag">snmp-check</span>
+      <span class="tag">snmpget</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Steps</div>
+
+    <div class="step open" id="step1">
+      <div class="step-header" onclick="toggleStep('step1')">
+        <div class="step-num">1</div>
+        <div class="step-title">SNMP Service Discovery</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>SNMP runs on UDP port 161. Standard TCP scans miss it - you must explicitly scan UDP. Note that UDP scanning is slower than TCP and requires root/sudo.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">sudo nmap -sU -p 161 --open &lt;TARGET_IP&gt;</span>
+<span class="comment"># Quick UDP scan for SNMP only</span>
+
+<span class="comment"># Expected output:</span>
+<span class="out">PORT    STATE SERVICE
+161/udp open  snmp</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">sudo nmap -sU -p 161 -sV --script snmp-info &lt;TARGET_IP&gt;</span>
+<span class="comment"># Version detection + default script</span></pre>
+        <div class="callout tip">
+          <span>💡</span>
+          <div>If <code>-sU</code> is slow, add <code>--min-rate 1000</code> to speed it up. UDP scanning sends packets and waits for ICMP port-unreachable responses - open ports often don't respond at all.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-header" onclick="toggleStep('step2')">
+        <div class="step-num">2</div>
+        <div class="step-title">Community String Enumeration</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Community strings act as cleartext passwords for SNMP access. Use onesixtyone to brute-force common strings.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Create a community string wordlist</span>
+<span class="cmd">cat &gt; /tmp/communities.txt &lt;&lt; 'EOF'
+public
+private
+internal
+community
+manager
+admin
+snmp
+monitor
+syntex
+network
+cisco
+router
+EOF</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">onesixtyone -c /tmp/communities.txt &lt;TARGET_IP&gt;</span>
+
+<span class="comment"># Expected output:</span>
+<span class="out">Scanning 1 hosts, 12 communities
+&lt;TARGET_IP&gt; [public] Linux syntex-lnx01 5.4.0-150-generic #167-Ubuntu...
+&lt;TARGET_IP&gt; [private] Linux syntex-lnx01 5.4.0-150-generic...
+&lt;TARGET_IP&gt; [internal] Linux syntex-lnx01 5.4.0-150-generic...
+&lt;TARGET_IP&gt; [syntex] Linux syntex-lnx01 5.4.0-150-generic...</span></pre>
+        <div class="callout warn">
+          <span>⚠️</span>
+          <div>Document ALL valid community strings found. Read-write community strings (rwcommunity) allow configuration changes to the device - a critical finding on any engagement.</div>
+        </div>
+        <div class="answer-box">
+          <label>How many valid community strings did you find?</label>
+          <input type="text" id="q1" placeholder="Enter number" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('q1','4','q1-result')">Check</button>
+          <div class="result-msg" id="q1-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-header" onclick="toggleStep('step3')">
+        <div class="step-num">3</div>
+        <div class="step-title">MIB Walking - System Information</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Walk the MIB tree to extract system information. Start with the system MIB (OID 1.3.6.1.2.1.1) which is always accessible.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Walk the system MIB</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; 1.3.6.1.2.1.1</span>
+
+<span class="comment"># Look for:</span>
+<span class="out">SNMPv2-MIB::sysDescr.0 = STRING: Linux syntex-lnx01 5.4.0-150-generic
+SNMPv2-MIB::sysObjectID.0 = OID: NET-SNMP-MIB::netSnmpAgentOIDs.10
+SNMPv2-MIB::sysContact.0 = STRING: admin@syntex.local
+SNMPv2-MIB::sysName.0 = STRING: SYNTEX-LNX01
+SNMPv2-MIB::sysLocation.0 = STRING: Syntex HQ, London</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Full MIB walk - pipe to file for analysis</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; . &gt; /tmp/snmp_full.txt 2&gt;&amp;1
+wc -l /tmp/snmp_full.txt</span></pre>
+        <div class="callout info">
+          <span>ℹ️</span>
+          <div>Key OID branches to walk: <strong>1.3.6.1.2.1.25.4.2</strong> (running processes), <strong>1.3.6.1.2.1.2.2</strong> (network interfaces), <strong>1.3.6.1.2.1.25.6.3</strong> (installed software), <strong>1.3.6.1.4.1.77.1.2.25</strong> (user accounts on Windows).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-header" onclick="toggleStep('step4')">
+        <div class="step-num">4</div>
+        <div class="step-title">Extract Running Processes and Network Interfaces</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Use targeted OID queries to extract specific system data that informs the wider assessment.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Running processes (hrSWRunName)</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; 1.3.6.1.2.1.25.4.2.1.2</span>
+
+<span class="comment"># Network interfaces</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; 1.3.6.1.2.1.2.2.1.2</span>
+
+<span class="comment"># IP addresses</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; 1.3.6.1.2.1.4.20.1.1</span>
+
+<span class="comment"># Installed software</span>
+<span class="cmd">snmpwalk -v2c -c public &lt;TARGET_IP&gt; 1.3.6.1.2.1.25.6.3.1.2</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># snmp-check gives a nicely formatted summary</span>
+<span class="cmd">snmp-check -c public -v 2c &lt;TARGET_IP&gt;</span></pre>
+        <div class="callout tip">
+          <span>💡</span>
+          <div>Running processes revealed via SNMP can identify internal tooling, backup agents, monitoring software, and database services that weren't visible in the port scan. Cross-reference with your open port list.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step5">
+      <div class="step-header" onclick="toggleStep('step5')">
+        <div class="step-num">5</div>
+        <div class="step-title">Read-Write Community String Test</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>The <code>internal</code> community string is configured as read-write (rwcommunity). Verify this and demonstrate the impact.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Verify rwcommunity by attempting to read system name</span>
+<span class="cmd">snmpget -v2c -c internal &lt;TARGET_IP&gt; 1.3.6.1.2.1.1.5.0</span>
+<span class="out">SNMPv2-MIB::sysName.0 = STRING: SYNTEX-LNX01</span>
+
+<span class="comment"># A read-write string could allow config changes - document but do NOT modify</span>
+<span class="comment"># On a real engagement, changing sysName or routing tables is out of scope</span></pre>
+        <div class="callout danger">
+          <span>🚨</span>
+          <div><strong>Scope boundary:</strong> Never use a read-write community string to modify target configuration during an assessment. Demonstrating that the string grants write access (by reading with it) is sufficient evidence. Note this finding and confirm with your engagement lead before attempting any writes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step6">
+      <div class="step-header" onclick="toggleStep('step6')">
+        <div class="step-num">6</div>
+        <div class="step-title">Nmap SNMP Scripts</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Nmap includes several SNMP NSE scripts that automate common enumeration tasks.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">sudo nmap -sU -p 161 --script snmp-brute,snmp-info,snmp-interfaces,snmp-processes,snmp-sysdescr &lt;TARGET_IP&gt;</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># snmp-brute with custom wordlist</span>
+<span class="cmd">sudo nmap -sU -p 161 --script snmp-brute --script-args snmp-brute.communitiesdb=/tmp/communities.txt &lt;TARGET_IP&gt;</span></pre>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Completion Checklist</div>
+    <div id="checklist">
+      <div class="check-item" id="c1"><input type="checkbox" onchange="updateCheck('c1')"><label>Identified SNMP running on UDP 161</label></div>
+      <div class="check-item" id="c2"><input type="checkbox" onchange="updateCheck('c2')"><label>Enumerated at least 4 valid community strings</label></div>
+      <div class="check-item" id="c3"><input type="checkbox" onchange="updateCheck('c3')"><label>Extracted hostname, location, and contact via MIB walk</label></div>
+      <div class="check-item" id="c4"><input type="checkbox" onchange="updateCheck('c4')"><label>Listed running processes via OID 1.3.6.1.2.1.25.4.2.1.2</label></div>
+      <div class="check-item" id="c5"><input type="checkbox" onchange="updateCheck('c5')"><label>Identified the read-write community string</label></div>
+      <div class="check-item" id="c6"><input type="checkbox" onchange="updateCheck('c6')"><label>Documented findings with OID references for report</label></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 / 6 complete</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Finding Summary</div>
+    <table>
+      <tr><th>Finding</th><th>Detail</th><th>Severity</th></tr>
+      <tr><td>SNMP v1/v2c exposed</td><td>UDP/161 accessible from network</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Default community strings</td><td>public, private active</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Read-write community string</td><td>internal - allows config modification</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Full MIB tree exposed</td><td>Processes, interfaces, software enumerable</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Organisation-specific string</td><td>syntex string indicates targeting knowledge</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="step open" id="kc1">
+      <div class="step-header" onclick="toggleStep('kc1')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What SNMP version uses community strings as authentication?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc1-ans" placeholder="Enter version(s)" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc1-ans','v1 and v2c','kc1-result')">Check</button>
+          <div class="result-msg" id="kc1-result"></div>
+        </div>
+      </div>
+    </div>
+    <div class="step" id="kc2">
+      <div class="step-header" onclick="toggleStep('kc2')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What OID is used to enumerate running processes via SNMP?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc2-ans" placeholder="Enter OID" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc2-ans','1.3.6.1.2.1.25.4.2.1.2','kc2-result')">Check</button>
+          <div class="result-msg" id="kc2-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleStep(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function copyPre(btn) {
+  const pre = btn.parentElement;
+  const text = pre.innerText.replace('Copy\n','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function checkAnswer(inputId, correct, resultId) {
+  const val = document.getElementById(inputId).value.trim().toLowerCase();
+  const corr = correct.toLowerCase();
+  const el = document.getElementById(resultId);
+  if (val === corr || val.includes(corr) || corr.includes(val)) {
+    el.className = 'result-msg correct';
+    el.textContent = '✓ Correct';
+  } else {
+    el.className = 'result-msg wrong';
+    el.textContent = '✗ Not quite - review the step above';
+  }
+}
+
+function updateCheck(id) {
+  const item = document.getElementById(id);
+  const cb = item.querySelector('input');
+  if (cb.checked) item.classList.add('checked');
+  else item.classList.remove('checked');
+  const all = document.querySelectorAll('#checklist .check-item input');
+  const done = document.querySelectorAll('#checklist .check-item input:checked').length;
+  document.getElementById('progress-fill').style.width = (done/all.length*100) + '%';
+  document.getElementById('progress-label').textContent = done + ' / ' + all.length + ' complete';
+}
+</script>
+</body>
+</html>

