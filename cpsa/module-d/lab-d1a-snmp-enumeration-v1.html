@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D1-A: SNMP Enumeration</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --red: #c0392b;
+    --red-dim: #922b21;
+    --green: #2ecc71;
+    --yellow: #f1c40f;
+    --blue: #3498db;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --code-bg: #0d1117;
+    --tag-bg: #21262d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 900px; margin: 0 auto; }
+  .lab-header { border-left: 4px solid var(--red); padding: 16px 20px; background: var(--surface); border-radius: 0 8px 8px 0; margin-bottom: 28px; }
+  .lab-badge { display: inline-block; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; }
+  .lab-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .lab-header p { color: var(--muted); font-size: 13px; }
+  .meta-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .meta-item span.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-red { background: var(--red); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-green { background: var(--green); }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .obj-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .obj-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+  .obj-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-top: 8px; flex-shrink: 0; }
+  .env-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .env-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .env-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .env-card .hostname { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .env-card .ip { font-family: 'Courier New', monospace; font-size: 13px; color: var(--blue); }
+  .env-card .role { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .step-list { display: flex; flex-direction: column; gap: 20px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .step-num { background: var(--red); color: #fff; font-weight: 700; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; }
+  .step-body { padding: 16px; }
+  .step-body p { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+  .step-body p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+  code { font-family: 'Courier New', monospace; font-size: 13px; color: #a9d1f7; }
+  pre code { color: #a9d1f7; }
+  .comment { color: var(--muted); }
+  .highlight { color: #f0b27a; }
+  .inline-code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-family: 'Courier New', monospace; font-size: 12px; color: #a9d1f7; }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-info { background: #1a2332; border-left: 3px solid var(--blue); }
+  .callout-warn { background: #1f1d0e; border-left: 3px solid var(--yellow); }
+  .callout-success { background: #0f1e15; border-left: 3px solid var(--green); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { color: var(--muted); }
+  .callout-body strong { color: var(--text); }
+  .answer-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-top: 10px; }
+  .answer-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--green); font-weight: 700; margin-bottom: 6px; }
+  .answer-block p { font-size: 13px; color: var(--muted); margin: 0; }
+  .answer-block code { color: var(--green); }
+  .q-list { display: flex; flex-direction: column; gap: 14px; }
+  .q-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .q-text { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .q-num { color: var(--red); font-weight: 700; margin-right: 6px; }
+  details summary { cursor: pointer; font-size: 12px; color: var(--blue); user-select: none; margin-top: 6px; }
+  details summary:hover { color: #5dade2; }
+  details[open] summary { margin-bottom: 8px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .tag { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 11px; color: var(--muted); }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-badge">CREST CPSA - Module D</div>
+  <h1>Lab D1-A: SNMP Enumeration</h1>
+  <p>Query an SNMP v2c service, extract device information, and brute force community strings against SYNTEX-LNX01.</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="dot dot-yellow"></span> Intermediate</div>
+    <div class="meta-item"><span class="dot dot-red"></span> Offensive</div>
+    <div class="meta-item">~30 minutes</div>
+    <div class="meta-item">Target: SYNTEX-LNX01</div>
+  </div>
+  <div class="tag-row">
+    <span class="tag">SNMP</span>
+    <span class="tag">UDP 161</span>
+    <span class="tag">snmpwalk</span>
+    <span class="tag">onesixtyone</span>
+    <span class="tag">nmap</span>
+    <span class="tag">D1</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Objectives</div>
+  <ul class="obj-list">
+    <li>Discover SNMP running on SYNTEX-LNX01 using nmap</li>
+    <li>Confirm the default community string is in use</li>
+    <li>Enumerate system information, interfaces, and running processes via snmpwalk</li>
+    <li>Brute force community strings using onesixtyone</li>
+    <li>Retrieve specific OID values using snmpget</li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-title">Lab Environment</div>
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="label">Attacker</div>
+      <div class="hostname">Kali Linux</div>
+      <div class="ip">Your machine</div>
+      <div class="role">Tools: nmap, snmpwalk, snmpget, onesixtyone</div>
+    </div>
+    <div class="env-card">
+      <div class="label">Target</div>
+      <div class="hostname">SYNTEX-LNX01</div>
+      <div class="ip">&lt;TARGET-IP&gt;</div>
+      <div class="role">Ubuntu 20.04 - SNMP v2c enabled</div>
+    </div>
+  </div>
+  <div class="callout callout-info" style="margin-top:14px;">
+    <div class="callout-icon">&#9432;</div>
+    <div class="callout-body">Replace <strong>&lt;TARGET-IP&gt;</strong> with the IP address assigned by CourseStack when you launch the SYNTEX-LNX01 machine.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Background</div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:0;">SNMP (Simple Network Management Protocol) runs on UDP port 161. Versions 1 and 2c transmit the community string in cleartext - it acts as a password. The default community strings are <span class="inline-code">public</span> (read-only) and <span class="inline-code">private</span> (read-write). If either is present on a live device, an attacker can dump the entire device configuration: routing tables, interfaces, running processes, ARP cache, and user accounts. On Cisco and other network devices, SNMP v2c with the <span class="inline-code">private</span> community string may also allow writing to the device MIB.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Steps</div>
+  <div class="step-list">
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Discover SNMP with nmap</div>
+      </div>
+      <div class="step-body">
+        <p>Use nmap with a UDP scan and the SNMP NSE script to confirm the service is running and identify what community strings are accepted.</p>
+        <pre><code><span class="comment"># UDP SNMP discovery with script</span>
+nmap -sU -p 161 --script snmp-info &lt;TARGET-IP&gt;
+
+<span class="comment"># If --script snmp-info returns nothing, try the broader snmp category:</span>
+nmap -sU -p 161 --script snmp* &lt;TARGET-IP&gt;</code></pre>
+        <div class="callout callout-warn">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-body"><strong>UDP scans are slow.</strong> nmap will report the port as <strong>open|filtered</strong> if there is no ICMP unreachable response. That is normal - wait for the script output to confirm a valid response.</div>
+        </div>
+        <div class="answer-block">
+          <div class="answer-label">Expected Result</div>
+          <p>nmap should return <code>161/udp open snmp</code> and the script output will include system information: hostname, OS, uptime, and contact details if configured.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Walk the full MIB tree</div>
+      </div>
+      <div class="step-body">
+        <p>snmpwalk traverses the entire Management Information Base (MIB) and dumps all values the community string can read. This is the equivalent of a full config dump on a network device.</p>
+        <pre><code><span class="comment"># Walk the entire MIB tree with community string 'public'</span>
+snmpwalk -v2c -c public &lt;TARGET-IP&gt;
+
+<span class="comment"># Walk just the system subtree (faster for initial triage)</span>
+snmpwalk -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.1
+
+<span class="comment"># Walk the interface table</span>
+snmpwalk -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.2.2</code></pre>
+        <div class="callout callout-info">
+          <div class="callout-icon">&#9432;</div>
+          <div class="callout-body">A full walk produces a lot of output. Pipe it to <strong>less</strong> or redirect to a file: <code>snmpwalk -v2c -c public &lt;TARGET-IP&gt; &gt; snmp-dump.txt</code></div>
+        </div>
+        <div class="answer-block">
+          <div class="answer-label">Key OID Areas to Note</div>
+          <p><code>1.3.6.1.2.1.1</code> - System info (hostname, description, uptime)<br>
+          <code>1.3.6.1.2.1.2</code> - Network interfaces<br>
+          <code>1.3.6.1.2.1.4.20</code> - IP address table<br>
+          <code>1.3.6.1.2.1.25.4.2</code> - Running processes</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Get specific OID values</div>
+      </div>
+      <div class="step-body">
+        <p>snmpget retrieves a single OID value. Use this when you know exactly what you want - faster and quieter than a full walk.</p>
+        <pre><code><span class="comment"># Get the system hostname (sysName OID)</span>
+snmpget -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.1.5.0
+
+<span class="comment"># Get the system description (OS, kernel version)</span>
+snmpget -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.1.1.0
+
+<span class="comment"># Get system uptime</span>
+snmpget -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.1.3.0</code></pre>
+        <div class="answer-block">
+          <div class="answer-label">What to Record</div>
+          <p>Note the hostname returned by <code>1.3.6.1.2.1.1.5.0</code> - this confirms you are talking to SYNTEX-LNX01. The system description OID will return the Linux kernel version and distribution.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Brute force community strings</div>
+      </div>
+      <div class="step-body">
+        <p>onesixtyone is built specifically for SNMP community string brute forcing. It is fast because it sends multiple UDP packets without waiting for responses.</p>
+        <pre><code><span class="comment"># Use the built-in SNMP wordlist</span>
+onesixtyone -c /usr/share/wordlists/snmp.txt &lt;TARGET-IP&gt;
+
+<span class="comment"># If the wordlist location differs on your system:</span>
+locate snmp.txt
+
+<span class="comment"># You can also create a minimal wordlist manually:</span>
+echo -e "public\nprivate\ncommunity\nnetwork\nmanager\nadmin" &gt; snmp-words.txt
+onesixtyone -c snmp-words.txt &lt;TARGET-IP&gt;</code></pre>
+        <div class="callout callout-warn">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-body"><strong>Assessment note:</strong> Aggressive UDP brute forcing can cause instability on production network devices. On a real engagement, agree SNMP testing scope with the client before running onesixtyone at full speed.</div>
+        </div>
+        <div class="answer-block">
+          <div class="answer-label">Expected Result</div>
+          <p>onesixtyone will print the IP and community string for each successful response: <code>&lt;TARGET-IP&gt; [public] Linux SYNTEX-LNX01 ...</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Enumerate running processes</div>
+      </div>
+      <div class="step-body">
+        <p>The HOST-RESOURCES-MIB contains running process information. On a network device this would reveal management software versions. On a Linux server it reveals what services are active - useful for further attack planning.</p>
+        <pre><code><span class="comment"># Enumerate running processes via SNMP</span>
+snmpwalk -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.25.4.2
+
+<span class="comment"># Filter for process names only (column 2 of the hrSWRunTable)</span>
+snmpwalk -v2c -c public &lt;TARGET-IP&gt; 1.3.6.1.2.1.25.4.2.1.2</code></pre>
+        <div class="answer-block">
+          <div class="answer-label">Why This Matters</div>
+          <p>Process enumeration via SNMP reveals services running on the target - web servers, databases, monitoring agents - without needing to touch any application port directly. This information goes directly into the assessment report as an unauthenticated information disclosure finding.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Confirmation Questions</div>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">1.</span> What community string did onesixtyone confirm on SYNTEX-LNX01?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><code>public</code> - the default read-only community string. This is a HIGH severity finding - the device is using the out-of-the-box default, meaning any attacker with network access can dump its configuration without any credentials.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">2.</span> What OID do you query to retrieve the system hostname?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><code>1.3.6.1.2.1.1.5.0</code> - this is the sysName OID in the system MIB subtree. The trailing <code>.0</code> is required for scalar objects.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">3.</span> You discover a read-write community string (<span class="inline-code">private</span>) is also active. What additional risk does this introduce beyond information disclosure?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>A read-write community string allows an attacker to write values to the MIB. On a network device this could mean modifying routing tables, disabling interfaces, or changing the device configuration. In extreme cases (Cisco IOS), it can be used to overwrite the running config or firmware. This escalates the finding from HIGH to CRITICAL.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">4.</span> Which SNMP version should be recommended as a remediation, and why?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>SNMPv3 - it introduces authentication (MD5 or SHA) and encryption (DES or AES). SNMPv1 and v2c transmit community strings in cleartext over UDP, making them trivially interceptable with Wireshark or tcpdump on the same network segment. If SNMPv3 cannot be deployed, SNMP should be disabled entirely and replaced with a management protocol that supports authentication.</p></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="footer">CREST CPSA | My Cyber Academy | Module D - Networking Equipment | Lab D1-A</div>
+
+</body>
+</html>

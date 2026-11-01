@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D2-A: Wireshark Packet Capture Analysis</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --red: #c0392b;
+    --red-dim: #922b21;
+    --green: #2ecc71;
+    --yellow: #f1c40f;
+    --blue: #3498db;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --code-bg: #0d1117;
+    --tag-bg: #21262d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 900px; margin: 0 auto; }
+  .lab-header { border-left: 4px solid var(--red); padding: 16px 20px; background: var(--surface); border-radius: 0 8px 8px 0; margin-bottom: 28px; }
+  .lab-badge { display: inline-block; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; }
+  .lab-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .lab-header p { color: var(--muted); font-size: 13px; }
+  .meta-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .meta-item span.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-red { background: var(--red); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-green { background: var(--green); }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .obj-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .obj-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+  .obj-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-top: 8px; flex-shrink: 0; }
+  .env-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .env-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .env-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .env-card .hostname { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .env-card .ip { font-family: 'Courier New', monospace; font-size: 13px; color: var(--blue); }
+  .env-card .role { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .step-list { display: flex; flex-direction: column; gap: 20px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .step-num { background: var(--red); color: #fff; font-weight: 700; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; }
+  .step-body { padding: 16px; }
+  .step-body p { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+  .step-body p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+  code { font-family: 'Courier New', monospace; font-size: 13px; color: #a9d1f7; }
+  pre code { color: #a9d1f7; }
+  .comment { color: var(--muted); }
+  .highlight { color: #f0b27a; }
+  .inline-code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-family: 'Courier New', monospace; font-size: 12px; color: #a9d1f7; }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-info { background: #1a2332; border-left: 3px solid var(--blue); }
+  .callout-warn { background: #1f1d0e; border-left: 3px solid var(--yellow); }
+  .callout-success { background: #0f1e15; border-left: 3px solid var(--green); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { color: var(--muted); }
+  .callout-body strong { color: var(--text); }
+  .answer-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-top: 10px; }
+  .answer-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--green); font-weight: 700; margin-bottom: 6px; }
+  .answer-block p { font-size: 13px; color: var(--muted); margin: 0; }
+  .answer-block code { color: var(--green); }
+  .q-list { display: flex; flex-direction: column; gap: 14px; }
+  .q-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .q-text { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .q-num { color: var(--red); font-weight: 700; margin-right: 6px; }
+  details summary { cursor: pointer; font-size: 12px; color: var(--blue); user-select: none; margin-top: 6px; }
+  details summary:hover { color: #5dade2; }
+  details[open] summary { margin-bottom: 8px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .tag { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 11px; color: var(--muted); }
+  .filter-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .filter-table th { text-align: left; padding: 8px 12px; background: var(--surface2); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  .filter-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .filter-table td:first-child { font-family: 'Courier New', monospace; color: #a9d1f7; }
+  .filter-table tr:last-child td { border-bottom: none; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-badge">CREST CPSA - Module D</div>
+  <h1>Lab D2-A: Wireshark Packet Capture Analysis</h1>
+  <p>Capture live network traffic, apply display filters, and extract credentials from cleartext protocols using Wireshark and tcpdump.</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="dot dot-yellow"></span> Intermediate</div>
+    <div class="meta-item"><span class="dot dot-red"></span> Offensive</div>
+    <div class="meta-item">~35 minutes</div>
+    <div class="meta-item">Target: SYNTEX-LNX01 / SYNTEX-WIN01</div>
+  </div>
+  <div class="tag-row">
+    <span class="tag">Wireshark</span>
+    <span class="tag">tcpdump</span>
+    <span class="tag">Packet Analysis</span>
+    <span class="tag">HTTP</span>
+    <span class="tag">FTP</span>
+    <span class="tag">D2</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Objectives</div>
+  <ul class="obj-list">
+    <li>Capture live HTTP traffic using Wireshark and extract credentials from a login request</li>
+    <li>Use Wireshark display filters to isolate specific protocol traffic</li>
+    <li>Use the Follow TCP Stream feature to reconstruct a full HTTP conversation</li>
+    <li>Capture traffic on a remote target using tcpdump and transfer the pcap for analysis</li>
+    <li>Analyse a pcap file in Wireshark using Statistics > Protocol Hierarchy</li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-title">Lab Environment</div>
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="label">Attacker</div>
+      <div class="hostname">Kali Linux</div>
+      <div class="ip">Your machine</div>
+      <div class="role">Wireshark, tcpdump, curl</div>
+    </div>
+    <div class="env-card">
+      <div class="label">Target 1</div>
+      <div class="hostname">SYNTEX-LNX01</div>
+      <div class="ip">&lt;TARGET-IP&gt;</div>
+      <div class="role">Ubuntu 20.04 - HTTP login page on port 80</div>
+    </div>
+    <div class="env-card">
+      <div class="label">Target 2</div>
+      <div class="hostname">SYNTEX-WIN01</div>
+      <div class="ip">&lt;WIN01-IP&gt;</div>
+      <div class="role">Windows - FTP service on port 21</div>
+    </div>
+  </div>
+  <div class="callout callout-info" style="margin-top:14px;">
+    <div class="callout-icon">&#9432;</div>
+    <div class="callout-body">Replace <strong>&lt;TARGET-IP&gt;</strong> and <strong>&lt;WIN01-IP&gt;</strong> with the IP addresses assigned by CourseStack for each machine.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Background</div>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">Packet capture is a fundamental network assessment technique. The two tools used in practice are Wireshark (GUI, analysis-focused) and tcpdump (CLI, capture-focused). They use compatible file formats - you capture with tcpdump on a remote host and analyse the .pcap in Wireshark locally.</p>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:0;">The critical distinction is between <strong style="color:var(--text);">capture filters</strong> (BPF syntax, applied during recording) and <strong style="color:var(--text);">display filters</strong> (Wireshark syntax, applied after). Getting this wrong in an exam costs marks.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Wireshark Display Filter Reference</div>
+  <table class="filter-table">
+    <thead>
+      <tr><th>Filter</th><th>What it shows</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>http</td><td>All HTTP traffic</td></tr>
+      <tr><td>http.request.method == "POST"</td><td>HTTP POST requests only - look for login credentials</td></tr>
+      <tr><td>http.request.method == "GET"</td><td>HTTP GET requests</td></tr>
+      <tr><td>ftp</td><td>FTP control channel - USER and PASS commands in cleartext</td></tr>
+      <tr><td>telnet</td><td>All Telnet traffic - entire session readable</td></tr>
+      <tr><td>dns</td><td>All DNS queries and responses</td></tr>
+      <tr><td>arp</td><td>ARP requests and replies - useful for spotting ARP spoofing</td></tr>
+      <tr><td>tcp.port == 445</td><td>SMB traffic</td></tr>
+      <tr><td>ip.addr == 192.168.1.50</td><td>All traffic to or from a specific host</td></tr>
+      <tr><td>ip.src == 192.168.1.50</td><td>Traffic from a specific source only</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Steps</div>
+  <div class="step-list">
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Start Wireshark and capture HTTP traffic</div>
+      </div>
+      <div class="step-body">
+        <p>Open Wireshark on your Kali machine. Select the correct network interface (the one connected to the lab network) and start a capture before generating any traffic.</p>
+        <pre><code><span class="comment"># Start Wireshark from terminal (or use the GUI directly)</span>
+wireshark &amp;
+
+<span class="comment"># In Wireshark:</span>
+<span class="comment"># 1. Select your network interface (usually eth0 or ens33)</span>
+<span class="comment"># 2. Click the blue shark fin to start capturing</span>
+<span class="comment"># 3. Apply a capture filter if you want to limit what is recorded:</span>
+<span class="comment">#    Type in the capture filter box: tcp port 80</span></code></pre>
+        <div class="callout callout-info">
+          <div class="callout-icon">&#9432;</div>
+          <div class="callout-body">If Wireshark shows no interfaces, run it with <strong>sudo wireshark</strong> or add your user to the wireshark group: <code>sudo usermod -aG wireshark $USER</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Generate an HTTP login to SYNTEX-LNX01</div>
+      </div>
+      <div class="step-body">
+        <p>With Wireshark capturing, trigger a login to the HTTP web application on SYNTEX-LNX01. The login credentials will travel in cleartext inside the POST request body.</p>
+        <pre><code><span class="comment"># Option A - use a browser</span>
+<span class="comment"># Navigate to http://&lt;TARGET-IP&gt;/login and submit a login form</span>
+
+<span class="comment"># Option B - use curl to send a POST request directly</span>
+curl -s -X POST http://&lt;TARGET-IP&gt;/login \
+  -d "username=admin&amp;password=Password1" \
+  -H "Content-Type: application/x-www-form-urlencoded"</code></pre>
+        <div class="callout callout-warn">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-body">If the web application is not available on port 80, check what HTTP services are running first: <code>nmap -p 80,8080,8443 &lt;TARGET-IP&gt;</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Apply display filters to isolate the credentials</div>
+      </div>
+      <div class="step-body">
+        <p>Stop the capture. The packet list will contain hundreds of packets. Use display filters to find the login request.</p>
+        <pre><code><span class="comment"># In the Wireshark display filter bar, type:</span>
+
+<span class="comment"># Show only HTTP POST requests</span>
+http.request.method == "POST"
+
+<span class="comment"># Show all HTTP traffic to/from the target</span>
+http and ip.addr == &lt;TARGET-IP&gt;</code></pre>
+        <div class="callout callout-success">
+          <div class="callout-icon">&#10003;</div>
+          <div class="callout-body">You should see a single POST packet. Look at the <strong>HTML Form URL Encoded</strong> section in the packet details pane. The username and password are visible in cleartext.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Follow TCP Stream to reconstruct the session</div>
+      </div>
+      <div class="step-body">
+        <p>Follow TCP Stream rebuilds the entire HTTP conversation - request and response - in a readable format. Right-click the POST packet and select Follow > TCP Stream.</p>
+        <pre><code><span class="comment"># In Wireshark GUI:</span>
+<span class="comment"># Right-click the POST packet</span>
+<span class="comment"># Follow > TCP Stream</span>
+<span class="comment"># A new window shows the full request and response in both directions</span>
+<span class="comment"># Red = client sent, Blue = server sent</span></code></pre>
+        <div class="answer-block">
+          <div class="answer-label">What to Look For</div>
+          <p>The TCP stream will show the full POST body including username and password in cleartext. If the server returns a redirect (HTTP 302) to a dashboard, the login was successful - note this for the report as confirmed credential capture from network traffic.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Capture FTP credentials using tcpdump</div>
+      </div>
+      <div class="step-body">
+        <p>Now capture traffic on the command line using tcpdump. FTP sends the username and password in plaintext in the control channel before any file transfer begins.</p>
+        <pre><code><span class="comment"># Start tcpdump, capture only FTP control traffic (port 21), write to file</span>
+sudo tcpdump -i eth0 tcp port 21 -w ftp-capture.pcap
+
+<span class="comment"># In a second terminal, connect to FTP on SYNTEX-WIN01</span>
+ftp &lt;WIN01-IP&gt;
+<span class="comment"># When prompted:</span>
+<span class="comment"># Username: jsmith</span>
+<span class="comment"># Password: Password1</span>
+
+<span class="comment"># Press Ctrl+C in the first terminal to stop tcpdump</span>
+
+<span class="comment"># Read the pcap with tcpdump to see credentials</span>
+tcpdump -r ftp-capture.pcap -A | grep -i "user\|pass"</code></pre>
+        <div class="answer-block">
+          <div class="answer-label">Expected Output</div>
+          <p>tcpdump output will include <code>USER jsmith</code> and <code>PASS Password1</code> in plaintext - these are the FTP control channel commands sent before any file transfer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Analyse the pcap with Statistics > Protocol Hierarchy</div>
+      </div>
+      <div class="step-body">
+        <p>Open the ftp-capture.pcap in Wireshark. Use the Statistics menu to get an overview of what protocols are present - this is the fastest way to assess any unknown pcap file during an assessment.</p>
+        <pre><code><span class="comment"># Open the pcap in Wireshark</span>
+wireshark ftp-capture.pcap &amp;
+
+<span class="comment"># In Wireshark menu:</span>
+<span class="comment"># Statistics > Protocol Hierarchy</span>
+<span class="comment"># This shows every protocol as a percentage of total traffic</span>
+<span class="comment"># Instantly reveals if HTTP, FTP, Telnet are present</span>
+
+<span class="comment"># Statistics > Conversations</span>
+<span class="comment"># Shows all communication pairs and byte counts</span>
+<span class="comment"># Identifies the most active hosts</span></code></pre>
+        <div class="callout callout-info">
+          <div class="callout-icon">&#9432;</div>
+          <div class="callout-body">In an exam scenario you may be given a pcap file and asked to identify credentials or protocols. Start with <strong>Statistics > Protocol Hierarchy</strong> before anything else - it tells you what you are looking for before you start filtering.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Confirmation Questions</div>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">1.</span> What is the difference between a Wireshark capture filter and a display filter?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>A <strong>capture filter</strong> is applied during recording and uses BPF syntax (e.g. <code>tcp port 80</code>). It limits what is written to disk - packets that do not match are never saved.<br><br>A <strong>display filter</strong> is applied after capture and uses Wireshark syntax (e.g. <code>http.request.method == "POST"</code>). It only changes what is shown - all captured packets are still in the file.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">2.</span> What display filter shows only HTTP POST requests in Wireshark?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><code>http.request.method == "POST"</code> - the double equals and quoted string are required. This is Wireshark display filter syntax, not BPF.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">3.</span> You have captured a large pcap from a client network and need to quickly understand what protocols are in use. What Wireshark menu option do you use first?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><strong>Statistics > Protocol Hierarchy.</strong> This gives an immediate breakdown of every protocol by percentage of total traffic - it tells you whether cleartext protocols (HTTP, FTP, Telnet) are present before you start drilling into individual packets.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">4.</span> You have captured FTP traffic but Wireshark is not installed on the remote machine where you ran tcpdump. How do you analyse the capture?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>Transfer the .pcap file from the remote machine to your local Kali machine using <code>scp</code>, then open it in Wireshark locally: <code>scp user@&lt;remote-ip&gt;:~/capture.pcap .</code><br><br>Alternatively, read it from the command line: <code>tcpdump -r capture.pcap -A</code> or filter with: <code>tcpdump -r capture.pcap -A | grep -i "user\|pass"</code></p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">5.</span> What does the Follow TCP Stream feature do, and when would you use it during an assessment?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>Follow TCP Stream reconstructs the full application-layer conversation between two hosts for a given TCP connection. It displays the data in both directions - client to server and server to client - in a readable format.<br><br>Use it when you spot a cleartext protocol packet (HTTP, FTP, Telnet) and want to read the full session including credentials, commands, and responses, without reading individual packets.</p></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="footer">CREST CPSA | My Cyber Academy | Module D - Networking Equipment | Lab D2-A</div>
+
+</body>
+</html>

