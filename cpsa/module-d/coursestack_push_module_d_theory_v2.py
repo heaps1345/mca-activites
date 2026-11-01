@@ -55,7 +55,7 @@ def push_lesson_content(lesson_id, items):
         r.raise_for_status()
 
 def text_item(markdown_text):
-    return {"type": "text", "id": str(uuid.uuid4()), "content": markdown_text}
+    return {"type": "text", "id": str(uuid.uuid4()), "markdown": markdown_text}
 
 def make_lesson(name, items):
     print(f"  Creating: {name}")
