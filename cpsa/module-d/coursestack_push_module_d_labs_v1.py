@@ -25,7 +25,7 @@ import time
 # -----------------------------------------------------------------------
 # CONFIG
 # -----------------------------------------------------------------------
-API_KEY   = "YOUR_API_KEY_HERE"   # replace with actual key
+API_KEY   = "sk_5e9fde21e45324530a735286f8e28bcecf3e9df298ab37ec016833ed57c4f2e52b215010e457e6f3de80c070d3161ff5"
 BASE_URL  = "https://app.coursestack.com"
 COURSE_ID = "b9d920c3-4a8e-4227-af24-3c5f32fc7350"
 GITHUB_BASE = "https://heaps1345.github.io/mca-activites/cpsa/module-d"
