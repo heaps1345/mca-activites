@@ -70,7 +70,7 @@ def text_item(markdown_text):
 
 def embed_item(url, title=""):
     return {
-        "type": "embed",
+        "type": "iframe",
         "id": str(uuid.uuid4()),
         "url": url,
         "title": title
