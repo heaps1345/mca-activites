@@ -14,7 +14,7 @@ BASE_URL = "https://app.coursestack.com"
 GITHUB_BASE = "https://heaps1345.github.io/mca-activites/cpsa/module-f"
 
 # ---- PASTE CHAPTER ID HERE after running theory script ----
-CHAPTER_ID = ""
+CHAPTER_ID = "643abf9f-81d1-480c-a4b9-cfebe9198935"
 # -----------------------------------------------------------
 
 AUTH = (API_KEY, "")
