@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab A5: Nightmare Client - Scoping Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1b2d;
+    --navy-mid: #1a2d45;
+    --navy-light: #243b55;
+    --teal: #00b4b4;
+    --teal-dark: #007f7f;
+    --amber: #e8a020;
+    --amber-light: #ffc947;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --green: #27ae60;
+    --green-light: #2ecc71;
+    --text-primary: #e8edf3;
+    --text-secondary: #8fa3bc;
+    --text-muted: #5a7291;
+    --surface: #162235;
+    --surface-2: #1e2f45;
+    --surface-3: #243550;
+    --border: #2a3f5a;
+    --border-light: #344d6a;
+    --accent-glow: rgba(0,180,180,0.15);
+    --email-bg: #1a2535;
+    --email-border: #2e4060;
+    --correct-bg: rgba(39,174,96,0.12);
+    --correct-border: #27ae60;
+    --warning-bg: rgba(232,160,32,0.12);
+    --warning-border: #e8a020;
+    --error-bg: rgba(192,57,43,0.12);
+    --error-border: #c0392b;
+  }
+  [data-theme="light"] {
+    --navy: #f0f4f8;
+    --navy-mid: #e2eaf3;
+    --navy-light: #d4e0ed;
+    --text-primary: #1a2d45;
+    --text-secondary: #3a5570;
+    --text-muted: #7a95b0;
+    --surface: #ffffff;
+    --surface-2: #f5f8fc;
+    --surface-3: #edf2f7;
+    --border: #c8d8e8;
+    --border-light: #dde8f0;
+    --email-bg: #f8fafc;
+    --email-border: #c0d0e0;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --navy: #f0f4f8;
+      --navy-mid: #e2eaf3;
+      --navy-light: #d4e0ed;
+      --text-primary: #1a2d45;
+      --text-secondary: #3a5570;
+      --text-muted: #7a95b0;
+      --surface: #ffffff;
+      --surface-2: #f5f8fc;
+      --surface-3: #edf2f7;
+      --border: #c8d8e8;
+      --border-light: #dde8f0;
+      --email-bg: #f8fafc;
+      --email-border: #c0d0e0;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  /* TOPBAR */
+  .topbar {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .mca-chip {
+    background: var(--teal);
+    color: #000;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .topbar-title { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+  .topbar-sub { font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .theme-toggle {
+    background: none; border: 1px solid var(--border); color: var(--text-secondary);
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; font-family: inherit;
+  }
+  .theme-toggle:hover { border-color: var(--teal); color: var(--teal); }
+  .obj-badge {
+    background: var(--surface-3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 10px; font-size: 11px;
+    color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* LAYOUT */
+  .page-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+  .lab-header { margin-bottom: 28px; }
+  .lab-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .lab-desc { color: var(--text-secondary); font-size: 14px; max-width: 700px; }
+
+  /* SCENARIO BANNER */
+  .scenario-banner {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .scenario-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .scenario-title { font-weight: 600; color: var(--amber); font-size: 14px; margin-bottom: 4px; }
+  .scenario-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* TWO-COLUMN SPLIT */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+  /* EMAIL PANEL */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel-header {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+  .panel-sub { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .panel-body { padding: 20px; }
+
+  /* EMAIL STYLES */
+  .email-wrap {
+    background: var(--email-bg);
+    border: 1px solid var(--email-border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .email-header-row {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--email-border);
+    padding: 12px 16px;
+  }
+  .email-meta-line { display: flex; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+  .email-meta-line:last-child { margin-bottom: 0; }
+  .email-label { color: var(--text-muted); min-width: 50px; }
+  .email-value { color: var(--text-primary); }
+  .email-subject-row {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--email-border);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-3);
+  }
+  .email-body { padding: 16px; line-height: 1.8; color: var(--text-primary); }
+  .email-body p { margin-bottom: 14px; }
+  .email-body p:last-child { margin-bottom: 0; }
+
+  /* HIGHLIGHT SPANS in email */
+  .hl-conflict {
+    background: rgba(192,57,43,0.2);
+    border-bottom: 2px solid var(--red);
+    cursor: help;
+    border-radius: 2px;
+    padding: 0 2px;
+    position: relative;
+  }
+  .hl-vague {
+    background: rgba(232,160,32,0.15);
+    border-bottom: 2px dashed var(--amber);
+    cursor: help;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+  .hl-scope-creep {
+    background: rgba(192,57,43,0.12);
+    border-bottom: 2px dotted var(--red-light);
+    cursor: help;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+  .legend-swatch { width: 28px; height: 10px; border-radius: 2px; }
+
+  /* FORM PANEL */
+  .section-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--teal); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); margin-bottom: 6px;
+  }
+  .form-label span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+  .form-input, .form-textarea, .form-select {
+    width: 100%; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-primary); font-family: 'Inter', sans-serif;
+    font-size: 13px; padding: 9px 12px; transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus {
+    outline: none; border-color: var(--teal);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select { cursor: pointer; }
+
+  /* INLINE GRID for two-column short inputs */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* VALIDATION STATES */
+  .form-input.correct, .form-textarea.correct, .form-select.correct {
+    border-color: var(--correct-border);
+    background: var(--correct-bg);
+  }
+  .form-input.wrong, .form-textarea.wrong, .form-select.wrong {
+    border-color: var(--error-border);
+    background: var(--error-bg);
+  }
+  .field-feedback {
+    font-size: 11px; margin-top: 5px; display: none;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .field-feedback.show { display: block; }
+  .field-feedback.ok { color: var(--green); background: var(--correct-bg); }
+  .field-feedback.err { color: var(--red-light); background: var(--error-bg); }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 24px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .progress-count { font-size: 13px; color: var(--teal); font-family: 'JetBrains Mono', monospace; }
+  .progress-bar {
+    height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--teal); border-radius: 3px;
+    transition: width 0.4s ease; width: 0%;
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;
+    border: none;
+  }
+  .btn-primary { background: var(--teal); color: #000; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-secondary {
+    background: transparent; color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* RESULTS */
+  .results-panel {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+  .results-panel.show { display: block; }
+  .results-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
+  .result-tile {
+    background: var(--surface-2); border-radius: 8px; padding: 14px;
+    border: 1px solid var(--border); text-align: center;
+  }
+  .result-tile .val {
+    font-size: 30px; font-weight: 700; margin-bottom: 4px;
+  }
+  .result-tile .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .result-tile.good .val { color: var(--green); }
+  .result-tile.warn .val { color: var(--amber); }
+  .result-tile.bad .val { color: var(--red-light); }
+
+  .model-answers { margin-top: 16px; }
+  .model-section { margin-bottom: 14px; }
+  .model-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .answer-item {
+    display: flex; gap: 10px; padding: 8px 12px;
+    border-radius: 6px; margin-bottom: 6px; font-size: 13px;
+    align-items: flex-start;
+  }
+  .answer-item.ok { background: var(--correct-bg); border: 1px solid rgba(39,174,96,0.25); }
+  .answer-item.bad { background: var(--error-bg); border: 1px solid rgba(192,57,43,0.25); }
+  .answer-icon { flex-shrink: 0; margin-top: 1px; }
+  .answer-field { font-weight: 600; color: var(--text-secondary); min-width: 160px; }
+  .answer-expected { color: var(--text-primary); }
+  .answer-given { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+  .callout-box {
+    background: var(--surface-2); border-left: 3px solid var(--teal);
+    border-radius: 0 6px 6px 0; padding: 12px 16px;
+    font-size: 13px; color: var(--text-secondary); margin-top: 16px;
+  }
+  .callout-box strong { color: var(--text-primary); }
+
+  /* HINT TOOLTIPS */
+  .hint-row { display: flex; align-items: center; justify-content: flex-end; margin-top: 4px; }
+  .hint-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    border-radius: 4px; font-size: 11px; padding: 2px 8px; cursor: pointer; font-family: inherit;
+  }
+  .hint-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .hint-text {
+    display: none; font-size: 11px; color: var(--amber);
+    background: var(--warning-bg); border: 1px solid rgba(232,160,32,0.3);
+    border-radius: 4px; padding: 5px 10px; margin-top: 5px;
+  }
+  .hint-text.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mca-chip">MCA</div>
+  <span class="topbar-title">Lab A5: Nightmare Client</span>
+  <span class="topbar-sub">- Scoping From a Chaotic Email</span>
+  <div class="topbar-right">
+    <span class="obj-badge">CPSA A2</span>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="lab-header">
+    <div class="lab-title">Lab A5: Nightmare Client Scoping Exercise</div>
+    <div class="lab-desc">Read the chaotic client email below, extract the correct scope details, and complete the Scope Definition Form. Watch out for contradictions, vague language, and scope creep buried in the email.</div>
+  </div>
+
+  <div class="scenario-banner">
+    <div class="scenario-icon">&#9888;</div>
+    <div>
+      <div class="scenario-title">Scenario Brief</div>
+      <div class="scenario-body">You are a junior penetration tester at BreachPoint Security. Your manager has forwarded you an email from a new client, <strong>Vortex Logistics Ltd</strong>, asking you to draft the scope document before the pre-engagement call tomorrow morning. The client has been "difficult to pin down" - their Head of IT sent this email at 11pm after multiple attempts to get information from them. Extract what you can and flag the ambiguities.</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label">Scope form completion</span>
+      <span class="progress-count" id="progressCount">0 / 12</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="split">
+    <!-- LEFT: EMAIL -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="font-size:16px;">&#128140;</span>
+        <span class="panel-title">Client Email</span>
+        <span class="panel-sub">Read carefully - contains errors</span>
+      </div>
+      <div class="panel-body">
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:rgba(192,57,43,0.35);border-bottom:2px solid #c0392b;"></div>
+            Conflicting info
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:rgba(232,160,32,0.2);border-bottom:2px dashed #e8a020;"></div>
+            Vague / unclear
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch" style="background:rgba(192,57,43,0.15);border-bottom:2px dotted #e74c3c;"></div>
+            Out-of-scope creep
+          </div>
+        </div>
+
+        <div class="email-wrap">
+          <div class="email-header-row">
+            <div class="email-meta-line">
+              <span class="email-label">From:</span>
+              <span class="email-value">d.holt@vortex-logistics.co.uk (Dave Holt, Head of IT)</span>
+            </div>
+            <div class="email-meta-line">
+              <span class="email-label">To:</span>
+              <span class="email-value">enquiries@breachpoint.co.uk</span>
+            </div>
+            <div class="email-meta-line">
+              <span class="email-label">Date:</span>
+              <span class="email-value">Tuesday, 11 November 2025, 23:47</span>
+            </div>
+          </div>
+          <div class="email-subject-row">RE: RE: RE: Penetration Test - Vortex Logistics - Can we please sort this out</div>
+          <div class="email-body">
+            <p>Hi,</p>
+            <p>Sorry for the late reply, been absolutely manic here. Right so I spoke to Gaz in accounts and he said just get it booked. The board wants this done before Christmas so let&rsquo;s get moving.</p>
+
+            <p>So the systems you&rsquo;ll be testing - it&rsquo;s our internal network. We&rsquo;ve got <span class="hl-conflict" title="CONFLICT: Two different IP ranges mentioned - see further down">10.10.0.0/16</span> which is where most of the servers are. Finance systems, the HR box, our main file server VLX-FS01, the database server VLX-DB01 and the domain controller VLX-DC01. We want all of that tested. Oh and VLX-PRINT01 but don&rsquo;t knock that offline whatever you do, the warehouse goes mental if they can&rsquo;t print labels.</p>
+
+            <p>Dates - I&rsquo;m thinking <span class="hl-conflict" title="CONFLICT: Date stated here contradicts what Dave says in the next paragraph">18th to 20th November</span>. Actually no hang on, our dev team are doing a big deployment on the 18th so maybe week after? Let&rsquo;s say <span class="hl-conflict" title="CONFLICT: Second date - which is correct?">25th to 28th November</span>. Yeah do that one. Working hours only please, <span class="hl-vague" title="VAGUE: What does 'normal hours' mean? No timezone specified. UK company but ambiguous.">normal business hours</span>, we can&rsquo;t have you in at night when nobody&rsquo;s watching.</p>
+
+            <p>I should mention <span class="hl-scope-creep" title="OUT OF SCOPE CREEP: AWS environment not defined, no IP range, no systems listed - cannot be scoped from this email">we also use AWS for our customer portal - AWS account number is 443821096614 if that helps. Gaz said the board wants that done too</span>. I&rsquo;ll send the details when I find them.</p>
+
+            <p>The network - it&rsquo;s <span class="hl-conflict" title="CONFLICT: Different subnet mentioned here vs 10.10.0.0/16 stated earlier. Only one can be correct.">192.168.1.0/24</span> actually, I checked with the lad who set it up. He&rsquo;s left now but that&rsquo;s what he told me. So yeah test that. Actually the servers might be on a different bit, Dave in networking would know but he&rsquo;s on holiday until the 3rd.</p>
+
+            <p>For the rules - obviously don&rsquo;t delete anything and <span class="hl-vague" title="VAGUE: 'Try not to crash things' is not a formal RoE constraint. Needs to be specific.">try not to crash things</span>. The print server I mentioned, definitely off limits for any crashy stuff. <span class="hl-scope-creep" title="OUT OF SCOPE CREEP: Social engineering / phishing not agreed, no scope defined, no legal sign-off">Oh also can you do one of those phishing things on the staff? My mate at another firm said it was really eye-opening</span>. Budget permitting obviously.</p>
+
+            <p>Who to contact if something goes wrong - that&rsquo;s me, Dave Holt, <span class="hl-conflict" title="CONFLICT: Two different phone numbers given for the same person in this email">07812 334 991</span>. Or actually the main IT helpdesk is better, <span class="hl-vague" title="VAGUE: No helpdesk number given - just an instruction to ring them">ring them if urgent</span>. Out of hours&hellip; honestly just email me, I check it from my phone. My number again is <span class="hl-conflict" title="CONFLICT: Different number to the one given above">07834 112 005</span>.</p>
+
+            <p>Credentials - we&rsquo;ll give you a domain account for internal testing. <span class="hl-vague" title="VAGUE: No username or password provided, no indication of privilege level">I&rsquo;ll get IT to sort one out nearer the time</span>. It&rsquo;ll be a normal user, not admin. Unless you need admin? Let me know.</p>
+
+            <p>Oh one more thing - <span class="hl-scope-creep" title="OUT OF SCOPE CREEP: MD's personal laptop is an endpoint device outside the defined server estate scope">can you also have a look at the MD&rsquo;s laptop? He thinks he&rsquo;s got something on it</span>. That&rsquo;s separate to everything else but while you&rsquo;re here.</p>
+
+            <p>I think that&rsquo;s everything. Let me know if you need anything else. Probably easiest to WhatsApp me.</p>
+
+            <p>Cheers<br>Dave<br><em>Dave Holt | Head of IT | Vortex Logistics Ltd</em><br><em>Warrington Business Park, Warrington, WA3 6BH</em></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: SCOPE FORM -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="font-size:16px;">&#128203;</span>
+        <span class="panel-title">Scope Definition Form</span>
+        <span class="panel-sub">Extract correct details below</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- CLIENT DETAILS -->
+        <div class="section-label">Client Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Client Organisation</label>
+            <input type="text" class="form-input" id="f_client" placeholder="Company name" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_client"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Primary Contact Name</label>
+            <input type="text" class="form-input" id="f_contact" placeholder="Full name" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_contact"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Contact Role / Title</label>
+            <input type="text" class="form-input" id="f_role" placeholder="Job title" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_role"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact Phone <span>(use confirmed number)</span></label>
+            <input type="text" class="form-input" id="f_phone" placeholder="Emergency contact number" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_phone"></div>
+          </div>
+        </div>
+
+        <!-- TEST DATES -->
+        <div class="section-label">Test Window</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start Date <span>(from confirmed dates)</span></label>
+            <input type="text" class="form-input" id="f_startdate" placeholder="DD/MM/YYYY" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_startdate"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="text" class="form-input" id="f_enddate" placeholder="DD/MM/YYYY" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_enddate"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Testing Hours <span>(standardise the vague instruction)</span></label>
+          <input type="text" class="form-input" id="f_hours" placeholder="e.g. 09:00 - 17:30 GMT Monday - Friday" oninput="trackProgress()">
+          <div class="field-feedback" id="fb_hours"></div>
+          <div class="hint-row"><button class="hint-btn" onclick="showHint('hint_hours')">Hint</button></div>
+          <div class="hint-text" id="hint_hours">"Normal business hours" needs to be defined precisely. Standard UK business hours are 09:00-17:30 Monday to Friday. Always specify timezone too.</div>
+        </div>
+
+        <!-- IP SCOPE -->
+        <div class="section-label">Network Scope</div>
+        <div class="form-group">
+          <label class="form-label">Confirmed In-Scope Network Range <span>(resolve the IP conflict)</span></label>
+          <input type="text" class="form-input" id="f_iprange" placeholder="e.g. TBC - conflicting information" oninput="trackProgress()">
+          <div class="field-feedback" id="fb_iprange"></div>
+          <div class="hint-row"><button class="hint-btn" onclick="showHint('hint_ip')">Hint</button></div>
+          <div class="hint-text" id="hint_ip">The email gives two different IP ranges (10.10.0.0/16 and 192.168.1.0/24). Neither can be confirmed without speaking to Dave in networking (who is on holiday). The correct answer is to flag this as TBC / conflicting - never guess.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Named In-Scope Systems</label>
+          <textarea class="form-textarea" id="f_systems" placeholder="List confirmed systems from the email" style="min-height:80px" oninput="trackProgress()"></textarea>
+          <div class="field-feedback" id="fb_systems"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Excluded Systems / Exclusions</label>
+          <textarea class="form-textarea" id="f_exclusions" placeholder="What must NOT be disrupted?" style="min-height:60px" oninput="trackProgress()"></textarea>
+          <div class="field-feedback" id="fb_exclusions"></div>
+        </div>
+
+        <!-- OUT OF SCOPE -->
+        <div class="section-label">Out-of-Scope Items (Scope Creep)</div>
+        <div class="form-group">
+          <label class="form-label">Items Requested That Are Outside Agreed Scope <span>(identify the scope creep)</span></label>
+          <textarea class="form-textarea" id="f_oos" placeholder="List items the client mentioned that cannot be agreed without further discussion" style="min-height:80px" oninput="trackProgress()"></textarea>
+          <div class="field-feedback" id="fb_oos"></div>
+          <div class="hint-row"><button class="hint-btn" onclick="showHint('hint_oos')">Hint</button></div>
+          <div class="hint-text" id="hint_oos">Three items require separate scoping: (1) AWS customer portal - cloud scope needs formal cloud-specific agreement, (2) phishing / social engineering - requires separate legal sign-off and defined target list, (3) MD's personal laptop - endpoint not on the server estate, separate engagement.</div>
+        </div>
+
+        <!-- AMBIGUITIES -->
+        <div class="section-label">Ambiguities / Clarifications Required</div>
+        <div class="form-group">
+          <label class="form-label">Outstanding Questions Before Sign-Off</label>
+          <textarea class="form-textarea" id="f_ambiguities" placeholder="List questions you must get answered before finalising scope" style="min-height:80px" oninput="trackProgress()"></textarea>
+          <div class="field-feedback" id="fb_ambiguities"></div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="checkAnswers()">&#10003; Check Answers</button>
+          <button class="btn btn-secondary" onclick="showAllHints()">Show All Hints</button>
+          <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="results-title" id="resultsTitle">Results</div>
+    <div class="results-grid">
+      <div class="result-tile" id="tileCorrect">
+        <div class="val" id="valCorrect">0</div>
+        <div class="lbl">Correct</div>
+      </div>
+      <div class="result-tile" id="tilePartial">
+        <div class="val" id="valPartial">0</div>
+        <div class="lbl">Partial / Close</div>
+      </div>
+      <div class="result-tile" id="tileMissed">
+        <div class="val" id="valMissed">0</div>
+        <div class="lbl">Missed / Incorrect</div>
+      </div>
+    </div>
+    <div class="model-answers" id="modelAnswers"></div>
+    <div class="callout-box" id="calloutBox"></div>
+  </div>
+</div>
+
+<script>
+// ---- ANSWERS ----
+const ANSWERS = {
+  f_client: {
+    label: "Client Organisation",
+    correct: ["vortex logistics", "vortex logistics ltd"],
+    match: "exact",
+    feedback_ok: "Correct - Vortex Logistics Ltd",
+    feedback_err: "Expected: Vortex Logistics Ltd"
+  },
+  f_contact: {
+    label: "Primary Contact",
+    correct: ["dave holt", "david holt", "d holt", "d. holt"],
+    match: "exact",
+    feedback_ok: "Correct - Dave Holt, Head of IT",
+    feedback_err: "Expected: Dave Holt (from email signature)"
+  },
+  f_role: {
+    label: "Contact Role",
+    correct: ["head of it", "it manager", "head of information technology"],
+    match: "exact",
+    feedback_ok: "Correct",
+    feedback_err: "Expected: Head of IT (from email signature)"
+  },
+  f_phone: {
+    label: "Emergency Contact Phone",
+    correct_display: "Cannot be confirmed - two conflicting numbers given (07812 334 991 and 07834 112 005). Flag as TBC.",
+    keywords: ["tbc", "conflict", "two number", "both", "07812", "07834", "unclear", "contradict", "cannot confirm"],
+    feedback_ok: "Good - flagging the conflict is the right answer. You cannot use either number without confirmation.",
+    feedback_err: "Two different numbers appear in the email. You must flag the conflict, not guess. Put TBC / conflicting."
+  },
+  f_startdate: {
+    label: "Test Start Date",
+    correct: ["25/11/2025", "25 nov", "25th november", "25/11", "november 25"],
+    match: "contains",
+    feedback_ok: "Correct - 25th November (Dave confirmed this as the revised date)",
+    feedback_err: "Expected: 25/11/2025 - Dave explicitly revised from 18th to 25th November"
+  },
+  f_enddate: {
+    label: "Test End Date",
+    correct: ["28/11/2025", "28 nov", "28th november", "28/11", "november 28"],
+    match: "contains",
+    feedback_ok: "Correct - 28th November",
+    feedback_err: "Expected: 28/11/2025 (Dave said '25th to 28th November - yeah do that one')"
+  },
+  f_hours: {
+    label: "Testing Hours",
+    correct_display: "09:00 - 17:30 GMT, Monday to Friday (UK standard business hours with explicit timezone)",
+    keywords: ["09:00", "9:00", "09", "17:30", "17", "gmt", "monday", "business", "weekday"],
+    feedback_ok: "Good - specifying exact times and timezone is essential",
+    feedback_err: "'Normal business hours' is not acceptable in a scope document. Specify 09:00-17:30 GMT Mon-Fri minimum"
+  },
+  f_iprange: {
+    label: "Confirmed IP Range",
+    correct_display: "TBC - conflicting information. Email states 10.10.0.0/16 then later 192.168.1.0/24. Must be confirmed by network team before sign-off.",
+    keywords: ["tbc", "conflict", "10.10", "192.168", "unclear", "contradict", "both", "clarif", "unconfirmed"],
+    feedback_ok: "Correct - you identified the conflict. Never guess the IP range.",
+    feedback_err: "The email gives two different subnets. You must flag this conflict - do not pick one arbitrarily."
+  },
+  f_systems: {
+    label: "In-Scope Systems",
+    correct_display: "VLX-FS01 (file server), VLX-DB01 (database server), VLX-DC01 (domain controller), Finance systems, HR system. VLX-PRINT01 is in-scope but with a no-disruption constraint.",
+    keywords: ["vlx-fs01", "vlx-db01", "vlx-dc01", "file server", "database", "domain controller", "finance", "hr"],
+    feedback_ok: "Good - key named systems captured",
+    feedback_err: "Expected key systems: VLX-FS01, VLX-DB01, VLX-DC01, finance systems, HR system"
+  },
+  f_exclusions: {
+    label: "Exclusions",
+    correct_display: "VLX-PRINT01: no service disruption permitted (warehouse operations dependent). No destructive testing on any in-scope systems.",
+    keywords: ["print", "vlx-print01", "warehouse", "no disruption", "no downtime", "not crash", "crash", "destructive"],
+    feedback_ok: "Good - print server constraint captured",
+    feedback_err: "Must include: VLX-PRINT01 must not be disrupted (warehouse dependency)"
+  },
+  f_oos: {
+    label: "Out-of-Scope / Scope Creep",
+    correct_display: "1. AWS customer portal (cloud scope - needs separate agreement, account 443821096614)\n2. Phishing/social engineering simulation (requires separate legal sign-off and target list)\n3. MD's personal laptop (endpoint device, separate engagement)",
+    keywords: ["aws", "phish", "social engineer", "laptop", "md", "cloud", "portal"],
+    feedback_ok: "Good - scope creep items identified",
+    feedback_err: "Three scope creep items: AWS portal, phishing simulation, MD's laptop - all need separate agreements"
+  },
+  f_ambiguities: {
+    label: "Ambiguities / Clarifications",
+    correct_display: "1. IP range - must confirm 10.10.0.0/16 or 192.168.1.0/24 with networking team when Dave returns\n2. Emergency contact phone - two conflicting numbers\n3. Credentials - domain account not yet set up\n4. Test type for AWS - not defined\n5. Exact testing hours / timezone",
+    keywords: ["ip", "phone", "credential", "account", "hours", "timezone", "aws", "network", "confirm"],
+    feedback_ok: "Good ambiguities captured",
+    feedback_err: "Key ambiguities: IP range conflict, phone number conflict, credentials not set up, AWS details not provided"
+  }
+};
+
+const TOTAL = Object.keys(ANSWERS).length;
+let filledCount = 0;
+
+function trackProgress() {
+  let filled = 0;
+  Object.keys(ANSWERS).forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim().length > 0) filled++;
+  });
+  filledCount = filled;
+  document.getElementById('progressCount').textContent = filled + ' / ' + TOTAL;
+  document.getElementById('progressFill').style.width = (filled / TOTAL * 100) + '%';
+}
+
+function checkField(id) {
+  const ans = ANSWERS[id];
+  const el = document.getElementById(id);
+  const fb = document.getElementById('fb_' + id);
+  if (!el || !fb) return 0;
+  const val = el.value.trim().toLowerCase();
+  if (!val) return 0;
+
+  let score = 0;
+  if (ans.correct) {
+    // exact list matching
+    const match = ans.correct.some(c => {
+      if (ans.match === 'contains') return val.includes(c.toLowerCase()) || c.toLowerCase().includes(val);
+      return val === c.toLowerCase() || val.includes(c.toLowerCase());
+    });
+    if (match) {
+      el.className = 'form-input correct';
+      if (el.tagName === 'TEXTAREA') el.className = 'form-textarea correct';
+      fb.textContent = '✓ ' + ans.feedback_ok;
+      fb.className = 'field-feedback show ok';
+      score = 1;
+    } else {
+      el.className = 'form-input wrong';
+      if (el.tagName === 'TEXTAREA') el.className = 'form-textarea wrong';
+      fb.textContent = '✗ ' + ans.feedback_err;
+      fb.className = 'field-feedback show err';
+    }
+  } else if (ans.keywords) {
+    // keyword-based partial match
+    const matches = ans.keywords.filter(k => val.includes(k.toLowerCase())).length;
+    if (matches >= 2) {
+      const cls = el.tagName === 'TEXTAREA' ? 'form-textarea' : 'form-input';
+      el.className = cls + ' correct';
+      fb.textContent = '✓ ' + ans.feedback_ok;
+      fb.className = 'field-feedback show ok';
+      score = 1;
+    } else {
+      const cls = el.tagName === 'TEXTAREA' ? 'form-textarea' : 'form-input';
+      el.className = cls + ' wrong';
+      fb.textContent = '✗ ' + ans.feedback_err;
+      fb.className = 'field-feedback show err';
+    }
+  }
+  return score;
+}
+
+function checkAnswers() {
+  let correct = 0, missed = 0;
+  Object.keys(ANSWERS).forEach(id => {
+    const s = checkField(id);
+    if (s === 1) correct++;
+    else missed++;
+  });
+
+  const panel = document.getElementById('resultsPanel');
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  document.getElementById('valCorrect').textContent = correct;
+  document.getElementById('valPartial').textContent = 0;
+  document.getElementById('valMissed').textContent = missed;
+
+  const ct = document.getElementById('tileCorrect');
+  const mt = document.getElementById('tileMissed');
+  ct.className = 'result-tile ' + (correct >= 10 ? 'good' : correct >= 7 ? 'warn' : 'bad');
+  mt.className = 'result-tile ' + (missed === 0 ? 'good' : missed <= 3 ? 'warn' : 'bad');
+
+  const pct = Math.round(correct / TOTAL * 100);
+  let title = '';
+  if (pct >= 90) title = '&#127881; Excellent - ' + pct + '% - Strong scoping skills';
+  else if (pct >= 70) title = '&#128077; Good - ' + pct + '% - A few gaps to review';
+  else if (pct >= 50) title = '&#9888; Needs Work - ' + pct + '% - Review the model answers';
+  else title = '&#9888; Keep Practising - ' + pct + '% - Read through the model answers carefully';
+  document.getElementById('resultsTitle').innerHTML = title;
+
+  // Model answers
+  let html = '<div class="model-section"><div class="model-section-title">Model Answers</div>';
+  Object.keys(ANSWERS).forEach(id => {
+    const ans = ANSWERS[id];
+    const el = document.getElementById(id);
+    const val = el ? el.value.trim() : '';
+    const isOk = el && el.className.includes('correct');
+    const display = ans.correct_display || (ans.correct ? ans.correct[0] : '');
+    html += `<div class="answer-item ${isOk ? 'ok' : 'bad'}">
+      <span class="answer-icon">${isOk ? '&#10003;' : '&#10007;'}</span>
+      <div>
+        <div class="answer-field">${ans.label}</div>
+        <div class="answer-expected">${display || (ans.correct ? ans.correct.join(' / ') : '')}</div>
+        ${!isOk && val ? '<div class="answer-given">Your answer: ' + val + '</div>' : ''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('modelAnswers').innerHTML = html;
+
+  // Callout
+  let callout = '<strong>Key Learning Points:</strong><br>';
+  callout += '1. When a client gives two conflicting IP ranges, you must flag it - never guess which one is correct.<br>';
+  callout += '2. "Normal business hours" is not an acceptable scope entry. Always specify exact times and timezone.<br>';
+  callout += '3. Conflicting phone numbers must be flagged as TBC - an emergency contact that might ring the wrong person is dangerous.<br>';
+  callout += '4. AWS, phishing, and personal devices are all separate engagements requiring their own legal agreements.<br>';
+  callout += '5. Scope creep at this stage is normal - clients add things. Your job is to catch it and push it to a separate line item.';
+  document.getElementById('calloutBox').innerHTML = callout;
+}
+
+function showHint(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
+
+function showAllHints() {
+  document.querySelectorAll('.hint-text').forEach(h => h.classList.add('show'));
+}
+
+function clearForm() {
+  Object.keys(ANSWERS).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = '';
+    const base = el.tagName === 'TEXTAREA' ? 'form-textarea' : 'form-input';
+    el.className = base;
+    const fb = document.getElementById('fb_' + id);
+    if (fb) { fb.textContent = ''; fb.className = 'field-feedback'; }
+  });
+  document.getElementById('resultsPanel').classList.remove('show');
+  trackProgress();
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+}
+
+// Autosave
+function saveState() {
+  const state = {};
+  Object.keys(ANSWERS).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) state[id] = el.value;
+  });
+  try { localStorage.setItem('mca_a5_state', JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('mca_a5_state');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    Object.keys(state).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = state[id] || '';
+    });
+    trackProgress();
+  } catch(e) {}
+}
+
+document.querySelectorAll('.form-input, .form-textarea').forEach(el => {
+  el.addEventListener('input', saveState);
+});
+
+loadState();
+trackProgress();
+</script>
+</body>
+</html>

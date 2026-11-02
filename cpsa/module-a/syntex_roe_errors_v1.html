@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab A6: Spot the Errors - Rules of Engagement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1b2d;
+    --navy-mid: #1a2d45;
+    --navy-light: #243b55;
+    --teal: #00b4b4;
+    --teal-dark: #007f7f;
+    --amber: #e8a020;
+    --amber-light: #ffc947;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --green: #27ae60;
+    --green-light: #2ecc71;
+    --text-primary: #e8edf3;
+    --text-secondary: #8fa3bc;
+    --text-muted: #5a7291;
+    --surface: #162235;
+    --surface-2: #1e2f45;
+    --surface-3: #243550;
+    --border: #2a3f5a;
+    --border-light: #344d6a;
+    --accent-glow: rgba(0,180,180,0.15);
+    --doc-bg: #1c2e44;
+    --doc-border: #2e4060;
+    --correct-bg: rgba(39,174,96,0.12);
+    --correct-border: #27ae60;
+    --error-bg: rgba(192,57,43,0.12);
+    --error-border: #c0392b;
+    --warning-bg: rgba(232,160,32,0.10);
+    --warning-border: #e8a020;
+  }
+  [data-theme="light"] {
+    --navy: #f0f4f8; --navy-mid: #e2eaf3; --navy-light: #d4e0ed;
+    --text-primary: #1a2d45; --text-secondary: #3a5570; --text-muted: #7a95b0;
+    --surface: #ffffff; --surface-2: #f5f8fc; --surface-3: #edf2f7;
+    --border: #c8d8e8; --border-light: #dde8f0;
+    --doc-bg: #f8fafc; --doc-border: #c0d0e0;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --navy: #f0f4f8; --navy-mid: #e2eaf3; --navy-light: #d4e0ed;
+      --text-primary: #1a2d45; --text-secondary: #3a5570; --text-muted: #7a95b0;
+      --surface: #ffffff; --surface-2: #f5f8fc; --surface-3: #edf2f7;
+      --border: #c8d8e8; --border-light: #dde8f0;
+      --doc-bg: #f8fafc; --doc-border: #c0d0e0;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--text-primary); min-height: 100vh; font-size: 15px; line-height: 1.6; }
+
+  .topbar {
+    background: var(--navy-mid); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .mca-chip { background: var(--teal); color: #000; font-weight: 700; font-size: 12px; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; }
+  .topbar-title { font-weight: 600; font-size: 15px; }
+  .topbar-sub { font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .theme-toggle { background: none; border: 1px solid var(--border); color: var(--text-secondary); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .theme-toggle:hover { border-color: var(--teal); color: var(--teal); }
+  .obj-badge { background: var(--surface-3); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+  .page-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+  .lab-header { margin-bottom: 24px; }
+  .lab-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .lab-desc { color: var(--text-secondary); font-size: 14px; max-width: 740px; }
+
+  /* SCENARIO BANNER */
+  .scenario-banner {
+    background: var(--error-bg); border: 1px solid rgba(192,57,43,0.4);
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .scenario-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .scenario-title { font-weight: 600; color: var(--red-light); font-size: 14px; margin-bottom: 4px; }
+  .scenario-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 24px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .progress-count { font-size: 13px; color: var(--teal); font-family: 'JetBrains Mono', monospace; }
+  .progress-bar { height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--teal); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+
+  /* SPLIT */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 950px) { .split { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .panel-header { background: var(--surface-2); border-bottom: 1px solid var(--border); padding: 12px 18px; display: flex; align-items: center; gap: 10px; }
+  .panel-title { font-weight: 600; font-size: 13px; }
+  .panel-sub { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .panel-body { padding: 20px; }
+
+  /* DOCUMENT STYLES */
+  .roe-doc {
+    background: var(--doc-bg);
+    border: 1px solid var(--doc-border);
+    border-radius: 8px;
+    padding: 24px;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .doc-letterhead {
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .doc-company { font-size: 16px; font-weight: 700; color: var(--teal); margin-bottom: 2px; }
+  .doc-address { font-size: 11px; color: var(--text-muted); }
+  .doc-title { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-primary); }
+  .doc-ref-block { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; font-size: 12px; }
+  .doc-ref-row { display: flex; gap: 6px; }
+  .doc-ref-label { color: var(--text-muted); min-width: 80px; }
+  .doc-ref-value { color: var(--text-primary); font-weight: 500; }
+  .doc-section { margin-bottom: 18px; }
+  .doc-section-title { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .doc-para { margin-bottom: 10px; color: var(--text-primary); }
+  .doc-list { margin: 8px 0 8px 16px; }
+  .doc-list li { margin-bottom: 4px; color: var(--text-primary); }
+  .doc-sig-block { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 12px; }
+  .doc-sig-col { }
+  .doc-sig-label { color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
+  .doc-sig-line { border-bottom: 1px solid var(--border); margin: 18px 0 6px; }
+  .doc-sig-name { font-weight: 600; color: var(--text-primary); }
+  .doc-sig-role { color: var(--text-muted); font-size: 11px; }
+
+  /* ERROR SPANS IN DOCUMENT */
+  .doc-error {
+    background: rgba(192,57,43,0.25);
+    border: 1px solid rgba(192,57,43,0.5);
+    border-radius: 3px;
+    padding: 1px 4px;
+    cursor: pointer;
+    position: relative;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #ff8a7a;
+    transition: background 0.15s;
+  }
+  .doc-error:hover { background: rgba(192,57,43,0.4); }
+  .doc-error.found { background: rgba(39,174,96,0.2); border-color: rgba(39,174,96,0.5); color: var(--green-light); }
+  .doc-error-num {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 14px;
+    margin-left: 3px;
+    vertical-align: super;
+    font-family: 'Inter', sans-serif;
+  }
+  .doc-error.found .doc-error-num { background: var(--green); }
+
+  /* ANSWER PANEL */
+  .section-label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--teal); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .error-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .error-card:hover { border-color: var(--border-light); }
+  .error-card.correct { border-color: var(--correct-border); background: var(--correct-bg); }
+  .error-card.wrong { border-color: var(--error-border); background: var(--error-bg); }
+
+  .error-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .error-num-badge {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--red); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .error-card.correct .error-num-badge { background: var(--green); }
+  .error-card-label { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .error-card-section { font-size: 11px; color: var(--text-muted); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+
+  .error-what { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .error-what strong { color: var(--red-light); }
+
+  .form-label { display: block; font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; }
+  .form-input, .form-textarea {
+    width: 100%; background: var(--surface-3); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text-primary); font-family: 'Inter', sans-serif;
+    font-size: 13px; padding: 8px 10px; transition: border-color 0.2s;
+  }
+  .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 2px var(--accent-glow); }
+  .form-textarea { resize: vertical; min-height: 60px; }
+  .form-input.correct-input, .form-textarea.correct-input { border-color: var(--correct-border); background: rgba(39,174,96,0.08); }
+  .form-input.wrong-input, .form-textarea.wrong-input { border-color: var(--error-border); background: rgba(192,57,43,0.08); }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .field-group { }
+  .field-feedback { font-size: 11px; margin-top: 4px; display: none; }
+  .field-feedback.show { display: block; }
+  .field-feedback.ok { color: var(--green); }
+  .field-feedback.err { color: var(--red-light); }
+
+  .btn { padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; border: none; }
+  .btn-primary { background: var(--teal); color: #000; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* RESULTS */
+  .results-panel { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-top: 24px; }
+  .results-panel.show { display: block; }
+  .results-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+  .results-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
+  .result-tile { background: var(--surface-2); border-radius: 8px; padding: 14px; border: 1px solid var(--border); text-align: center; }
+  .result-tile .val { font-size: 30px; font-weight: 700; margin-bottom: 4px; }
+  .result-tile .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .result-tile.good .val { color: var(--green); }
+  .result-tile.warn .val { color: var(--amber); }
+  .result-tile.bad .val { color: var(--red-light); }
+
+  .model-section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; margin-top: 16px; }
+  .answer-row { display: flex; gap: 10px; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 13px; align-items: flex-start; }
+  .answer-row.ok { background: var(--correct-bg); border: 1px solid rgba(39,174,96,0.25); }
+  .answer-row.bad { background: var(--error-bg); border: 1px solid rgba(192,57,43,0.25); }
+  .answer-icon { flex-shrink: 0; }
+  .answer-field { font-weight: 600; color: var(--text-secondary); min-width: 140px; }
+  .answer-body { color: var(--text-primary); }
+  .answer-given { color: var(--text-muted); font-size: 12px; }
+
+  .callout-box { background: var(--surface-2); border-left: 3px solid var(--teal); border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 13px; color: var(--text-secondary); margin-top: 16px; line-height: 1.8; }
+  .callout-box strong { color: var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mca-chip">MCA</div>
+  <span class="topbar-title">Lab A6: Spot the Errors</span>
+  <span class="topbar-sub">- Rules of Engagement Letter</span>
+  <div class="topbar-right">
+    <span class="obj-badge">CPSA A2</span>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="lab-header">
+    <div class="lab-title">Lab A6: Spot the Errors - RoE Review</div>
+    <div class="lab-desc">Your junior colleague drafted this Rules of Engagement letter using notes from the Vortex Logistics email (Lab A5). They made <strong>7 errors</strong> - some pulled from the wrong part of the email, some made up, one added scope that was never agreed. Find each error and provide the correct value.</div>
+  </div>
+
+  <div class="scenario-banner">
+    <div class="scenario-icon">&#128269;</div>
+    <div>
+      <div class="scenario-title">Your Task</div>
+      <div class="scenario-body">Review the RoE letter on the left. Seven errors have been highlighted in <span style="color:var(--red-light);font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(192,57,43,0.2);padding:1px 5px;border-radius:3px;">red boxes</span>. For each one, identify what is wrong and provide the correct value in the form on the right. Use what you learned in Lab A5 - the correct scope details come from that exercise.</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label">Errors identified and corrected</span>
+      <span class="progress-count" id="progressCount">0 / 7</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="split">
+    <!-- LEFT: RoE DOCUMENT -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="font-size:16px;">&#128196;</span>
+        <span class="panel-title">Rules of Engagement Letter (Drafted)</span>
+        <span class="panel-sub">7 errors to find</span>
+      </div>
+      <div class="panel-body">
+        <div class="roe-doc">
+          <div class="doc-letterhead">
+            <div class="doc-company">BreachPoint Security Ltd</div>
+            <div class="doc-address">Suite 4, Digital Exchange, Manchester, M1 5GN | info@breachpoint.co.uk</div>
+          </div>
+
+          <div class="doc-title">Rules of Engagement - Penetration Test</div>
+
+          <div class="doc-ref-block">
+            <div class="doc-ref-row"><span class="doc-ref-label">Reference:</span><span class="doc-ref-value">BP-2025-VLX-001</span></div>
+            <div class="doc-ref-row"><span class="doc-ref-label">Version:</span><span class="doc-ref-value">1.0 DRAFT</span></div>
+            <div class="doc-ref-row"><span class="doc-ref-label">Date:</span><span class="doc-ref-value">12 November 2025</span></div>
+            <div class="doc-ref-row"><span class="doc-ref-label">Classification:</span><span class="doc-ref-value">Confidential</span></div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">1. Parties</div>
+            <div class="doc-para">This agreement is between <strong>BreachPoint Security Ltd</strong> (the Testing Company) and <strong>Vortex Logistics Ltd</strong>, Warrington Business Park, Warrington, WA3 6BH (the Client).</div>
+            <div class="doc-para">Client Representative: <strong>Dave Holt, Head of IT</strong></div>
+            <div class="doc-para">Emergency Contact: <span id="err1" class="doc-error" title="Error 1" onclick="highlightError(1)">07812 334 991<span class="doc-error-num">1</span></span></div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">2. Test Window</div>
+            <div class="doc-para">
+              Testing shall take place between <span id="err2" class="doc-error" title="Error 2" onclick="highlightError(2)">18th November 2025<span class="doc-error-num">2</span></span> and 28th November 2025 inclusive.
+            </div>
+            <div class="doc-para">
+              Permitted testing hours: <span id="err3" class="doc-error" title="Error 3" onclick="highlightError(3)">Normal business hours, Monday to Friday<span class="doc-error-num">3</span></span>.
+            </div>
+            <div class="doc-para">No testing shall be conducted outside the agreed window without explicit written approval from the Client Representative.</div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">3. Scope</div>
+            <div class="doc-para">The following systems and network ranges are explicitly in scope for this engagement:</div>
+            <ul class="doc-list">
+              <li>Internal network: <span id="err4" class="doc-error" title="Error 4" onclick="highlightError(4)">192.168.1.0/24<span class="doc-error-num">4</span></span></li>
+              <li>VLX-FS01 (File Server)</li>
+              <li>VLX-DB01 (Database Server)</li>
+              <li>VLX-DC01 (Domain Controller)</li>
+              <li>Finance and HR systems</li>
+              <li>VLX-PRINT01 (Print Server) - availability constraint applies (see Section 4)</li>
+              <li><span id="err5" class="doc-error" title="Error 5" onclick="highlightError(5)">AWS Customer Portal (Account: 443821096614)<span class="doc-error-num">5</span></span></li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">4. Constraints and Exclusions</div>
+            <ul class="doc-list">
+              <li><strong>VLX-PRINT01:</strong> No testing activity that may cause service disruption. Warehouse operations are dependent on this system.</li>
+              <li>No permanent modification or deletion of data on any in-scope system.</li>
+              <li>No exploitation of vulnerabilities beyond proof-of-concept unless explicitly agreed.</li>
+              <li>Testing must not impact third-party systems or infrastructure.</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">5. Starting Credentials</div>
+            <div class="doc-para">
+              The Client will provision a domain user account with <span id="err6" class="doc-error" title="Error 6" onclick="highlightError(6)">Local Administrator<span class="doc-error-num">6</span></span> privileges prior to commencement of testing.
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">6. Incident Response</div>
+            <div class="doc-para">In the event of a critical finding or system impact, the testing team shall immediately cease activity and notify the Client Representative via the emergency contact details in Section 1.</div>
+            <div class="doc-para">If the primary contact is unreachable, the IT Helpdesk should be contacted. <span id="err7" class="doc-error" title="Error 7" onclick="highlightError(7)">Out-of-hours escalation: contact the MD's personal mobile<span class="doc-error-num">7</span></span>.</div>
+          </div>
+
+          <div class="doc-section">
+            <div class="doc-section-title">7. Authorisation</div>
+            <div class="doc-para">The Client hereby authorises BreachPoint Security Ltd to conduct penetration testing activities as defined in this document. The Client confirms they have the legal authority to grant this permission for all systems listed in Section 3.</div>
+          </div>
+
+          <div class="doc-sig-block">
+            <div class="doc-sig-col">
+              <div class="doc-sig-label">For BreachPoint Security Ltd</div>
+              <div class="doc-sig-line"></div>
+              <div class="doc-sig-name">___________________</div>
+              <div class="doc-sig-role">Authorised Signatory</div>
+            </div>
+            <div class="doc-sig-col">
+              <div class="doc-sig-label">For Vortex Logistics Ltd</div>
+              <div class="doc-sig-line"></div>
+              <div class="doc-sig-name">Dave Holt</div>
+              <div class="doc-sig-role">Head of IT, Vortex Logistics Ltd</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: ERROR CORRECTION FORM -->
+    <div class="panel">
+      <div class="panel-header">
+        <span style="font-size:16px;">&#128397;</span>
+        <span class="panel-title">Error Correction Form</span>
+        <span class="panel-sub">Identify and fix all 7 errors</span>
+      </div>
+      <div class="panel-body">
+        <div class="section-label">Errors 1-4</div>
+
+        <!-- ERROR 1 -->
+        <div class="error-card" id="card1">
+          <div class="error-card-header">
+            <div class="error-num-badge">1</div>
+            <span class="error-card-label">Section 1 - Emergency Contact Phone</span>
+            <span class="error-card-section">Sec 1</span>
+          </div>
+          <div class="error-what">Error: <strong>07812 334 991</strong> - what is wrong with this?</div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e1_what" placeholder="Describe what is wrong..." oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e1_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">Correct value / action required:</label>
+            <input type="text" class="form-input" id="e1_fix" placeholder="What should it say, or what must be done?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e1_fix"></div>
+          </div>
+        </div>
+
+        <!-- ERROR 2 -->
+        <div class="error-card" id="card2">
+          <div class="error-card-header">
+            <div class="error-num-badge">2</div>
+            <span class="error-card-label">Section 2 - Test Start Date</span>
+            <span class="error-card-section">Sec 2</span>
+          </div>
+          <div class="error-what">Error: Start date written as <strong>18th November 2025</strong></div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e2_what" placeholder="Why is 18th November wrong?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e2_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">Correct start date:</label>
+            <input type="text" class="form-input" id="e2_fix" placeholder="DD/MM/YYYY" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e2_fix"></div>
+          </div>
+        </div>
+
+        <!-- ERROR 3 -->
+        <div class="error-card" id="card3">
+          <div class="error-card-header">
+            <div class="error-num-badge">3</div>
+            <span class="error-card-label">Section 2 - Testing Hours</span>
+            <span class="error-card-section">Sec 2</span>
+          </div>
+          <div class="error-what">Error: Written as <strong>"Normal business hours, Monday to Friday"</strong></div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e3_what" placeholder="What's wrong with this phrasing?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e3_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">Correct / improved wording:</label>
+            <input type="text" class="form-input" id="e3_fix" placeholder="Specify exact hours and timezone" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e3_fix"></div>
+          </div>
+        </div>
+
+        <!-- ERROR 4 -->
+        <div class="error-card" id="card4">
+          <div class="error-card-header">
+            <div class="error-num-badge">4</div>
+            <span class="error-card-label">Section 3 - IP Range</span>
+            <span class="error-card-section">Sec 3</span>
+          </div>
+          <div class="error-what">Error: IP range listed as <strong>192.168.1.0/24</strong></div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e4_what" placeholder="Why can't we use this IP range?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e4_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">What should the scope entry say?</label>
+            <input type="text" class="form-input" id="e4_fix" placeholder="What is the correct action?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e4_fix"></div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:6px;">Errors 5-7</div>
+
+        <!-- ERROR 5 -->
+        <div class="error-card" id="card5">
+          <div class="error-card-header">
+            <div class="error-num-badge">5</div>
+            <span class="error-card-label">Section 3 - AWS Scope</span>
+            <span class="error-card-section">Sec 3</span>
+          </div>
+          <div class="error-what">Error: <strong>AWS Customer Portal</strong> listed as in-scope</div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e5_what" placeholder="Why can't AWS be on the scope list?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e5_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">What action is needed?</label>
+            <input type="text" class="form-input" id="e5_fix" placeholder="Remove / defer / flag as TBC?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e5_fix"></div>
+          </div>
+        </div>
+
+        <!-- ERROR 6 -->
+        <div class="error-card" id="card6">
+          <div class="error-card-header">
+            <div class="error-num-badge">6</div>
+            <span class="error-card-label">Section 5 - Credential Privilege Level</span>
+            <span class="error-card-section">Sec 5</span>
+          </div>
+          <div class="error-what">Error: Account described as <strong>Local Administrator</strong> privilege</div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e6_what" placeholder="What did the client actually say about privileges?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e6_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">Correct privilege level / action:</label>
+            <input type="text" class="form-input" id="e6_fix" placeholder="What should this say?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e6_fix"></div>
+          </div>
+        </div>
+
+        <!-- ERROR 7 -->
+        <div class="error-card" id="card7">
+          <div class="error-card-header">
+            <div class="error-num-badge">7</div>
+            <span class="error-card-label">Section 6 - Out-of-Hours Escalation</span>
+            <span class="error-card-section">Sec 6</span>
+          </div>
+          <div class="error-what">Error: <strong>"Contact the MD's personal mobile"</strong> as out-of-hours escalation</div>
+          <div class="field-group">
+            <label class="form-label">What is the error?</label>
+            <input type="text" class="form-input" id="e7_what" placeholder="Why is this wrong?" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e7_what"></div>
+          </div>
+          <div class="field-group" style="margin-top:8px;">
+            <label class="form-label">What should be written instead?</label>
+            <input type="text" class="form-input" id="e7_fix" placeholder="Correct escalation path or required action" oninput="trackProgress()">
+            <div class="field-feedback" id="fb_e7_fix"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="checkAnswers()">&#10003; Check All Answers</button>
+          <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="results-title" id="resultsTitle">Results</div>
+    <div class="results-grid">
+      <div class="result-tile" id="tileCorrect"><div class="val" id="valCorrect">0</div><div class="lbl">Correct</div></div>
+      <div class="result-tile" id="tilePartial"><div class="val" id="valPartial">0</div><div class="lbl">Partial</div></div>
+      <div class="result-tile" id="tileMissed"><div class="val" id="valMissed">0</div><div class="lbl">Missed</div></div>
+    </div>
+    <div id="modelAnswers"></div>
+    <div class="callout-box" id="calloutBox"></div>
+  </div>
+</div>
+
+<script>
+const ERRORS = [
+  {
+    id: 1,
+    label: "Emergency Contact Phone",
+    section: "Section 1",
+    error_display: "07812 334 991 (one of two conflicting numbers)",
+    what_keywords: ["two", "conflict", "both", "contradict", "07834", "two number", "different", "wrong number", "unconfirmed"],
+    fix_keywords: ["tbc", "confirm", "both", "clarif", "flag", "07834", "resolve", "neither", "cannot confirm"],
+    what_answer: "The email contained two different phone numbers for Dave Holt (07812 334 991 and 07834 112 005). Neither can be confirmed as correct without asking Dave directly.",
+    fix_answer: "TBC - conflicting numbers in client email. Must be confirmed before sign-off. Do not use either number until verified."
+  },
+  {
+    id: 2,
+    label: "Test Start Date",
+    section: "Section 2",
+    error_display: "18th November 2025",
+    what_keywords: ["18", "wrong", "revised", "changed", "deployment", "dave", "override", "first date", "original"],
+    fix_keywords: ["25", "november 25", "25th", "25/11"],
+    what_answer: "Dave initially mentioned 18th November but explicitly revised this due to a development team deployment, confirming '25th to 28th - yeah do that one'.",
+    fix_answer: "25th November 2025 (25/11/2025)"
+  },
+  {
+    id: 3,
+    label: "Testing Hours",
+    section: "Section 2",
+    error_display: "Normal business hours, Monday to Friday",
+    what_keywords: ["vague", "no time", "undefined", "ambiguous", "no timezone", "not specific", "not precise", "no hours", "roe"],
+    fix_keywords: ["09:00", "09", "17:30", "17", "gmt", "timezone", "specific", "exact"],
+    what_answer: "A formal RoE document cannot use vague language like 'normal business hours'. Exact start and end times with explicit timezone must be specified.",
+    fix_answer: "09:00 to 17:30 GMT, Monday to Friday"
+  },
+  {
+    id: 4,
+    label: "IP Network Range",
+    section: "Section 3",
+    error_display: "192.168.1.0/24",
+    what_keywords: ["conflict", "10.10", "two", "both", "contradict", "unconfirmed", "wrong range", "different", "network team", "dave holiday"],
+    fix_keywords: ["tbc", "conflict", "confirm", "unconfirmed", "both", "clarif", "10.10", "network team"],
+    what_answer: "The email gives two conflicting IP ranges: 10.10.0.0/16 and 192.168.1.0/24. The network engineer who set it up has left, and Dave in networking is on holiday until 3rd December. Neither range can be confirmed.",
+    fix_answer: "TBC - IP range in conflict. Must be confirmed by network team before sign-off. Do not list either range without written confirmation."
+  },
+  {
+    id: 5,
+    label: "AWS Customer Portal Scope",
+    section: "Section 3",
+    error_display: "AWS Customer Portal listed as in-scope",
+    what_keywords: ["not agreed", "separate", "creep", "scope creep", "no detail", "cloud", "not defined", "no ip", "no system", "informal", "different engagement"],
+    fix_keywords: ["remove", "separate", "out of scope", "tbc", "different engagement", "cloud agreement", "flag", "not in scope"],
+    what_answer: "The AWS portal was mentioned informally in the email with no defined systems, IP ranges, or scope. Cloud testing requires a separate engagement with its own legal agreement. It was never formally agreed as part of this engagement.",
+    fix_answer: "Remove from scope. AWS testing requires a separate cloud engagement agreement. Flag as potential future engagement and record as out of scope for this RoE."
+  },
+  {
+    id: 6,
+    label: "Credential Privilege Level",
+    section: "Section 5",
+    error_display: "Local Administrator privileges",
+    what_keywords: ["normal user", "standard user", "domain user", "not admin", "email said", "said it", "regular", "unprivileged"],
+    fix_keywords: ["normal user", "standard user", "domain user", "not admin", "regular user", "unprivileged", "low privilege"],
+    what_answer: "Dave explicitly stated 'It'll be a normal user, not admin' in the email. Local Administrator was never agreed and is a material change to the test parameters.",
+    fix_answer: "Standard domain user account with no elevated privileges (as confirmed by client in initial email)"
+  },
+  {
+    id: 7,
+    label: "Out-of-Hours Escalation Contact",
+    section: "Section 6",
+    error_display: "Contact the MD's personal mobile",
+    what_keywords: ["md not involved", "not given", "no number", "not agreed", "not mentioned", "no contact", "made up", "not in email", "md not a contact"],
+    fix_keywords: ["tbc", "not defined", "not provided", "email only", "confirm", "dave", "no number", "flag"],
+    what_answer: "The MD's personal mobile number was never provided in the email. Dave only said to email him out of hours. No out-of-hours mobile number was confirmed for anyone. This contact detail was invented and is factually incorrect.",
+    fix_answer: "TBC - no confirmed out-of-hours number provided. Client stated 'email me, I check it from my phone'. Must confirm an actual emergency contact number before sign-off."
+  }
+];
+
+const TOTAL = 7;
+
+function trackProgress() {
+  let filled = 0;
+  ERRORS.forEach(e => {
+    const w = document.getElementById('e' + e.id + '_what');
+    const f = document.getElementById('e' + e.id + '_fix');
+    if ((w && w.value.trim()) || (f && f.value.trim())) filled++;
+  });
+  document.getElementById('progressCount').textContent = Math.min(filled, TOTAL) + ' / ' + TOTAL;
+  document.getElementById('progressFill').style.width = (Math.min(filled, TOTAL) / TOTAL * 100) + '%';
+}
+
+function scoreField(val, keywords, minMatch) {
+  if (!val) return false;
+  const v = val.toLowerCase();
+  const matches = keywords.filter(k => v.includes(k.toLowerCase())).length;
+  return matches >= (minMatch || 1);
+}
+
+function checkAnswers() {
+  let correct = 0, partial = 0, missed = 0;
+  let modelHtml = '<div class="model-section-title">Model Answers</div>';
+
+  ERRORS.forEach(e => {
+    const whatEl = document.getElementById('e' + e.id + '_what');
+    const fixEl = document.getElementById('e' + e.id + '_fix');
+    const whatFb = document.getElementById('fb_e' + e.id + '_what');
+    const fixFb = document.getElementById('fb_e' + e.id + '_fix');
+    const card = document.getElementById('card' + e.id);
+
+    const whatVal = whatEl ? whatEl.value.trim() : '';
+    const fixVal = fixEl ? fixEl.value.trim() : '';
+
+    const whatOk = scoreField(whatVal, e.what_keywords, 1);
+    const fixOk = scoreField(fixVal, e.fix_keywords, 1);
+
+    if (whatEl) { whatEl.className = 'form-input ' + (whatOk ? 'correct-input' : 'wrong-input'); }
+    if (fixEl) { fixEl.className = 'form-input ' + (fixOk ? 'correct-input' : 'wrong-input'); }
+
+    if (whatFb) { whatFb.textContent = whatOk ? '✓ Good' : '✗ Review model answer'; whatFb.className = 'field-feedback show ' + (whatOk ? 'ok' : 'err'); }
+    if (fixFb) { fixFb.textContent = fixOk ? '✓ Correct approach' : '✗ Review model answer'; fixFb.className = 'field-feedback show ' + (fixOk ? 'ok' : 'err'); }
+
+    const errEl = document.getElementById('err' + e.id);
+    if (errEl) errEl.classList.toggle('found', fixOk);
+
+    let score = 0;
+    if (whatOk && fixOk) { score = 2; correct++; card.className = 'error-card correct'; }
+    else if (whatOk || fixOk) { score = 1; partial++; card.className = 'error-card'; }
+    else { missed++; card.className = 'error-card wrong'; }
+
+    const rowClass = score === 2 ? 'ok' : (score === 1 ? '' : 'bad');
+    modelHtml += `<div class="answer-row ${rowClass}">
+      <span class="answer-icon">${score === 2 ? '&#10003;' : (score === 1 ? '~' : '&#10007;')}</span>
+      <div>
+        <div class="answer-field">Error ${e.id}: ${e.label}</div>
+        <div class="answer-body"><strong>What:</strong> ${e.what_answer}</div>
+        <div class="answer-body" style="margin-top:4px;"><strong>Fix:</strong> ${e.fix_answer}</div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('valCorrect').textContent = correct;
+  document.getElementById('valPartial').textContent = partial;
+  document.getElementById('valMissed').textContent = missed;
+
+  const ct = document.getElementById('tileCorrect');
+  const pt = document.getElementById('tilePartial');
+  const mt = document.getElementById('tileMissed');
+  ct.className = 'result-tile ' + (correct >= 6 ? 'good' : correct >= 4 ? 'warn' : 'bad');
+  pt.className = 'result-tile warn';
+  mt.className = 'result-tile ' + (missed === 0 ? 'good' : missed <= 2 ? 'warn' : 'bad');
+
+  const pct = Math.round(correct / TOTAL * 100);
+  let title = '';
+  if (pct >= 85) title = '&#127881; Excellent - ' + correct + '/7 correct';
+  else if (pct >= 57) title = '&#128077; Good - ' + correct + '/7 correct';
+  else title = '&#9888; Keep Practising - ' + correct + '/7 correct';
+  document.getElementById('resultsTitle').innerHTML = title;
+
+  document.getElementById('modelAnswers').innerHTML = modelHtml;
+
+  document.getElementById('calloutBox').innerHTML = `<strong>Key Learning Points:</strong><br>
+1. A RoE letter is a legal document - copy-pasting vague client language directly is never acceptable.<br>
+2. Conflicting information (phone numbers, IP ranges) must be flagged as TBC, not resolved by guessing.<br>
+3. Scope creep items (AWS, phishing, MD's laptop) must be removed from the RoE and tracked separately.<br>
+4. The original date (18th Nov) was explicitly superseded by the client - always use the most recently confirmed value.<br>
+5. Credential privilege level is a material test parameter - it affects the entire risk model. Escalating privileges without agreement is an unauthorised change.`;
+
+  document.getElementById('resultsPanel').classList.add('show');
+  document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function highlightError(n) {
+  document.getElementById('card' + n).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const card = document.getElementById('card' + n);
+  card.style.boxShadow = '0 0 0 2px var(--teal)';
+  setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+}
+
+function clearForm() {
+  ERRORS.forEach(e => {
+    ['e' + e.id + '_what', 'e' + e.id + '_fix'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.value = ''; el.className = 'form-input'; }
+      const fb = document.getElementById('fb_' + id);
+      if (fb) { fb.textContent = ''; fb.className = 'field-feedback'; }
+    });
+    const card = document.getElementById('card' + e.id);
+    if (card) card.className = 'error-card';
+    const errEl = document.getElementById('err' + e.id);
+    if (errEl) errEl.classList.remove('found');
+  });
+  document.getElementById('resultsPanel').classList.remove('show');
+  trackProgress();
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+}
+
+// Autosave
+function saveState() {
+  const state = {};
+  ERRORS.forEach(e => {
+    ['e' + e.id + '_what', 'e' + e.id + '_fix'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) state[id] = el.value;
+    });
+  });
+  try { localStorage.setItem('mca_a6_state', JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const saved = localStorage.getItem('mca_a6_state');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    Object.keys(state).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = state[id] || '';
+    });
+    trackProgress();
+  } catch(e) {}
+}
+document.querySelectorAll('.form-input').forEach(el => el.addEventListener('input', saveState));
+loadState();
+trackProgress();
+</script>
+</body>
+</html>
