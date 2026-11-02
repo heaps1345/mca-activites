@@ -1,0 +1,1378 @@
+<title>Module A Instructor Slides</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* =====================================================
+   MCA INSTRUCTOR SLIDES - Module A: Soft Skills
+   Layout: fullscreen slide deck, keyboard + click nav
+   ===================================================== */
+
+/* --- DESIGN TOKENS --- */
+:root {
+  /* Palette: MCA navy/teal/amber/red */
+  --navy:        #0d1b2a;
+  --navy-mid:    #1a2e45;
+  --navy-light:  #243b55;
+  --teal:        #00b4a6;
+  --teal-dim:    #007d74;
+  --amber:       #f59e0b;
+  --red:         #ef4444;
+  --white:       #f0f4f8;
+  --white-dim:   #c8d6e5;
+  --bg:          var(--navy);
+  --surface:     var(--navy-mid);
+  --surface2:    var(--navy-light);
+  --fg:          var(--white);
+  --fg-dim:      var(--white-dim);
+  --accent:      var(--teal);
+  --accent2:     var(--amber);
+  /* Type */
+  --font-body:   'Inter', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', monospace;
+  color-scheme: dark;
+}
+
+/* Single-theme (dark-only) - deliberate choice for presenter context */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ---- DECK WRAPPER ---- */
+#deck {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ---- SLIDES ---- */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ---- SLIDE TYPES ---- */
+
+/* COVER slide */
+.slide-cover {
+  background: var(--navy);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1.25rem;
+  padding-block: 2.5rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.slide-cover .badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: 3px;
+  padding: 0.25em 0.75em;
+}
+.slide-cover h1 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  text-wrap: balance;
+  color: var(--white);
+}
+.slide-cover h1 span { color: var(--teal); }
+.slide-cover .subtitle {
+  font-size: clamp(0.9rem, 1.8vw, 1.15rem);
+  color: var(--fg-dim);
+  max-width: 50ch;
+}
+.slide-cover .meta {
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  margin-top: 1rem;
+}
+.cover-divider {
+  width: 60px;
+  height: 3px;
+  background: var(--teal);
+  border-radius: 2px;
+}
+
+/* SECTION TITLE slide */
+.slide-section {
+  background: var(--navy-mid);
+  justify-content: flex-end;
+  padding: 3rem;
+  padding-left: max(3rem, env(safe-area-inset-left, 0px));
+  padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  gap: 0.75rem;
+  border-top: 4px solid var(--teal);
+}
+.slide-section .sec-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+.slide-section h2 {
+  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  text-wrap: balance;
+  color: var(--white);
+}
+.slide-section .sec-obj {
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  color: var(--fg-dim);
+  max-width: 55ch;
+  margin-top: 0.25rem;
+}
+.slide-section .sec-stripe {
+  position: absolute;
+  top: 0; right: 0;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 30%, rgba(0,180,166,0.06) 100%);
+  pointer-events: none;
+}
+.sec-num {
+  font-size: clamp(5rem, 15vw, 12rem);
+  font-weight: 800;
+  color: rgba(0,180,166,0.08);
+  position: absolute;
+  top: 2rem;
+  right: 2.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* CONTENT slide */
+.slide-content {
+  background: var(--navy);
+  padding: 2.5rem 3rem;
+  padding-left: max(3rem, env(safe-area-inset-left, 0px));
+  padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  gap: 1.5rem;
+}
+.slide-content .slide-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.slide-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+.slide-content h2 {
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+  color: var(--white);
+}
+.content-body {
+  display: flex;
+  flex: 1;
+  gap: 2rem;
+  min-height: 0;
+}
+.content-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.content-side {
+  width: 38%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  list-style: none;
+}
+.bullet-list li {
+  display: flex;
+  gap: 0.75rem;
+  font-size: clamp(0.82rem, 1.4vw, 1rem);
+  line-height: 1.45;
+  color: var(--fg-dim);
+}
+.bullet-list li::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  margin-top: 0.45em;
+}
+.bullet-list li strong { color: var(--white); font-weight: 600; }
+.bullet-list li em { color: var(--teal); font-style: normal; font-weight: 500; }
+.bullet-list.large li { font-size: clamp(0.9rem, 1.6vw, 1.1rem); }
+
+/* Key term / info box */
+.info-box {
+  background: var(--surface2);
+  border-left: 3px solid var(--teal);
+  border-radius: 0 6px 6px 0;
+  padding: 0.75rem 1rem;
+  font-size: clamp(0.78rem, 1.3vw, 0.92rem);
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+.info-box strong { color: var(--white); }
+.info-box code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--teal);
+  background: rgba(0,180,166,0.12);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+/* Phase/step grid */
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+.phase-card {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-top: 2px solid var(--teal);
+}
+.phase-card.amber { border-top-color: var(--amber); }
+.phase-card.red   { border-top-color: var(--red); }
+.phase-num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+  font-family: var(--font-mono);
+}
+.phase-card.amber .phase-num { color: var(--amber); }
+.phase-card.red   .phase-num { color: var(--red); }
+.phase-name {
+  font-size: clamp(0.75rem, 1.2vw, 0.88rem);
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.2;
+}
+.phase-desc {
+  font-size: clamp(0.68rem, 1.1vw, 0.78rem);
+  color: var(--fg-dim);
+  line-height: 1.4;
+}
+
+/* ANALOGY slide */
+.slide-analogy {
+  background: var(--navy-mid);
+  padding: 2.5rem 3rem;
+  padding-left: max(3rem, env(safe-area-inset-left, 0px));
+  padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  gap: 1.5rem;
+  border-left: 4px solid var(--amber);
+}
+.slide-analogy .slide-label { color: var(--amber); }
+.analogy-body {
+  flex: 1;
+  display: flex;
+  gap: 2.5rem;
+  min-height: 0;
+  align-items: center;
+}
+.analogy-quote {
+  flex: 1;
+  min-width: 0;
+  border-left: 3px solid var(--amber);
+  padding: 1rem 1.5rem;
+  background: rgba(245,158,11,0.06);
+  border-radius: 0 8px 8px 0;
+}
+.analogy-quote p {
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--white);
+  font-style: italic;
+}
+.analogy-quote cite {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  font-style: normal;
+  color: var(--amber);
+  font-weight: 600;
+}
+.analogy-detail {
+  width: 42%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.analogy-detail h3 {
+  font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+  font-weight: 700;
+  color: var(--white);
+}
+.analogy-detail p {
+  font-size: clamp(0.8rem, 1.35vw, 0.95rem);
+  color: var(--fg-dim);
+  line-height: 1.55;
+}
+.analogy-detail strong { color: var(--amber); }
+
+/* DEMO callout slide */
+.slide-demo {
+  background: var(--navy);
+  padding: 2.5rem 3rem;
+  padding-left: max(3rem, env(safe-area-inset-left, 0px));
+  padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.demo-icon {
+  width: 72px;
+  height: 72px;
+  background: rgba(0,180,166,0.1);
+  border: 2px solid var(--teal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.demo-icon svg { width: 36px; height: 36px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.demo-title {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 800;
+  color: var(--teal);
+}
+.slide-demo h2 {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 600;
+  color: var(--white);
+  max-width: 45ch;
+  text-wrap: balance;
+}
+.demo-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 50ch;
+  text-align: left;
+  width: 100%;
+}
+.demo-step {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: clamp(0.8rem, 1.35vw, 0.95rem);
+  color: var(--fg-dim);
+}
+.demo-step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: var(--teal);
+  color: var(--navy);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.demo-step strong { color: var(--white); }
+.demo-note {
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  max-width: 50ch;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  width: 100%;
+  max-width: 50ch;
+  font-style: italic;
+}
+
+/* LAB callout slide */
+.slide-lab {
+  background: var(--navy-mid);
+  padding: 2.5rem 3rem;
+  padding-left: max(3rem, env(safe-area-inset-left, 0px));
+  padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  gap: 1.25rem;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-top: 4px solid var(--amber);
+}
+.lab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(245,158,11,0.12);
+  border: 1px solid var(--amber);
+  border-radius: 4px;
+  padding: 0.4em 0.9em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.lab-badge svg { width: 14px; height: 14px; stroke: var(--amber); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.slide-lab h2 {
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-weight: 800;
+  color: var(--white);
+  max-width: 40ch;
+  text-wrap: balance;
+}
+.slide-lab .lab-desc {
+  font-size: clamp(0.85rem, 1.5vw, 1rem);
+  color: var(--fg-dim);
+  max-width: 52ch;
+  line-height: 1.55;
+}
+.lab-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--amber);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.6em 1.4em;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.lab-link-btn:hover { opacity: 0.85; }
+.lab-link-btn svg { width: 16px; height: 16px; stroke: var(--navy); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.lab-timing {
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.lab-timing svg { width: 14px; height: 14px; stroke: var(--fg-dim); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* CVSS table */
+.cvss-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.7rem, 1.15vw, 0.84rem);
+}
+.cvss-table th {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.cvss-table td {
+  padding: 0.35rem 0.6rem;
+  color: var(--fg-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.cvss-table td strong { color: var(--white); }
+.sev-crit { color: #dc2626 !important; font-weight: 700; }
+.sev-high { color: #f97316 !important; font-weight: 700; }
+.sev-med  { color: #f59e0b !important; font-weight: 700; }
+.sev-low  { color: #22c55e !important; font-weight: 700; }
+.sev-info { color: #60a5fa !important; font-weight: 700; }
+
+/* Severity pill */
+.sev-pill {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 0.15em 0.5em;
+}
+.sev-pill.crit { background: rgba(220,38,38,0.2); color: #f87171; }
+.sev-pill.high { background: rgba(249,115,22,0.2); color: #fb923c; }
+.sev-pill.med  { background: rgba(245,158,11,0.2); color: #fbbf24; }
+.sev-pill.low  { background: rgba(34,197,94,0.2);  color: #4ade80; }
+.sev-pill.info { background: rgba(96,165,250,0.2); color: #93c5fd; }
+
+/* ---- NAV ---- */
+#nav {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 52px;
+  background: rgba(13,27,42,0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  gap: 1rem;
+  z-index: 100;
+}
+.nav-btn {
+  background: var(--surface2);
+  border: none;
+  color: var(--fg);
+  border-radius: 5px;
+  padding: 0.4em 1em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  transition: background 0.15s;
+}
+.nav-btn:hover { background: var(--navy-light); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.nav-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+#slide-counter {
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+#slide-title-bar {
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--teal);
+  transition: width 0.3s ease;
+  z-index: 101;
+}
+
+/* ---- KEYBOARD HINT ---- */
+#kb-hint {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.68rem;
+  color: rgba(200,214,229,0.3);
+  font-family: var(--font-mono);
+  pointer-events: none;
+  display: flex;
+  gap: 0.6rem;
+}
+#kb-hint kbd {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 3px;
+  padding: 0.15em 0.4em;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 700px) {
+  .content-body { flex-direction: column; }
+  .content-side { width: 100%; }
+  .analogy-body { flex-direction: column; }
+  .analogy-detail { width: 100%; }
+  .slide-content, .slide-analogy, .slide-demo, .slide-lab, .slide-section { padding: 1.5rem 1.25rem; padding-left: max(1.25rem, env(safe-area-inset-left, 0px)); padding-right: max(1.25rem, env(safe-area-inset-right, 0px)); }
+  .phase-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide { transition: none; }
+  .progress-bar { transition: none; }
+}
+</style>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progress"></div>
+<div id="kb-hint"><kbd>&#8592;</kbd><kbd>&#8594;</kbd> navigate &nbsp; <kbd>F</kbd> fullscreen</div>
+
+<div id="deck">
+
+<!-- ==================== SLIDE 0: COVER ==================== -->
+<div class="slide slide-cover active" data-title="Module A: Soft Skills">
+  <div class="badge">CREST CPSA &bull; Instructor Slides</div>
+  <div class="cover-divider"></div>
+  <h1>Module A<br><span>Soft Skills</span></h1>
+  <p class="subtitle">Pre-engagement, legal frameworks, scoping, risk management, and professional reporting</p>
+  <div class="meta">My Cyber Academy &bull; A1 &mdash; A5 &bull; 5 Topics &bull; 6 Labs</div>
+</div>
+
+<!-- ==================== SLIDE 1: A1 SECTION ==================== -->
+<div class="slide slide-section" data-title="A1: Penetration Testing Lifecycle">
+  <div class="sec-stripe"></div>
+  <div class="sec-num">A1</div>
+  <div class="sec-tag">Topic A1</div>
+  <h2>Penetration Testing Lifecycle</h2>
+  <p class="sec-obj">CPSA Objective A1 &bull; Pre-Engagement Essentials</p>
+</div>
+
+<!-- ==================== SLIDE 2: A1 CONTENT ==================== -->
+<div class="slide slide-content" data-title="A1: The Six Phases">
+  <div class="slide-header">
+    <span class="slide-label">A1 &bull; Content</span>
+    <h2>The Six Phases of a Penetration Test</h2>
+  </div>
+  <div class="content-body">
+    <div class="content-main">
+      <div class="phase-grid">
+        <div class="phase-card">
+          <div class="phase-num">Phase 01</div>
+          <div class="phase-name">Pre-Engagement</div>
+          <div class="phase-desc">Scope, RoE, legal authority, emergency contacts</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Phase 02</div>
+          <div class="phase-name">Reconnaissance</div>
+          <div class="phase-desc">OSINT, passive intel, attack surface mapping</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-num">Phase 03</div>
+          <div class="phase-name">Scanning &amp; Enum</div>
+          <div class="phase-desc">Port scans, service versions, vulnerability discovery</div>
+        </div>
+        <div class="phase-card amber">
+          <div class="phase-num">Phase 04</div>
+          <div class="phase-name">Exploitation</div>
+          <div class="phase-desc">Controlled exploitation within agreed scope only</div>
+        </div>
+        <div class="phase-card amber">
+          <div class="phase-num">Phase 05</div>
+          <div class="phase-name">Post-Exploitation</div>
+          <div class="phase-desc">Lateral movement, privilege escalation, persistence check</div>
+        </div>
+        <div class="phase-card red">
+          <div class="phase-num">Phase 06</div>
+          <div class="phase-name">Reporting</div>
+          <div class="phase-desc">Executive summary, technical findings, remediation roadmap</div>
+        </div>
+      </div>
+    </div>
+    <div class="content-side">
+      <div class="info-box">
+        <strong>Pre-Engagement is never skippable.</strong><br>
+        Without a signed RoE and explicit written permission, any test activity is potentially a criminal offence under the Computer Misuse Act 1990.
+      </div>
+      <ul class="bullet-list">
+        <li><strong>Rules of Engagement (RoE)</strong> &mdash; the legally binding document covering scope, timing, methods, and emergency contacts</li>
+        <li><strong>Scope Definition</strong> &mdash; explicit IP ranges, hostnames, and URLs. If it is not in scope, do not touch it</li>
+        <li><strong>Note-taking</strong> &mdash; timestamped, contemporaneous logs; essential for the report and your legal defence</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: A1 ANALOGY ==================== -->
+<div class="slide slide-analogy" data-title="A1: Real-World Analogy">
+  <div class="slide-header">
+    <span class="slide-label">A1 &bull; Real-World Analogy</span>
+    <h2>The Building Surveyor</h2>
+  </div>
+  <div class="analogy-body">
+    <div class="analogy-quote">
+      <p>"A building surveyor doesn't just turn up and start poking at walls. They arrive with a signed letter of authority from the building owner, a defined scope of work, and a method statement. The first thing they do is introduce themselves to site management and log their arrival."</p>
+      <cite>Pre-Engagement Parallel</cite>
+    </div>
+    <div class="analogy-detail">
+      <h3>How it maps to your test</h3>
+      <p><strong>Signed letter of authority</strong> = Permission to Test letter in the engagement pack. Without it, you are trespassing.</p>
+      <p><strong>Defined scope of work</strong> = The RoE. Walls in the building = IP ranges and hosts. The surveyor does not test the neighbouring building.</p>
+      <p><strong>Log arrival with site management</strong> = Notify the emergency contact at test start. If alarms go off, they know who it was.</p>
+      <p><strong>Method statement</strong> = The testing methodology and agreed tools list. No surprises for the client.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: A1 DEMO ==================== -->
+<div class="slide slide-demo" data-title="A1: Instructor Demo">
+  <div class="demo-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3,9 21,9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+  </div>
+  <div class="demo-title">DEMO</div>
+  <h2>Walk Through the Syntex Engagement Pack</h2>
+  <div class="demo-steps">
+    <div class="demo-step">
+      <div class="demo-step-num">1</div>
+      <div>Open <strong>Lab A1</strong> and navigate to the <strong>Engagement Pack</strong> tab</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">2</div>
+      <div>Point out the six sections: Client Brief, Scope, RoE, Permission to Test, Credentials, Network Overview</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">3</div>
+      <div>Highlight the <strong>emergency contact</strong> field &mdash; ask students: "What do you do if you accidentally take down a production server?"</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">4</div>
+      <div>Show the <strong>Scope section</strong> &mdash; confirm what is in vs. out of scope for Syntex</div>
+    </div>
+  </div>
+  <p class="demo-note">Let students ask questions about the engagement pack before moving to the lab exercise.</p>
+</div>
+
+<!-- ==================== SLIDE 5: A1 LAB ==================== -->
+<div class="slide slide-lab" data-title="A1: Lab Exercise">
+  <div class="lab-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/></svg>
+    Lab A1
+  </div>
+  <h2>Engagement Pack Review</h2>
+  <p class="lab-desc">Students review the full Syntex Solutions Ltd engagement pack and complete the comprehension questions covering all six sections. Approximately 20 minutes.</p>
+  <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_engagement_pack_v1.html" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Lab A1
+  </a>
+  <div class="lab-timing">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    20 min &bull; Individual &bull; CPSA Objective A1
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: A2 SECTION ==================== -->
+<div class="slide slide-section" data-title="A2: UK Legal Framework">
+  <div class="sec-stripe"></div>
+  <div class="sec-num">A2</div>
+  <div class="sec-tag">Topic A2</div>
+  <h2>UK Legal Framework</h2>
+  <p class="sec-obj">CPSA Objective A2 &bull; Computer Misuse Act 1990</p>
+</div>
+
+<!-- ==================== SLIDE 7: A2 CONTENT ==================== -->
+<div class="slide slide-content" data-title="A2: Computer Misuse Act 1990">
+  <div class="slide-header">
+    <span class="slide-label">A2 &bull; Content</span>
+    <h2>Computer Misuse Act 1990 &mdash; The Three Offences</h2>
+  </div>
+  <div class="content-body">
+    <div class="content-main">
+      <ul class="bullet-list large">
+        <li>
+          <div>
+            <strong>Section 1 &mdash; Unauthorised Access</strong><br>
+            Accessing any computer without permission. <em>Max: 2 years / unlimited fine.</em> This is why written scope matters. Testing an out-of-scope host = S1 offence, full stop.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Section 2 &mdash; Access with Intent to Commit Further Offences</strong><br>
+            Accessing a system with intent to commit another crime (e.g. fraud, theft). <em>Max: 5 years / unlimited fine.</em> Intent is the aggravating factor.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Section 3 &mdash; Unauthorised Modification</strong><br>
+            Modifying data without permission. Includes uploading malware, deleting files, changing passwords. <em>Max: 10 years / unlimited fine.</em> Even a test payload left behind can be S3.
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="content-side">
+      <div class="info-box">
+        <strong>The Consultant's Defence</strong><br>
+        A valid written authorisation (RoE + Permission to Test letter) is your legal defence. It does not make the act legal by itself; it demonstrates the access was <em>authorised</em> and therefore not an offence.<br><br>
+        <strong>Police and Justice Act 2006</strong> &mdash; also covers creation/supply of articles likely to be used for CMA offences. Be careful what tools you distribute.
+      </div>
+      <div class="info-box">
+        <strong>Key exam point:</strong><br>
+        The CMA applies to <em>any</em> computer system in the UK, regardless of where the attacker is located. Jurisdiction follows the victim's location.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: A2 ANALOGY ==================== -->
+<div class="slide slide-analogy" data-title="A2: Real-World Analogy">
+  <div class="slide-header">
+    <span class="slide-label">A2 &bull; Real-World Analogy</span>
+    <h2>The Locksmith</h2>
+  </div>
+  <div class="analogy-body">
+    <div class="analogy-quote">
+      <p>"A locksmith can pick any lock. The skill is identical whether they are helping a locked-out homeowner or breaking into someone's house. The difference is entirely the authorisation. The police do not arrest the locksmith for knowing how &mdash; they arrest them for doing it without permission."</p>
+      <cite>Computer Misuse Act Parallel</cite>
+    </div>
+    <div class="analogy-detail">
+      <h3>The three CMA sections as locksmithing</h3>
+      <p><strong>Section 1</strong> = picking the lock to walk into someone's house without being asked. The act itself is the offence.</p>
+      <p><strong>Section 2</strong> = picking the lock because you intend to steal the TV. The intent makes it worse.</p>
+      <p><strong>Section 3</strong> = picking the lock and then changing it so the owner cannot get back in. Modification is the aggravating act.</p>
+      <p><strong>The signed RoE</strong> = the homeowner standing next to you with a written note saying "I asked this person to pick my lock."</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: A2 DEMO ==================== -->
+<div class="slide slide-demo" data-title="A2: Instructor Demo">
+  <div class="demo-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3,9 21,9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+  </div>
+  <div class="demo-title">DEMO</div>
+  <h2>Real CMA Prosecution Case Study</h2>
+  <div class="demo-steps">
+    <div class="demo-step">
+      <div class="demo-step-num">1</div>
+      <div>Describe the <strong>2022 Uber breach</strong> case &mdash; attacker accessed internal systems via social engineering; UK charges under CMA S1 and S3</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">2</div>
+      <div>Discuss <strong>the defence argument</strong>: "I was testing security." Ask students: Why did this not work?</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">3</div>
+      <div>Reinforce: <strong>No written authorisation = no defence.</strong> "I thought they would want me to find it" is not consent.</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">4</div>
+      <div>Ask: "What section applies if you accidentally delete a log file during your test?" (Answer: S3)</div>
+    </div>
+  </div>
+  <p class="demo-note">Keep it discussion-based. Students respond well to real-world prosecution examples over abstract law.</p>
+</div>
+
+<!-- ==================== SLIDE 10: A2 LAB ==================== -->
+<div class="slide slide-lab" data-title="A2: Lab Exercise">
+  <div class="lab-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/></svg>
+    Lab A5 &bull; A6
+  </div>
+  <h2>Nightmare Client Scoping + RoE Error Review</h2>
+  <p class="lab-desc">Students work through the Vortex Logistics chaotic scoping email (A5) and then review the deliberately erroneous RoE letter produced from it (A6). Both labs reinforce pre-engagement rigour and legal exposure when documentation is wrong.</p>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;">
+    <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_scoping_email_v1.html" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Lab A5
+    </a>
+    <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_roe_errors_v1.html" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Lab A6
+    </a>
+  </div>
+  <div class="lab-timing">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    30 min total &bull; Individual &bull; CPSA Objective A2
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: A3 SECTION ==================== -->
+<div class="slide slide-section" data-title="A3: Scoping and Engagement Types">
+  <div class="sec-stripe"></div>
+  <div class="sec-num">A3</div>
+  <div class="sec-tag">Topic A3</div>
+  <h2>Scoping &amp; Engagement Types</h2>
+  <p class="sec-obj">CPSA Objective A3 &bull; Black / Grey / White Box &bull; Cloud Rules</p>
+</div>
+
+<!-- ==================== SLIDE 12: A3 CONTENT ==================== -->
+<div class="slide slide-content" data-title="A3: Engagement Types">
+  <div class="slide-header">
+    <span class="slide-label">A3 &bull; Content</span>
+    <h2>Black, Grey, and White Box Testing</h2>
+  </div>
+  <div class="content-body">
+    <div class="content-main">
+      <ul class="bullet-list large">
+        <li>
+          <div>
+            <strong>Black Box</strong> &mdash; Zero prior knowledge. Simulates an external attacker. Most realistic threat model, but slowest and most expensive. OSINT phase is critical.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Grey Box</strong> &mdash; Partial knowledge. Typical for most commercial engagements. May include network diagrams, credentials, or architecture docs. Better ROI for client.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>White Box</strong> &mdash; Full knowledge. Source code, network diagrams, admin credentials. Maximum coverage; identifies issues a black-box test would miss entirely.
+          </div>
+        </li>
+      </ul>
+      <div class="info-box" style="margin-top:0.5rem;">
+        <strong>Cloud Permission Rule (critical exam topic):</strong><br>
+        To test cloud-hosted infrastructure you need <em>written permission from both the client AND the cloud provider</em>. AWS, Azure, and GCP all have penetration testing policies; breaching them can result in account suspension and legal action against you personally. Always check the provider's policy first.
+      </div>
+    </div>
+    <div class="content-side">
+      <div class="info-box">
+        <strong>Scope Creep Warning</strong><br>
+        Clients often add items mid-engagement: "While you're at it, can you look at our AWS portal?" This is scope creep. Any addition requires a written change request and updated RoE. Never extend scope verbally.
+      </div>
+      <ul class="bullet-list">
+        <li>Social engineering and phishing must be <em>explicitly</em> included in scope &mdash; they cannot be assumed</li>
+        <li>Physical access testing requires its own separate authorisation document</li>
+        <li>Denial of service testing is almost always excluded &mdash; confirm in writing</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: A3 ANALOGY ==================== -->
+<div class="slide slide-analogy" data-title="A3: Real-World Analogy">
+  <div class="slide-header">
+    <span class="slide-label">A3 &bull; Real-World Analogy</span>
+    <h2>The Security Audit at a Rented Office</h2>
+  </div>
+  <div class="analogy-body">
+    <div class="analogy-quote">
+      <p>"A company rents a floor in a serviced office building. You're asked to test their security. The tenant can authorise you to test their floor &mdash; but they cannot authorise you to test the building's shared network infrastructure, the lifts, or another tenant's server rack. That permission belongs to the building owner."</p>
+      <cite>Cloud Shared Responsibility Parallel</cite>
+    </div>
+    <div class="analogy-detail">
+      <h3>Why this maps to cloud exactly</h3>
+      <p><strong>The tenant</strong> = your client. They authorise testing of <em>their</em> resources: their VMs, their application, their S3 buckets.</p>
+      <p><strong>The building owner</strong> = AWS / Azure / GCP. They own the hypervisor, the network fabric, the physical hardware. Only they can authorise testing of the underlying infrastructure.</p>
+      <p><strong>The other tenants</strong> = other cloud customers sharing the same physical host. A misconfigured test can affect them. This is why providers have strict pentest policies.</p>
+      <p><strong>Without the landlord's permission</strong> = potential violation of the provider's acceptable use policy, account suspension, and personal legal liability.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: A3 DEMO ==================== -->
+<div class="slide slide-demo" data-title="A3: Instructor Demo">
+  <div class="demo-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3,9 21,9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+  </div>
+  <div class="demo-title">DEMO</div>
+  <h2>Reading an AWS Penetration Testing Policy</h2>
+  <div class="demo-steps">
+    <div class="demo-step">
+      <div class="demo-step-num">1</div>
+      <div>Open the <strong>AWS Customer Support Policy for Penetration Testing</strong> (aws.amazon.com) in your browser</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">2</div>
+      <div>Show the <strong>Permitted Services</strong> list &mdash; EC2, RDS, CloudFront, API Gateway are typically OK; the underlying infrastructure is not</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">3</div>
+      <div>Show the <strong>Prohibited Activities</strong> &mdash; DNS zone walking, DoS, port/protocol/request flooding</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">4</div>
+      <div>Point out: <strong>No prior approval needed for permitted services</strong> on AWS (but check the current policy as it changes)</div>
+    </div>
+  </div>
+  <p class="demo-note">Compare AWS vs. Azure policy briefly. Azure still requires advance notification for certain test types.</p>
+</div>
+
+<!-- ==================== SLIDE 15: A3 LAB ==================== -->
+<div class="slide slide-lab" data-title="A3: Lab Tie-in">
+  <div class="lab-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/></svg>
+    Lab A5 &bull; Scope Creep Tie-in
+  </div>
+  <h2>Spot the Scope Creep in the Vortex Logistics Email</h2>
+  <p class="lab-desc">Return to Lab A5. Ask students to identify the three scope creep items in Dave Holt's email: the AWS portal access request, the phishing simulation, and the MD's laptop. Discuss why each one requires a separate authorisation before it can be included.</p>
+  <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_scoping_email_v1.html" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Lab A5
+  </a>
+  <div class="lab-timing">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    Discussion &bull; Whole Group &bull; CPSA Objective A3
+  </div>
+</div>
+
+<!-- ==================== SLIDE 16: A4 SECTION ==================== -->
+<div class="slide slide-section" data-title="A4: Risk Management and CVSS">
+  <div class="sec-stripe"></div>
+  <div class="sec-num">A4</div>
+  <div class="sec-tag">Topic A4</div>
+  <h2>Risk Management &amp; CVSS</h2>
+  <p class="sec-obj">CPSA Objective A4 &bull; CVSS v3.1 Scoring &bull; Severity Bands</p>
+</div>
+
+<!-- ==================== SLIDE 17: A4 CONTENT ==================== -->
+<div class="slide slide-content" data-title="A4: CVSS v3.1 Scoring">
+  <div class="slide-header">
+    <span class="slide-label">A4 &bull; Content</span>
+    <h2>CVSS v3.1 &mdash; Severity Bands and Score Groups</h2>
+  </div>
+  <div class="content-body">
+    <div class="content-main">
+      <div style="overflow-x:auto">
+        <table class="cvss-table">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Score Range</th>
+              <th>Typical Impact</th>
+              <th>Report Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="sev-pill crit">Critical</span></td><td class="sev-crit">9.0 &ndash; 10.0</td><td>Full system compromise, no auth required</td><td><strong>Immediate escalation to client</strong></td></tr>
+            <tr><td><span class="sev-pill high">High</span></td><td class="sev-high">7.0 &ndash; 8.9</td><td>Significant impact, may require auth or user interaction</td><td><strong>Fix within 30 days</strong></td></tr>
+            <tr><td><span class="sev-pill med">Medium</span></td><td class="sev-med">4.0 &ndash; 6.9</td><td>Limited impact, requires complex conditions</td><td><strong>Fix within 90 days</strong></td></tr>
+            <tr><td><span class="sev-pill low">Low</span></td><td class="sev-low">0.1 &ndash; 3.9</td><td>Minimal impact, informational concern</td><td><strong>Best effort</strong></td></tr>
+            <tr><td><span class="sev-pill info">Info</span></td><td class="sev-info">0.0</td><td>No direct impact, observation only</td><td><strong>Awareness only</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-box" style="margin-top:0.75rem;">
+        <strong>Three Score Groups:</strong> <em>Base</em> (the vulnerability in isolation, does not change) / <em>Temporal</em> (exploit availability, patch status &mdash; changes over time) / <em>Environmental</em> (organisation-specific context &mdash; same CVE can score differently at different clients).
+      </div>
+    </div>
+    <div class="content-side">
+      <div class="info-box">
+        <strong>Key exam distinction:</strong><br>
+        The same vulnerability can have a <em>different</em> CVSS score at different organisations. An unauthenticated RCE on a dev server with no external access scores lower than the same vuln on a public-facing payment processor. The Environmental score adjusts for this.
+      </div>
+      <ul class="bullet-list">
+        <li><strong>Attack Vector (AV)</strong> &mdash; most commonly mis-scored; Network vs. Adjacent vs. Local vs. Physical</li>
+        <li><strong>Scope (S)</strong> &mdash; Changed vs. Unchanged; does exploitation affect components beyond the vulnerable one?</li>
+        <li><strong>Attack Complexity (AC)</strong> &mdash; Low vs. High; does the attacker need specific race conditions or special config?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 18: A4 ANALOGY ==================== -->
+<div class="slide slide-analogy" data-title="A4: Real-World Analogy">
+  <div class="slide-header">
+    <span class="slide-label">A4 &bull; Real-World Analogy</span>
+    <h2>The Broken Window in Two Buildings</h2>
+  </div>
+  <div class="analogy-body">
+    <div class="analogy-quote">
+      <p>"A broken ground-floor window is a Critical finding in a jewellery shop and a Low finding in a storage unit in a remote industrial estate. The window is the same window. The score changes because the context changes."</p>
+      <cite>Environmental Score Parallel</cite>
+    </div>
+    <div class="analogy-detail">
+      <h3>Base vs. Environmental scores</h3>
+      <p><strong>Base score</strong> = the window is broken. That fact never changes. It is a physical access risk regardless of location.</p>
+      <p><strong>Environmental score at the jeweller</strong> = high-value assets, public-facing, frequent footfall, manned by staff. An attacker reaching this window has enormous impact. Score goes up.</p>
+      <p><strong>Environmental score at the storage unit</strong> = low-value assets, remote location, CCTV, steel containers inside. An attacker reaching this window still has limited impact. Score stays low.</p>
+      <p><strong>Lesson:</strong> Never tell a client their CVSS score without the environmental context. A blanket "9.8 Critical" on a dev box no one can reach from the internet is misleading and erodes trust.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 19: A4 DEMO ==================== -->
+<div class="slide slide-demo" data-title="A4: Instructor Demo">
+  <div class="demo-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3,9 21,9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+  </div>
+  <div class="demo-title">DEMO</div>
+  <h2>Score a Finding Live Using the CVSS Calculator</h2>
+  <div class="demo-steps">
+    <div class="demo-step">
+      <div class="demo-step-num">1</div>
+      <div>Open <strong>nvd.nist.gov/vuln-metrics/cvss/v3-calculator</strong> in your browser</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">2</div>
+      <div>Score <strong>Scenario 3 from Lab A4</strong>: Telnet enabled, cleartext credentials, network accessible. Work through each Base metric aloud.</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">3</div>
+      <div>Ask students: <strong>"What is the Attack Vector?"</strong> (Network) &mdash; <strong>"Does Scope change?"</strong> (No, it's just the Telnet service) &mdash; pause for answers</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">4</div>
+      <div>Now change the scenario context: <strong>"What if this is an internal jump host only reachable via VPN?"</strong> &mdash; adjust AV to Adjacent and watch the score drop</div>
+    </div>
+  </div>
+  <p class="demo-note">This live scoring exercise is the single most effective way to cement CVSS metrics. Keep the discussion open.</p>
+</div>
+
+<!-- ==================== SLIDE 20: A4 LAB ==================== -->
+<div class="slide slide-lab" data-title="A4: Lab Exercise">
+  <div class="lab-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/></svg>
+    Lab A4
+  </div>
+  <h2>CVSS Scoring Worksheet</h2>
+  <p class="lab-desc">Six realistic scenarios from the Syntex engagement. Students score all eight Base metrics for each finding, then compare against the model answer. Pay close attention to Attack Vector, Scope, and Attack Complexity &mdash; the three most commonly mis-scored in CPSA exams.</p>
+  <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_cvss_worksheet_v1.html" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    Open Lab A4
+  </a>
+  <div class="lab-timing">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    25 min &bull; Individual &bull; CPSA Objective A4
+  </div>
+</div>
+
+<!-- ==================== SLIDE 21: A5 SECTION ==================== -->
+<div class="slide slide-section" data-title="A5: Professional Reporting">
+  <div class="sec-stripe"></div>
+  <div class="sec-num">A5</div>
+  <div class="sec-tag">Topic A5</div>
+  <h2>Professional Reporting</h2>
+  <p class="sec-obj">CPSA Objective A5 &bull; Report Structure &bull; Secure Delivery &bull; Data Retention</p>
+</div>
+
+<!-- ==================== SLIDE 22: A5 CONTENT ==================== -->
+<div class="slide slide-content" data-title="A5: Report Structure and Delivery">
+  <div class="slide-header">
+    <span class="slide-label">A5 &bull; Content</span>
+    <h2>Report Structure, Secure Delivery, and Data Retention</h2>
+  </div>
+  <div class="content-body">
+    <div class="content-main">
+      <ul class="bullet-list large">
+        <li>
+          <div>
+            <strong>Executive Summary</strong> &mdash; written for the board and senior management. No technical jargon. Business impact, risk posture, overall risk rating, top 3 recommendations. One page.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Technical Findings</strong> &mdash; written for the IT team. Each finding includes: title, CVSS score, description, evidence (screenshots/output), affected systems, remediation steps, compliance mapping.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Remediation Roadmap</strong> &mdash; prioritised fix list, categorised by severity and effort. Gives the client a clear action plan rather than just a list of problems.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Secure Delivery</strong> &mdash; encrypted email (password via separate channel) or a secure client portal only. Never send a pentest report as a plain-text email attachment.
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Data Retention</strong> &mdash; industry standard is 6&ndash;12 months. The RoE should specify the agreed retention period and destruction method. Client data is your legal liability while you hold it.
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="content-side">
+      <div class="info-box">
+        <strong>Audience separation is everything.</strong><br>
+        A board member who receives a 60-page technical document and cannot find the business risk summary will lose confidence in you. A sysadmin who receives only a one-line risk statement cannot action anything.<br><br>
+        Write two audiences, two sections, one report.
+      </div>
+      <div class="info-box">
+        <strong>Evidence tools:</strong><br>
+        Screenshots with timestamps, tool output captured to file, network capture (pcap) where relevant. Everything timestamped, everything contemporaneous. Reconstructed evidence has no legal standing.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 23: A5 ANALOGY ==================== -->
+<div class="slide slide-analogy" data-title="A5: Real-World Analogy">
+  <div class="slide-header">
+    <span class="slide-label">A5 &bull; Real-World Analogy</span>
+    <h2>The Doctor and the Patient</h2>
+  </div>
+  <div class="analogy-body">
+    <div class="analogy-quote">
+      <p>"When a consultant tells a patient 'You have a moderate blockage in the left anterior descending artery affecting myocardial perfusion with a fractional flow reserve of 0.74,' the patient nods and understands nothing. When they say 'Your heart isn't getting enough blood to one section. We need to fix this in the next few weeks or you risk a heart attack,' the patient can make a decision."</p>
+      <cite>Executive Summary vs. Technical Report Parallel</cite>
+    </div>
+    <div class="analogy-detail">
+      <h3>The same finding, two audiences</h3>
+      <p><strong>Technical finding</strong>: "CVE-2021-44228, Log4Shell RCE, CVSS 10.0, affecting Apache 2.14.1 on 10.10.0.50:8080. JNDI lookup via User-Agent header confirmed via out-of-band DNS callback."</p>
+      <p><strong>Executive summary</strong>: "A critical vulnerability was found that allows any attacker on the internet to take complete control of your public web server. This is a known, actively exploited flaw. It must be patched this week."</p>
+      <p><strong>The rule:</strong> If your executive summary requires technical knowledge to understand, rewrite it. If your technical finding lacks evidence and reproduction steps, rewrite that too.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 24: A5 DEMO ==================== -->
+<div class="slide slide-demo" data-title="A5: Instructor Demo">
+  <div class="demo-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="3,9 21,9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+  </div>
+  <div class="demo-title">DEMO</div>
+  <h2>Walk Through the Syntex Model Answer Report</h2>
+  <div class="demo-steps">
+    <div class="demo-step">
+      <div class="demo-step-num">1</div>
+      <div>Open <strong>Lab A2</strong> (Model Answer Report). Navigate to the Executive Summary section.</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">2</div>
+      <div>Point out: <strong>no CVSS numbers, no tool names, no technical jargon</strong> in the exec summary. Business risk, remediation priority, overall posture.</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">3</div>
+      <div>Jump to a <strong>Critical finding</strong>. Show the full structure: title, score, description, evidence, affected systems, remediation, compliance mapping.</div>
+    </div>
+    <div class="demo-step">
+      <div class="demo-step-num">4</div>
+      <div>Ask: <strong>"What is missing from this finding that would make it inadequate?"</strong> &mdash; solicit answers (screenshot, specific remediation version, CVE reference)</div>
+    </div>
+  </div>
+  <p class="demo-note">Compare one well-written finding with one intentionally thin finding. Ask students to spot the difference before explaining it.</p>
+</div>
+
+<!-- ==================== SLIDE 25: A5 LAB ==================== -->
+<div class="slide slide-lab" data-title="A5: Lab Exercise">
+  <div class="lab-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/></svg>
+    Labs A2 + A3
+  </div>
+  <h2>Model Report Review + Student Report Template</h2>
+  <p class="lab-desc">Students first study the model answer report (A2), then complete their own using the fillable template (A3). Covers executive summary, findings with CVSS scores, compliance mapping, and the remediation roadmap. Auto-saved in browser.</p>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;">
+    <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_findings_report_v1.html" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Lab A2
+    </a>
+    <a class="lab-link-btn" href="https://heaps1345.github.io/mca-activites/cpsa/module-a/syntex_student_report_v1.html" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Lab A3
+    </a>
+  </div>
+  <div class="lab-timing">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    40 min total &bull; Individual &bull; CPSA Objective A5
+  </div>
+</div>
+
+<!-- ==================== SLIDE 26: CLOSE ==================== -->
+<div class="slide slide-cover" data-title="Module A Complete">
+  <div class="badge">Module A &bull; Complete</div>
+  <div class="cover-divider"></div>
+  <h1>Module A<br><span>Summary</span></h1>
+  <p class="subtitle" style="max-width:55ch;text-align:center;">
+    A1 Lifecycle &bull; A2 Computer Misuse Act &bull; A3 Scoping &amp; Engagement Types &bull; A4 CVSS &bull; A5 Professional Reporting
+  </p>
+  <ul class="bullet-list" style="text-align:left;max-width:44ch;">
+    <li><strong>No signed RoE = no test.</strong> Legal exposure begins the moment you touch an unauthorised system.</li>
+    <li><strong>Scope creep needs paper.</strong> Every addition requires a written change request and updated RoE.</li>
+    <li><strong>CVSS is context-dependent.</strong> The same vulnerability scores differently at different organisations.</li>
+    <li><strong>Two audiences, one report.</strong> Executive summary for the board; technical findings for the team.</li>
+    <li><strong>Secure delivery always.</strong> Encrypted only; never plain email; retain for 6&ndash;12 months then destroy.</li>
+  </ul>
+  <div class="meta">My Cyber Academy &bull; CREST CPSA &bull; 6 Labs Available</div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nav-btn" id="btn-prev" disabled>
+    <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+    Prev
+  </button>
+  <span id="slide-title-bar"></span>
+  <span id="slide-counter"></span>
+  <button class="nav-btn" id="btn-next">
+    Next
+    <svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg>
+  </button>
+</div>
+
+<script>
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progress = document.getElementById('progress');
+  const counter  = document.getElementById('slide-counter');
+  const titleBar = document.getElementById('slide-title-bar');
+  const btnPrev  = document.getElementById('btn-prev');
+  const btnNext  = document.getElementById('btn-next');
+  let current = 0;
+
+  function go(n) {
+    if (n < 0 || n >= slides.length) return;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    update();
+  }
+
+  function update() {
+    const pct = slides.length > 1 ? (current / (slides.length - 1)) * 100 : 100;
+    progress.style.width = pct + '%';
+    counter.textContent  = (current + 1) + ' / ' + slides.length;
+    titleBar.textContent = slides[current].dataset.title || '';
+    btnPrev.disabled = current === 0;
+    btnNext.disabled = current === slides.length - 1;
+  }
+
+  btnPrev.addEventListener('click', () => go(current - 1));
+  btnNext.addEventListener('click', () => go(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); go(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); go(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); go(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); go(slides.length - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      try {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+        else document.exitFullscreen().catch(()=>{});
+      } catch(err) {}
+    }
+  });
+
+  // Touch swipe
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.changedTouches[0].screenX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - tx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? current + 1 : current - 1);
+  }, { passive: true });
+
+  update();
+})();
+</script>
