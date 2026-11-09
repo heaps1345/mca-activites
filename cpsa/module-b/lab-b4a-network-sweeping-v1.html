@@ -216,7 +216,7 @@
 
   <div class="scenario-box">
     <h3>Scenario</h3>
-    <p>You have been engaged to perform a penetration test of Syntex Solutions Ltd. You have been given the network range <strong>10.1.0.0/16</strong> as your scope. No host list has been provided. Your first task is to identify live hosts and prioritise them for testing. You are working from your Kali Linux machine.</p>
+    <p>You have been engaged to perform a penetration test of Syntex Solutions Ltd. You have been given the network range <strong><SCOPE_RANGE></strong> as your scope. No host list has been provided. Your first task is to identify live hosts and prioritise them for testing. You are working from your Kali Linux machine.</p>
   </div>
 
   <div class="section">
@@ -234,13 +234,13 @@
     <div class="section-title">Lab Environment</div>
     <div class="info-grid">
       <div class="info-card"><div class="label">Your Kali IP</div><div class="value">Check: ip a</div></div>
-      <div class="info-card"><div class="label">Target Range</div><div class="value">10.1.0.0/16</div></div>
+      <div class="info-card"><div class="label">Target Range</div><div class="value"><SCOPE_RANGE></div></div>
       <div class="info-card"><div class="label">Known Target</div><div class="value">SYNTEX-LNX01</div></div>
       <div class="info-card"><div class="label">Tool</div><div class="value">nmap, netdiscover</div></div>
     </div>
     <div class="callout warn">
       <span class="callout-icon">⚠</span>
-      <div>A /16 full scan takes a long time. Your instructor will give you a narrower range to scan during the lab - e.g. 10.1.147.0/24. Use that range for the timed exercises.</div>
+      <div>A /16 full scan takes a long time. Your instructor will give you a narrower range to scan during the lab - e.g. <TARGET_RANGE>. Use that range for the timed exercises.</div>
     </div>
   </div>
 
@@ -252,7 +252,7 @@
       <div class="step-body">
         <p>The simplest form of host discovery. Nmap sends ICMP Echo Requests (Type 8) to every address in the range and waits for replies.</p>
         <pre><span class="comment"># Replace with your lab subnet</span>
-<span class="cmd">nmap</span> <span class="flag">-sn -PE</span> 10.1.147.0/24</pre>
+<span class="cmd">nmap</span> <span class="flag">-sn -PE</span> <TARGET_RANGE></pre>
         <p>The <code>-sn</code> flag means "ping scan only - no port scan." The <code>-PE</code> flag means "use ICMP Echo."</p>
         <div class="answer-box">
           <div class="label">Record your results - how many hosts responded?</div>
@@ -266,7 +266,7 @@
       <div class="step-header"><div class="step-num">2</div><div class="step-title">Run an aggressive multi-probe sweep</div></div>
       <div class="step-body">
         <p>ICMP alone is often blocked. This command adds ICMP timestamp requests and a TCP probe to port 443, catching hosts that filter Echo requests.</p>
-        <pre><span class="cmd">nmap</span> <span class="flag">-sn -PE -PP -PS443 -PA80</span> 10.1.147.0/24</pre>
+        <pre><span class="cmd">nmap</span> <span class="flag">-sn -PE -PP -PS443 -PA80</span> <TARGET_RANGE></pre>
         <p><code>-PP</code> = ICMP Timestamp | <code>-PS443</code> = TCP SYN to port 443 | <code>-PA80</code> = TCP ACK to port 80</p>
         <div class="answer-box">
           <div class="label">Did you find any additional hosts compared to Step 1?</div>
@@ -281,7 +281,7 @@
       <div class="step-body">
         <p>The nuclear option. Nmap skips host discovery entirely and scans every address. Slow, but catches hosts that block all probe types.</p>
         <pre><span class="comment"># -Pn treats all hosts as up, -F scans top 100 ports only (faster)</span>
-<span class="cmd">nmap</span> <span class="flag">-Pn -F</span> 10.1.147.0/24</pre>
+<span class="cmd">nmap</span> <span class="flag">-Pn -F</span> <TARGET_RANGE></pre>
         <div class="callout warn">
           <span class="callout-icon">⚠</span>
           <div>This will take significantly longer. Your instructor may ask you to run this against a single IP rather than the full subnet during the lab.</div>
@@ -312,7 +312,7 @@
 
     <div class="question">
       <div class="q-num">Question 1</div>
-      <p>You run <code>nmap -sn 10.1.0.0/24</code> and get 3 hosts. You then run <code>nmap -Pn -p 80 10.1.0.0/24</code> and get 7 hosts responding on port 80. What does this tell you?</p>
+      <p>You run <code>nmap -sn <TARGET_RANGE></code> and get 3 hosts. You then run <code>nmap -Pn -p 80 <TARGET_RANGE></code> and get 7 hosts responding on port 80. What does this tell you?</p>
       <div class="answer-box">
         <input class="answer-line" type="text" placeholder="Answer:" data-answer="-Pn">
         <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
@@ -341,7 +341,7 @@
       <div class="step-body">
         <p>Run a top-100-port scan with version detection across all hosts you found. Save the output so you can reference it.</p>
         <pre><span class="comment"># Save output in all formats - greppable, normal, XML</span>
-<span class="cmd">nmap</span> <span class="flag">-sV -F --open</span> 10.1.147.0/24 <span class="flag">-oA</span> syntex_sweep</pre>
+<span class="cmd">nmap</span> <span class="flag">-sV -F --open</span> <TARGET_RANGE> <span class="flag">-oA</span> syntex_sweep</pre>
         <p><code>--open</code> shows only hosts with at least one open port. <code>-oA</code> saves three output files: .nmap, .gnmap, .xml</p>
         <div class="callout tip">
           <span class="callout-icon">✓</span>

@@ -273,9 +273,9 @@
     <div class="step">
       <div class="step-header"><div class="step-num">1</div><div class="step-title">Run traceroute to SYNTEX-LNX01</div></div>
       <div class="step-body">
-        <p>By default, traceroute on Linux uses UDP probes. Replace TARGET_IP with your SYNTEX-LNX01 address.</p>
+        <p>By default, traceroute on Linux uses UDP probes. Replace <TARGET_IP> with your SYNTEX-LNX01 address.</p>
         <pre><span class="comment"># Default UDP traceroute</span>
-<span class="cmd">traceroute</span> TARGET_IP</pre>
+<span class="cmd">traceroute</span> <TARGET_IP></pre>
         <p>Each line shows one hop: hop number, IP address, and three RTT measurements.</p>
         <div class="answer-box">
           <div class="label">Record your traceroute output</div>
@@ -292,7 +292,7 @@
       <div class="step-body">
         <p>Some environments block UDP probes but pass ICMP. The <code>-I</code> flag switches to ICMP Echo Requests, similar to what ping uses.</p>
         <pre><span class="comment"># ICMP-based traceroute - requires root</span>
-<span class="cmd">traceroute</span> <span class="flag">-I</span> TARGET_IP</pre>
+<span class="cmd">traceroute</span> <span class="flag">-I</span> <TARGET_IP></pre>
         <div class="answer-box">
           <div class="label">Did the results differ from Step 1? How?</div>
           <input class="answer-line" type="text" placeholder="Your observation:">
@@ -305,7 +305,7 @@
       <div class="step-body">
         <p>Firewalls often let TCP traffic through when they block ICMP/UDP. Tracing on a specific TCP port can reveal a route that other methods miss. Port 22 (SSH) is open on SYNTEX-LNX01.</p>
         <pre><span class="comment"># TCP SYN traceroute to port 22</span>
-<span class="cmd">traceroute</span> <span class="flag">-T -p 22</span> TARGET_IP</pre>
+<span class="cmd">traceroute</span> <span class="flag">-T -p 22</span> <TARGET_IP></pre>
         <div class="answer-box">
           <div class="label">Any difference in hops visible vs. ICMP traceroute?</div>
           <input class="answer-line" type="text" placeholder="Your observation:">
@@ -326,7 +326,7 @@
       <div class="step-body">
         <p>MTR combines ping and traceroute. It runs continuously, showing loss percentage and jitter at each hop - more useful for spotting intermittent filtering than a single traceroute run.</p>
         <pre><span class="comment"># -n skips DNS lookups (faster), -c sets packet count</span>
-<span class="cmd">mtr</span> <span class="flag">-n -c 10 --report</span> TARGET_IP</pre>
+<span class="cmd">mtr</span> <span class="flag">-n -c 10 --report</span> <TARGET_IP></pre>
         <p>The <code>--report</code> flag makes mtr run for 10 packets then exit. Without it, mtr runs interactively (press <code>q</code> to quit).</p>
         <div class="answer-box">
           <div class="label">Record the mtr output - note the Loss% column for each hop</div>
@@ -341,9 +341,9 @@
       <div class="step-body">
         <p>Below is example mtr output showing a filtered hop. Read it and answer the questions underneath.</p>
         <pre><span class="output">HOST: kali                           Loss%   Snt   Last   Avg  Best  Wrst StDev
-  1.|-- 10.1.0.1                        0.0%    10    0.8   0.9   0.7   1.2   0.2
+  1.|-- <TARGET_IP>                        0.0%    10    0.8   0.9   0.7   1.2   0.2
   2.|-- <span class="highlight">???</span>                             <span class="highlight">100.0%</span>   10    0.0   0.0   0.0   0.0   0.0
-  3.|-- 10.1.147.39                     0.0%    10    0.6   0.7   0.5   1.1   0.2</span></pre>
+  3.|-- <TARGET_IP>                     0.0%    10    0.6   0.7   0.5   1.1   0.2</span></pre>
         <div class="question" style="background:#fff;border:1px solid var(--border);">
           <div class="q-num">Analysis Question</div>
           <p>Hop 2 shows 100% loss and appears as <code>???</code>. Yet hop 3 (the target) responds fine with 0% loss.</p>
@@ -365,7 +365,7 @@
       <div class="step-body">
         <p>Nmap can trace routes during a scan. This combines path mapping with port discovery in a single operation - useful for correlating filtering positions with port states.</p>
         <pre><span class="comment"># Scan top ports AND trace route simultaneously</span>
-<span class="cmd">nmap</span> <span class="flag">-sS --traceroute -F</span> TARGET_IP</pre>
+<span class="cmd">nmap</span> <span class="flag">-sS --traceroute -F</span> <TARGET_IP></pre>
         <p>Look for the <code>TRACEROUTE</code> section in the output after the port table.</p>
         <div class="answer-box">
           <div class="label">Copy the TRACEROUTE section from your nmap output here</div>
