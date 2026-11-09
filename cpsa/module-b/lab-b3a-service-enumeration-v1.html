@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B3-A: Service and Protocol Enumeration</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .answer-area { width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 8px; font-size: 13px; font-family: inherit; min-height: 70px; resize: vertical; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .check-btn { background: var(--orange); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .check-btn:hover { opacity: 0.9; }
+  .model-btn { background: var(--dark); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .model-btn:hover { opacity: 0.85; }
+  .answer-feedback { margin-top: 8px; padding: 8px 12px; border-radius: 3px; font-size: 13px; }
+  .answer-feedback.correct { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+  .answer-feedback.incorrect { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+  .model-answer { margin-top: 8px; padding: 8px 12px; background: var(--blue-bg); border-left: 3px solid var(--blue); font-size: 13px; color: var(--blue); border-radius: 0 3px 3px 0; }
+
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-block">MCA</div>
+    <div>
+      <div style="font-weight:700;font-size:16px;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B3-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Module:</strong> B3 - Network Services and Protocols</span>
+    <span><strong>Duration:</strong> 45 minutes</span>
+    <span><strong>Platform:</strong> Kali Linux</span>
+    <span><strong>Type:</strong> Active Enumeration</span>
+  </div>
+  <h1>Service and Protocol Enumeration</h1>
+  <p>This lab covers protocol-level enumeration before you use nmap. You will query DNS records, attempt SMB null sessions, perform anonymous LDAP binds, and query SNMP. Each section produces intelligence that shapes your attack approach. All commands use <code>&lt;TARGET_IP&gt;</code> - substitute the IP your instructor assigns.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#9654; Pre-Lab Checklist</h3>
+    <p class="preflight-intro">Your instructor will give you a target IP for this lab. Write it down before you start.</p>
+    <ul class="preflight-checklist">
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Labs B1-A and B2-A completed</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Target IP received from instructor and noted below</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> You can ping the target IP (confirm connectivity first)</li>
+    </ul>
+    <div style="margin-top:16px;">
+      <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">My target IP for this lab</div>
+      <input type="text" placeholder="e.g. 10.1.x.x - fill this in before you start" style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px 12px;font-family:monospace;font-size:14px;color:#79c0ff;width:300px;">
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Objectives</div>
+    <ul class="objective-list">
+      <li>Enumerate DNS records for a target domain using dig</li>
+      <li>Attempt a DNS zone transfer and understand why it matters</li>
+      <li>Enumerate SMB shares via null session with smbclient</li>
+      <li>Attempt an anonymous LDAP bind with ldapsearch</li>
+      <li>Query SNMP community strings with snmpwalk</li>
+      <li>Build a pre-nmap intelligence picture from protocol-level responses</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - DNS Enumeration</div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>DNS runs on port 53. It is one of the richest sources of intelligence in a pentest. A misconfigured DNS server will hand you the complete internal hostname list in a single query.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Query DNS record types against the target</div></div>
+      <div class="step-body">
+        <p>Use dig to query the target's DNS server directly. This tells you what records are exposed and what services are running.</p>
+        <pre><span class="comment"># Query A record - what IP does this hostname resolve to?</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> syntex.local <span class="flag">A</span>
+
+<span class="comment"># Query all record types</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> syntex.local <span class="flag">ANY</span>
+
+<span class="comment"># Query MX records - mail servers</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> syntex.local <span class="flag">MX</span>
+
+<span class="comment"># Query NS records - name servers</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> syntex.local <span class="flag">NS</span>
+
+<span class="comment"># Query TXT records - often SPF, DMARC, or internal notes</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> syntex.local <span class="flag">TXT</span></pre>
+        <div class="answer-box">
+          <div class="label">Record your DNS findings</div>
+          <input class="answer-line" type="text" placeholder="A record result (IP address returned):">
+          <input class="answer-line" type="text" placeholder="Any MX records found?">
+          <input class="answer-line" type="text" placeholder="Any TXT records (SPF, DMARC, or other)?">
+          <input class="answer-line" type="text" placeholder="What name servers (NS) are listed?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Attempt a DNS zone transfer (AXFR)</div></div>
+      <div class="step-body">
+        <p>A zone transfer copies the entire DNS zone to another server - normally used by secondary DNS servers. If a DNS server does not restrict zone transfers to authorised secondaries, any host can request the full hostname list. This is a critical misconfiguration.</p>
+        <pre><span class="comment"># Attempt AXFR zone transfer</span>
+<span class="cmd">dig</span> <span class="flag">axfr @&lt;TARGET_IP&gt;</span> syntex.local</pre>
+        <p>If the transfer succeeds, you will see every DNS record in the zone - hostnames, IPs, mail servers, internal services. If it fails, you will see <code>Transfer failed</code> or <code>REFUSED</code>.</p>
+        <div class="answer-box">
+          <div class="label">Zone transfer result</div>
+          <input class="answer-line" type="text" placeholder="Did the zone transfer succeed? (yes / no / REFUSED)">
+          <input class="answer-line" type="text" placeholder="If yes - how many records were returned?">
+          <input class="answer-line" type="text" placeholder="Any interesting hostnames revealed?">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> DNS zone transfers (AXFR) are a classic misconfiguration. The exam will test whether you know the record type name, the tool (dig), and the flag (-axfr). It may also ask what information a successful transfer reveals.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - SMB Enumeration</div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div>SMB (port 445) is one of the most dangerous services to expose. Null sessions - anonymous connections with no credentials - allow share enumeration on misconfigured Windows hosts. Modern Windows defaults block this, but legacy configurations and misconfigurations still appear regularly.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">List SMB shares with a null session</div></div>
+      <div class="step-body">
+        <p>A null session uses an empty username and password. The <code>-N</code> flag tells smbclient not to prompt for a password.</p>
+        <pre><span class="comment"># List shares on the target - null session (no credentials)</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;TARGET_IP&gt; <span class="flag">-N</span>
+
+<span class="comment"># If the target is on a Windows domain, specify it</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;TARGET_IP&gt; <span class="flag">-N -W</span> SYNTEX</pre>
+        <p>Shares ending in <code>$</code> are hidden administrative shares (C$, ADMIN$, IPC$). <code>IPC$</code> is the inter-process communication share - connecting to it with a null session enables user enumeration on some configurations.</p>
+        <div class="answer-box">
+          <div class="label">SMB enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the null session succeed? (yes / no / access denied)">
+          <input class="answer-line" type="text" placeholder="Shares listed (names):">
+          <input class="answer-line" type="text" placeholder="Any non-default shares (not C$, ADMIN$, IPC$)?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Connect to a share and list contents</div></div>
+      <div class="step-body">
+        <p>If you found any readable shares, try connecting. The <code>-N</code> flag skips the password prompt for anonymous access.</p>
+        <pre><span class="comment"># Connect to a share anonymously</span>
+<span class="cmd">smbclient</span> //&lt;TARGET_IP&gt;/&lt;SHARENAME&gt; <span class="flag">-N</span>
+
+<span class="comment"># Once connected, useful commands:</span>
+<span class="comment"># ls        - list files</span>
+<span class="comment"># get file  - download a file</span>
+<span class="comment"># exit      - disconnect</span></pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>On a real engagement, finding a world-readable share is always worth documenting even if it looks empty. Configuration files, old backups, and forgotten scripts have all been found on "empty" SMB shares. Always run <code>ls -la</code> equivalent to show hidden files.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Share access results</div>
+          <input class="answer-line" type="text" placeholder="Share name you connected to (if any):">
+          <input class="answer-line" type="text" placeholder="Files or directories visible:">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - LDAP Anonymous Bind</div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>LDAP (port 389) is the query interface for Active Directory. An anonymous bind - connecting without credentials - is allowed by default on some older AD configurations. Even a failed anonymous bind confirms that LDAP is running, which means Active Directory is present.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Attempt an LDAP anonymous bind</div></div>
+      <div class="step-body">
+        <p>ldapsearch queries LDAP directories. The <code>-x</code> flag means simple authentication (not SASL). The empty bind DN (<code>-D ""</code>) and no password (<code>-w ""</code>) attempt an anonymous bind.</p>
+        <pre><span class="comment"># Attempt anonymous bind and query the base DN</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b ""</span> <span class="flag">-s base</span>
+
+<span class="comment"># If the base DN succeeds, try enumerating users</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b "DC=syntex,DC=local"</span> "(objectClass=user)" sAMAccountName
+
+<span class="comment"># Enumerate groups</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b "DC=syntex,DC=local"</span> "(objectClass=group)" cn</pre>
+        <p>If anonymous bind is blocked, you will see <code>ldap_bind: Inappropriate authentication (48)</code>. This still tells you LDAP is running. If it succeeds, you will see the directory structure and potentially a full user list.</p>
+        <div class="answer-box">
+          <div class="label">LDAP enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the anonymous bind succeed? (yes / no - what error?)">
+          <input class="answer-line" type="text" placeholder="If yes - what did the base DN query return?">
+          <input class="answer-line" type="text" placeholder="Any user accounts visible?">
+          <input class="answer-line" type="text" placeholder="Does LDAP being present confirm anything about the server?">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> The exam will ask what you can enumerate via LDAP on an Active Directory domain controller. The answer includes user accounts, groups, group membership, computer accounts, and password policy. Even with authentication required, Kerberoasting abuses the authenticated LDAP interface.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - SNMP Enumeration</div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div>SNMP runs on UDP port 161. SNMPv1 and v2c use community strings as the only authentication. The default read community string is <code>public</code>. If this is not changed, an attacker can read the full device configuration including interface IPs, running processes, and software versions.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Query SNMP with the default community string</div></div>
+      <div class="step-body">
+        <p>snmpwalk walks the SNMP MIB tree and returns everything the device exposes. We use the default community string <code>public</code> and SNMPv2c.</p>
+        <pre><span class="comment"># Walk the full SNMP tree with default community string</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt;
+
+<span class="comment"># Query specific OIDs - system description</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.1.1.0</span>
+
+<span class="comment"># Running processes</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.25.4.2.1.2</span>
+
+<span class="comment"># Network interfaces</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.2.2.1.2</span></pre>
+        <p>If the community string is correct you will see a large amount of output. If it is wrong or SNMP is not running you will see <code>Timeout: No Response from &lt;TARGET_IP&gt;</code>.</p>
+        <div class="answer-box">
+          <div class="label">SNMP enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the community string 'public' work? (yes / no / timeout)">
+          <input class="answer-line" type="text" placeholder="System description (what OS/device information was returned)?">
+          <input class="answer-line" type="text" placeholder="Any running processes visible?">
+          <input class="answer-line" type="text" placeholder="Any network interface information returned?">
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>If <code>public</code> does not work, try <code>private</code> (the default write community string), <code>manager</code>, and the target organisation's name. Community strings are often set to company names or abbreviations.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 5 - Build Your Pre-Nmap Picture</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Consolidate your findings</div></div>
+      <div class="step-body">
+        <p>Before you run a single nmap scan, fill in this table using only the protocol-level enumeration from this lab. This is the kind of intelligence picture a thorough pentester builds before touching active scanners.</p>
+
+        <table>
+          <tr><th>Service</th><th>Port/Protocol</th><th>Running?</th><th>Key Finding</th></tr>
+          <tr>
+            <td>DNS</td>
+            <td>53/TCP+UDP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Zone transfer result, records found</td>
+          </tr>
+          <tr>
+            <td>SMB</td>
+            <td>445/TCP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Null session result, shares found</td>
+          </tr>
+          <tr>
+            <td>LDAP</td>
+            <td>389/TCP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Anonymous bind result, AD confirmed?</td>
+          </tr>
+          <tr>
+            <td>SNMP</td>
+            <td>161/UDP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Community string worked? Info returned?</td>
+          </tr>
+        </table>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div>An nmap scan of this same host will confirm these ports are open - but it will not tell you whether SMB accepts null sessions, whether LDAP allows anonymous binds, or what community string SNMP uses. Protocol-level enumeration fills that gap.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Exam-Style Questions</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>What DNS query type requests a full copy of a zone's records from a DNS server?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="AXFR|axfr|zone transfer|dns zone transfer">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>What is a null session in the context of SMB, and why is it a security concern?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>A null session is an anonymous connection to an SMB server using an empty username and password. It is a security concern because on misconfigured systems it allows an unauthenticated attacker to enumerate shares, user accounts (via IPC$), and sometimes read sensitive file content - all without any credentials.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>SNMP is running on a target. The community string <code>public</code> returns data. What security version of SNMP is this, and what is the primary weakness?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>SNMPv1 or v2c - both use community strings as cleartext authentication passed in every packet. The community string travels in plaintext and can be captured by anyone on the network. SNMPv3 uses proper authentication (MD5/SHA) and optionally encryption (DES/AES) to address this. Using the default public community string is a critical misconfiguration.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What port does LDAP run on, and what does a successful anonymous bind tell you about the target?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>LDAP runs on port 389 (636 for LDAPS). A successful anonymous bind means the server allows unauthenticated queries to the directory. On Active Directory, this can expose the full user list, group memberships, computer accounts, and password policy without any credentials. The presence of LDAP itself strongly suggests Active Directory is in use.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>You run <code>dig axfr @&lt;TARGET_IP&gt; syntex.local</code> and receive a <code>Transfer failed: REFUSED</code> response. What does this tell you, and is this good or bad from a security standpoint?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>The DNS server is running and responded (you confirmed port 53 is open). The REFUSED response means the server is correctly configured to only allow zone transfers to authorised secondary DNS servers - this is good security practice. A successful transfer would be a misconfiguration. REFUSED does not mean DNS is broken - normal individual record queries will still work.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:#0d1117;border:2px solid #2ea043;border-radius:6px;padding:20px 24px;margin-bottom:28px;">
+    <div style="color:#2ea043;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">&#10003; Lab Complete - Key Takeaways</div>
+    <div style="color:#ccc;font-size:13px;">Protocol-level enumeration gives you information that nmap cannot. A DNS zone transfer hands you the complete hostname list. An SMB null session gives you share names and potentially file access. An LDAP anonymous bind reveals the directory structure. SNMP with the default community string exposes the device configuration. By the time you open nmap, you should already have a picture of what is running. The B4 scanning labs build on this - nmap confirms ports, but enumeration tells you what to do with them.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B3-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+  function checkAnswer(btn) {
+    const box = btn.closest('.answer-box');
+    const input = box.querySelector('input[data-answer]');
+    const feedback = box.querySelector('.answer-feedback');
+    const accepted = input.dataset.answer.split('|').map(s => s.trim().toLowerCase());
+    const given = input.value.trim().toLowerCase();
+    feedback.removeAttribute('hidden');
+    if (accepted.some(a => given.includes(a) || a.includes(given))) {
+      feedback.className = 'answer-feedback correct';
+      feedback.textContent = 'Correct.';
+    } else {
+      feedback.className = 'answer-feedback incorrect';
+      feedback.textContent = 'Not quite - review the DNS section or ask your instructor.';
+    }
+  }
+
+  function showModel(btn) {
+    const answer = btn.nextElementSibling;
+    if (answer.hasAttribute('hidden')) {
+      answer.removeAttribute('hidden');
+      btn.textContent = 'Hide Answer';
+    } else {
+      answer.setAttribute('hidden', '');
+      btn.textContent = 'Model Answer';
+    }
+  }
+</script>
+</body>
+</html>

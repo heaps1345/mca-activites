@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B2-A: Passive Network Recon</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .answer-area { width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 8px; font-size: 13px; font-family: inherit; min-height: 70px; resize: vertical; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .check-btn { background: var(--orange); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .check-btn:hover { opacity: 0.9; }
+  .model-btn { background: var(--dark); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .model-btn:hover { opacity: 0.85; }
+  .answer-feedback { margin-top: 8px; padding: 8px 12px; border-radius: 3px; font-size: 13px; }
+  .answer-feedback.correct { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+  .answer-feedback.incorrect { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+  .model-answer { margin-top: 8px; padding: 8px 12px; background: var(--blue-bg); border-left: 3px solid var(--blue); font-size: 13px; color: var(--blue); border-radius: 0 3px 3px 0; }
+
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-block">MCA</div>
+    <div>
+      <div style="font-weight:700;font-size:16px;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B2-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Module:</strong> B2 - Network Architecture and Devices</span>
+    <span><strong>Duration:</strong> 30 minutes</span>
+    <span><strong>Platform:</strong> Kali Linux</span>
+    <span><strong>Type:</strong> Passive Recon</span>
+  </div>
+  <h1>Passive Network Recon</h1>
+  <p>Passive recon means gathering information without sending probes to targets. You are using data already present on your machine or generated by normal network traffic. This lab covers ARP cache inspection, local host file mapping, and capturing live traffic with Wireshark to observe protocols in action.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#9654; Pre-Lab Checklist</h3>
+    <p class="preflight-intro">Complete Lab B1-A before this one. You need your IP address, gateway, and subnet from that lab.</p>
+    <ul class="preflight-checklist">
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Lab B1-A completed - you know your IP, gateway, and subnet</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Kali terminal is open</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Wireshark is installed (check: <code>which wireshark</code>)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Objectives</div>
+    <ul class="objective-list">
+      <li>Read the ARP cache to identify other hosts on the local network without scanning</li>
+      <li>Understand what Layer 2 information is available passively</li>
+      <li>Read local host file mappings</li>
+      <li>Capture live traffic with Wireshark and identify ICMP packet types</li>
+      <li>Connect B2 theory - switches, routers, ARP - to what you can observe from a Kali shell</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Background - Why Passive Recon First</div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div><strong>Active scanning generates log entries.</strong> Every nmap scan you run is potentially recorded by IDS/IPS, firewall logs, and endpoint detection. Passive recon - reading data that is already there - generates no traffic and leaves no trace. On a real engagement, you exhaust passive sources before you touch active tools.</div>
+    </div>
+
+    <p style="font-size:14px;margin-bottom:12px;">The ARP cache is a free host list. Your machine has been talking to other devices on the network already - via DHCP, DNS, default gateway traffic. All of those conversations left ARP entries mapping IP addresses to MAC addresses. Reading that cache costs you nothing.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - ARP Cache Inspection</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Read the ARP cache</div></div>
+      <div class="step-body">
+        <p>ARP (Address Resolution Protocol) maps IP addresses to MAC addresses at Layer 2. Your machine maintains a cache of recent ARP entries - every host it has communicated with recently.</p>
+        <pre><span class="comment"># Show the ARP cache</span>
+<span class="cmd">arp</span> <span class="flag">-n</span>
+
+<span class="comment"># Alternative using ip (modern equivalent)</span>
+<span class="cmd">ip</span> <span class="flag">neigh</span></pre>
+        <p>The <code>-n</code> flag on <code>arp</code> means "numeric - don't try to resolve IPs to hostnames." This keeps output clean and fast.</p>
+        <p>The <code>ip neigh</code> output shows each entry's state: <code>REACHABLE</code> means the entry was confirmed recently, <code>STALE</code> means it has not been verified recently but may still be valid.</p>
+        <div class="answer-box">
+          <div class="label">Record ARP entries found</div>
+          <input class="answer-line" type="text" placeholder="IP address - MAC address (entry 1):">
+          <input class="answer-line" type="text" placeholder="IP address - MAC address (entry 2):">
+          <input class="answer-line" type="text" placeholder="Which entry is your gateway (compare to your Lab B1-A result)?">
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>MAC address OUI:</strong> The first three bytes of a MAC address (e.g. 00:50:56) identify the manufacturer. VMware, VirtualBox, and Hyper-V all have known prefixes - which tells you the host is a VM. This is useful recon on a real engagement.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Generate new ARP entries by pinging</div></div>
+      <div class="step-body">
+        <p>Ping a host on your subnet. Before it can send the ICMP packet, your machine must resolve the target's MAC address via ARP. After the ping completes, a new ARP entry will appear in your cache.</p>
+        <pre><span class="comment"># Ping another host on your subnet (ask your instructor for a target IP)</span>
+<span class="cmd">ping</span> <span class="flag">-c 2</span> &lt;TARGET_IP&gt;
+
+<span class="comment"># Now check the ARP cache again</span>
+<span class="cmd">arp</span> <span class="flag">-n</span></pre>
+        <div class="answer-box">
+          <div class="label">Did a new ARP entry appear?</div>
+          <input class="answer-line" type="text" placeholder="New IP and MAC address:">
+          <input class="answer-line" type="text" placeholder="What Layer 2 protocol was used to discover the MAC address?">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Local Host Mappings</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Read the hosts file</div></div>
+      <div class="step-body">
+        <p>Before DNS, your machine checks <code>/etc/hosts</code> for static name-to-IP mappings. On a lab environment this may contain pre-configured target hostnames. On a real engagement, finding the hosts file on a compromised machine can reveal internal hostnames that do not appear in external DNS.</p>
+        <pre><span class="cmd">cat</span> /etc/hosts</pre>
+        <div class="answer-box">
+          <div class="label">What entries are in your hosts file?</div>
+          <input class="answer-line" type="text" placeholder="Entry 1 (IP - hostname):">
+          <input class="answer-line" type="text" placeholder="Entry 2 (IP - hostname):">
+          <input class="answer-line" type="text" placeholder="Besides 127.0.0.1, are there any lab-specific entries?">
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>Attackers modify <code>/etc/hosts</code> to redirect traffic during man-in-the-middle attacks. If you are doing a post-compromise review, checking for unexpected entries here is a standard step.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Wireshark - Observe ICMP in the Wild</div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>This part bridges B1 theory to live traffic. You will capture a ping and see the ICMP Type 8 (Echo Request) and Type 0 (Echo Reply) packets in real time. Wireshark is the industry standard for packet analysis and appears in CREST exam scenarios.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Start a Wireshark capture</div></div>
+      <div class="step-body">
+        <p>Launch Wireshark. You can use the GUI or start it from the terminal. Select your active network interface (the one with your IP address - eth0, ens33, etc.).</p>
+        <pre><span class="comment"># Launch Wireshark GUI</span>
+<span class="cmd">wireshark</span> &amp;
+
+<span class="comment"># Or capture from command line and open in Wireshark after</span>
+<span class="cmd">tcpdump</span> <span class="flag">-i eth0 -w</span> /tmp/capture.pcap <span class="flag">-c 20</span></pre>
+        <p>In the Wireshark GUI, double-click your interface to start capturing. Apply the display filter <code>icmp</code> in the filter bar at the top to show only ICMP traffic.</p>
+        <div class="callout warn">
+          <span class="callout-icon">&#9888;</span>
+          <div>If Wireshark says "permission denied" on the interface, run it as root: <code>sudo wireshark &amp;</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Generate ICMP traffic and observe it</div></div>
+      <div class="step-body">
+        <p>With Wireshark capturing, open a second terminal and ping your gateway. Watch the packets appear in real time.</p>
+        <pre><span class="comment"># In a second terminal - replace with your gateway IP</span>
+<span class="cmd">ping</span> <span class="flag">-c 4</span> &lt;YOUR_GATEWAY_IP&gt;</pre>
+        <p>In Wireshark you should see alternating request/reply pairs. Click on one to expand it in the lower panes and find the ICMP type field.</p>
+        <div class="answer-box">
+          <div class="label">From the Wireshark capture</div>
+          <input class="answer-line" type="text" placeholder="ICMP Type number for the outgoing ping (Echo Request):">
+          <input class="answer-line" type="text" placeholder="ICMP Type number for the incoming reply (Echo Reply):">
+          <input class="answer-line" type="text" placeholder="What is the TTL value shown in the IP header of the reply?">
+          <input class="answer-line" type="text" placeholder="Source MAC and destination MAC on the first packet (Ethernet layer):">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> The exam may show a Wireshark screenshot or packet hex dump and ask you to identify the protocol, type, and direction. ICMP Type 8 = request (outbound). ICMP Type 0 = reply (inbound). Know them without thinking.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Observe a DNS query in Wireshark</div></div>
+      <div class="step-body">
+        <p>Change the Wireshark display filter to <code>dns</code>. Then run a DNS lookup from your terminal.</p>
+        <pre><span class="comment"># In a second terminal</span>
+<span class="cmd">dig</span> google.com</pre>
+        <p>You should see a DNS query (port 53, UDP) leave your machine and a response come back. Click the query packet and expand it - you will see the question section (what was asked) and the answer section (what was returned).</p>
+        <div class="answer-box">
+          <div class="label">From the DNS capture</div>
+          <input class="answer-line" type="text" placeholder="What port did the DNS query go to?">
+          <input class="answer-line" type="text" placeholder="What transport protocol was used (TCP or UDP)?">
+          <input class="answer-line" type="text" placeholder="What IP address answered the query (your DNS server)?">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - Connecting to Network Architecture</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Map what you know so far</div></div>
+      <div class="step-body">
+        <p>Using only the passive information gathered in this lab and Lab B1-A, fill in the network map below. No scanning - everything here comes from data already on your machine.</p>
+
+        <table>
+          <tr><th>What You Know</th><th>How You Found It</th><th>Value in a Pentest</th></tr>
+          <tr>
+            <td class="fill" contenteditable="true" spellcheck="false">Your own IP address</td>
+            <td>ip a</td>
+            <td>Defines your position on the network</td>
+          </tr>
+          <tr>
+            <td class="fill" contenteditable="true" spellcheck="false">Default gateway IP</td>
+            <td>ip r</td>
+            <td>First hop - often a router or firewall</td>
+          </tr>
+          <tr>
+            <td class="fill" contenteditable="true" spellcheck="false">DNS server IP</td>
+            <td>/etc/resolv.conf</td>
+            <td>Often the DC on a Windows network</td>
+          </tr>
+          <tr>
+            <td class="fill" contenteditable="true" spellcheck="false">Other hosts (from ARP)</td>
+            <td>arp -n</td>
+            <td>Hosts you can reach without scanning</td>
+          </tr>
+          <tr>
+            <td class="fill" contenteditable="true" spellcheck="false">Your subnet range</td>
+            <td>ip a (CIDR prefix)</td>
+            <td>Defines the scope of local network</td>
+          </tr>
+        </table>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>B2 architecture link:</strong> In the Syntex scenario, the DNS server being the same IP as a host responding on port 88 (Kerberos) would immediately indicate an Active Directory domain controller. You would have that information before running a single nmap scan.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Exam-Style Questions</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>What protocol does a host use to discover the MAC address of another host on the same subnet before it can send IP traffic to it?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="ARP|address resolution protocol">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>A host responds to ICMP Echo Requests but its ARP entry shows a MAC address beginning with 00:0C:29. What does this tell you about the host?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>00:0C:29 is a VMware OUI (Organizationally Unique Identifier). This indicates the host is a VMware virtual machine. This is useful recon - virtual machines often have known default configurations, shared clipboard enabled, or other VM-specific attack surfaces.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>You are on a network and your ARP cache shows three entries besides your gateway. Without running nmap, what is the minimum number of live hosts you know exist on the subnet?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>At least four - the three in the ARP cache plus your gateway. The ARP cache only shows hosts your machine has communicated with. There may be many more hosts on the subnet that have not communicated with you. The ARP cache is a minimum bound, not a complete picture.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What layer of the TCP/IP model does ARP operate at, and what two things does it map together?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>ARP operates at Layer 2 (Network Access / Data Link). It maps IP addresses (Layer 2 / Internet layer) to MAC addresses (Layer 1 / Network Access layer). ARP is what allows IP networking to work over Ethernet - without it, your machine would not know which Ethernet frame to send an IP packet in.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>Why might a DNS server and a domain controller share the same IP address on a Windows network?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Active Directory uses DNS to locate services - domain controllers register SRV records that clients use to find the DC, Kerberos, LDAP and other AD services. Microsoft recommends running DNS on the domain controller itself for this reason. Finding that the DNS server also responds on port 88 (Kerberos) or 389 (LDAP) is a strong indicator that it is the domain controller.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:#0d1117;border:2px solid #2ea043;border-radius:6px;padding:20px 24px;margin-bottom:28px;">
+    <div style="color:#2ea043;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">&#10003; Lab Complete - Key Takeaways</div>
+    <div style="color:#ccc;font-size:13px;">Passive recon costs you nothing and leaves no trace. Before you run a single nmap scan, you already know your position on the network, your gateway, your DNS server, and every host that has communicated with your machine since boot. In Wireshark, you can confirm ICMP Type 8 and 0 by eye - which links directly to the CREST exam theory. Next lab covers service enumeration: now you will start sending probes to targets.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B2-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+  function checkAnswer(btn) {
+    const box = btn.closest('.answer-box');
+    const input = box.querySelector('input[data-answer]');
+    const feedback = box.querySelector('.answer-feedback');
+    const accepted = input.dataset.answer.split('|').map(s => s.trim().toLowerCase());
+    const given = input.value.trim().toLowerCase();
+    feedback.removeAttribute('hidden');
+    if (accepted.some(a => given.includes(a) || a.includes(given))) {
+      feedback.className = 'answer-feedback correct';
+      feedback.textContent = 'Correct.';
+    } else {
+      feedback.className = 'answer-feedback incorrect';
+      feedback.textContent = 'Not quite - review the ARP section or ask your instructor.';
+    }
+  }
+
+  function showModel(btn) {
+    const answer = btn.nextElementSibling;
+    if (answer.hasAttribute('hidden')) {
+      answer.removeAttribute('hidden');
+      btn.textContent = 'Hide Answer';
+    } else {
+      answer.setAttribute('hidden', '');
+      btn.textContent = 'Model Answer';
+    }
+  }
+</script>
+</body>
+</html>

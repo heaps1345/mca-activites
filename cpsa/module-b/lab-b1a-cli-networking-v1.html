@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B1-A: Kali CLI Networking Fundamentals</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .highlight { color: #f9c74f; font-weight: bold; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .answer-area { width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 8px; font-size: 13px; font-family: inherit; min-height: 70px; resize: vertical; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: #fdf0ff; border-left: 4px solid #7b2d8b; color: #5a1d6e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .check-btn { background: var(--orange); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .check-btn:hover { opacity: 0.9; }
+  .model-btn { background: var(--dark); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .model-btn:hover { opacity: 0.85; }
+  .answer-feedback { margin-top: 8px; padding: 8px 12px; border-radius: 3px; font-size: 13px; }
+  .answer-feedback.correct { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+  .answer-feedback.incorrect { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+  .model-answer { margin-top: 8px; padding: 8px 12px; background: var(--blue-bg); border-left: 3px solid var(--blue); font-size: 13px; color: var(--blue); border-radius: 0 3px 3px 0; }
+
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
+  .ref-table td:first-child { font-family: monospace; font-size: 13px; color: #333; font-weight: 600; }
+  .ref-table td:nth-child(2) { color: #555; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-block">MCA</div>
+    <div>
+      <div style="font-weight:700;font-size:16px;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B1-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Module:</strong> B1 - IP Protocols and Fundamentals</span>
+    <span><strong>Duration:</strong> 30 minutes</span>
+    <span><strong>Platform:</strong> Kali Linux</span>
+    <span><strong>Type:</strong> CLI Orientation</span>
+  </div>
+  <h1>Kali CLI Networking Fundamentals</h1>
+  <p>Before you scan anything, you need to know your own machine. This lab covers the core networking commands you will use in every future lab. By the end, you will be able to find your IP address, default gateway, and DNS server - and understand what each one means.</p>
+</div>
+
+<div class="container">
+
+  <div class="preflight">
+    <h3>&#9654; Pre-Lab Checklist</h3>
+    <p class="preflight-intro">Complete these checks before starting. Raise your hand if anything is missing.</p>
+    <ul class="preflight-checklist">
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Kali VM is booted and you have a terminal open</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> You are logged in (default credentials: kali / kali)</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> You can open a terminal (right-click desktop, or find it in the taskbar)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Objectives</div>
+    <ul class="objective-list">
+      <li>Find your Kali machine's IP address, subnet mask, and default gateway from the command line</li>
+      <li>Identify your DNS server and test name resolution</li>
+      <li>Use ping to test connectivity and read the TTL value in the response</li>
+      <li>Use traceroute to map the path to a destination</li>
+      <li>List active network connections and listening services on your own machine</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 1 - Find Your Own IP Address</div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>On modern Kali, <code>ifconfig</code> still works but <code>ip</code> is the current standard. You will see both in real environments - know them both.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Show all network interfaces</div></div>
+      <div class="step-body">
+        <p>This command lists every network interface on your machine - including its IP address, subnet mask, and MAC address.</p>
+        <pre><span class="cmd">ip</span> <span class="flag">addr</span>
+<span class="comment"># Short form - does the same thing</span>
+<span class="cmd">ip</span> <span class="flag">a</span></pre>
+        <p>You will see at least two interfaces: <code>lo</code> (loopback - always 127.0.0.1) and one or more named interfaces like <code>eth0</code> or <code>ens33</code>. Your actual IP is on the named interface.</p>
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <div>Look for the line starting with <code>inet</code> under your network interface. The number before the slash is your IP. The number after the slash is your CIDR prefix length (e.g. /24 = 255.255.255.0).</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="My interface name (e.g. eth0):">
+          <input class="answer-line" type="text" placeholder="My IP address:">
+          <input class="answer-line" type="text" placeholder="My CIDR prefix (e.g. /24):">
+          <input class="answer-line" type="text" placeholder="My MAC address (the line starting with 'link/ether'):">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Show your routing table and default gateway</div></div>
+      <div class="step-body">
+        <p>The routing table tells your machine where to send traffic. The default gateway is the router that handles everything outside your local subnet.</p>
+        <pre><span class="cmd">ip</span> <span class="flag">route</span>
+<span class="comment"># Short form</span>
+<span class="cmd">ip</span> <span class="flag">r</span></pre>
+        <p>Look for the line that starts with <code>default via</code>. The IP address after <code>via</code> is your default gateway - the first hop for all traffic leaving your subnet.</p>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="My default gateway IP:">
+          <input class="answer-line" type="text" placeholder="My local subnet (e.g. 192.168.1.0/24):">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Find your DNS server</div></div>
+      <div class="step-body">
+        <p>DNS resolves hostnames to IP addresses. Without it, you cannot reach anything by name. Your configured DNS server is in <code>/etc/resolv.conf</code>.</p>
+        <pre><span class="cmd">cat</span> /etc/resolv.conf</pre>
+        <p>The line starting with <code>nameserver</code> is your DNS server. On a lab network this is often the gateway itself or a domain controller.</p>
+        <div class="answer-box">
+          <div class="label">Record your DNS server</div>
+          <input class="answer-line" type="text" placeholder="My DNS server:">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> In a grey-box pentest, the DNS server IP is often the domain controller. Finding it early gives you an immediate target. If the DNS server responds to LDAP on port 389, it is almost certainly running Active Directory.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 2 - Test Connectivity with Ping</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Ping your default gateway</div></div>
+      <div class="step-body">
+        <p>Ping sends ICMP Echo Request packets (Type 8) and waits for Echo Reply packets (Type 0). It is the simplest connectivity test. On Linux, ping runs until you stop it - use <code>-c</code> to send a fixed number of packets.</p>
+        <pre><span class="comment"># Replace with your gateway IP from Step 2</span>
+<span class="cmd">ping</span> <span class="flag">-c 4</span> &lt;YOUR_GATEWAY_IP&gt;</pre>
+        <p>Read the output carefully. Each line shows the response time in milliseconds and the <strong>TTL</strong> (Time To Live) of the reply.</p>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div><strong>TTL and OS fingerprinting:</strong> The TTL value in a ping response is a clue about the operating system. Linux starts at 64, Windows starts at 128, Cisco devices start at 255. Each router hop reduces the TTL by 1 - so a reply of 127 means the host is Windows and one hop away.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="TTL value in the reply:">
+          <input class="answer-line" type="text" placeholder="Average round-trip time (ms):">
+          <input class="answer-line" type="text" placeholder="What OS does the TTL suggest? (Linux=64, Windows=128, Cisco=255)">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">Ping a public hostname to test DNS resolution</div></div>
+      <div class="step-body">
+        <p>If this works, it confirms two things: DNS is resolving names correctly, and you have outbound internet access (if the lab allows it).</p>
+        <pre><span class="cmd">ping</span> <span class="flag">-c 4</span> google.com</pre>
+        <p>If you get <code>Name or service not known</code>, DNS is not working. If you get <code>Network unreachable</code>, routing is broken. If you get responses, everything is working.</p>
+        <div class="answer-box">
+          <div class="label">What IP address did google.com resolve to?</div>
+          <input class="answer-line" type="text" placeholder="Resolved IP:">
+          <input class="answer-line" type="text" placeholder="Did it work? (yes / no / what error did you get):">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 3 - Trace a Route</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Traceroute to your gateway</div></div>
+      <div class="step-body">
+        <p>Traceroute sends packets with increasing TTL values. When a packet's TTL hits zero, the router drops it and sends back an ICMP Time Exceeded message (Type 11) - revealing itself in the process. This maps the path your traffic takes.</p>
+        <pre><span class="comment"># Replace with your gateway IP</span>
+<span class="cmd">traceroute</span> &lt;YOUR_GATEWAY_IP&gt;</pre>
+        <p>Each numbered line is one hop. The gateway should be hop 1. If you see <code>* * *</code> on a line, that router is not responding to traceroute probes - it is not necessarily down.</p>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="How many hops to your gateway?">
+          <input class="answer-line" type="text" placeholder="Did any hops show * * * (not responding)?">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> ICMP Type 11 (Time Exceeded) is what makes traceroute work. The exam may show you a packet capture and ask which ICMP type is being used. Lab B4-B covers route mapping in depth.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 4 - DNS Lookups</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Resolve a hostname with nslookup</div></div>
+      <div class="step-body">
+        <p><code>nslookup</code> queries DNS directly. It is available on both Linux and Windows, which makes it useful for quick checks in any environment.</p>
+        <pre><span class="cmd">nslookup</span> google.com</pre>
+        <p>The output shows which DNS server answered the query and what IP address it returned. The <code>Non-authoritative answer</code> line means your DNS server cached this result from elsewhere - it is not the authoritative source for google.com.</p>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="Server that answered:">
+          <input class="answer-line" type="text" placeholder="IP address returned for google.com:">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">8</div><div class="step-title">Query specific DNS record types with dig</div></div>
+      <div class="step-body">
+        <p><code>dig</code> is more powerful than nslookup. It lets you query specific record types and shows the raw DNS response. This is essential for DNS enumeration in a pentest.</p>
+        <pre><span class="comment"># Query an A record (default)</span>
+<span class="cmd">dig</span> google.com
+
+<span class="comment"># Query only the A record, short output</span>
+<span class="cmd">dig</span> google.com <span class="flag">A +short</span>
+
+<span class="comment"># Query MX records (mail servers)</span>
+<span class="cmd">dig</span> google.com <span class="flag">MX</span>
+
+<span class="comment"># Query NS records (name servers)</span>
+<span class="cmd">dig</span> google.com <span class="flag">NS</span></pre>
+        <div class="answer-box">
+          <div class="label">Record your results</div>
+          <input class="answer-line" type="text" placeholder="What is the ANSWER SECTION in the A record query?">
+          <input class="answer-line" type="text" placeholder="Name one MX record returned for google.com:">
+          <input class="answer-line" type="text" placeholder="What is a NS record used for?">
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <div>In a pentest, you will use <code>dig axfr @&lt;DNS_SERVER&gt; &lt;domain&gt;</code> to attempt a zone transfer. If it succeeds, you get every hostname in the domain in one query. Lab B3-A covers this.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 5 - What is Listening on Your Machine</div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">9</div><div class="step-title">List listening services with ss</div></div>
+      <div class="step-body">
+        <p><code>ss</code> shows socket statistics - which ports are open on your machine and what process is using them. This is essential for post-exploitation (Lab B14-A) but also useful now to understand what a "listening service" looks like.</p>
+        <pre><span class="comment"># -t = TCP, -l = listening only, -n = don't resolve port names, -p = show process</span>
+<span class="cmd">ss</span> <span class="flag">-tlnp</span>
+
+<span class="comment"># Add UDP as well</span>
+<span class="cmd">ss</span> <span class="flag">-tulnp</span></pre>
+        <p>The <code>Local Address:Port</code> column shows what address the service is bound to. <code>0.0.0.0:22</code> means SSH is listening on all interfaces. <code>127.0.0.1:631</code> would mean a service only accessible from localhost.</p>
+        <div class="answer-box">
+          <div class="label">Record any listening services on your Kali machine</div>
+          <input class="answer-line" type="text" placeholder="Port and service (e.g. 22/ssh):">
+          <input class="answer-line" type="text" placeholder="Port and service:">
+          <input class="answer-line" type="text" placeholder="What address is it bound to (0.0.0.0 = all interfaces, 127.0.0.1 = localhost only)?">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> A service bound to 127.0.0.1 is invisible to external nmap scans. Post-exploitation, you can connect to it directly. This is a common exam question - Lab B14-A covers it in full.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part 6 - Command Reference</div>
+
+    <p style="font-size:14px;margin-bottom:16px;">Keep this table. These commands appear across every lab in Module B.</p>
+
+    <table class="ref-table">
+      <tr><th>Command</th><th>What it does</th><th>Key flag</th></tr>
+      <tr><td>ip a</td><td>Show all interfaces and IP addresses</td><td>-</td></tr>
+      <tr><td>ip r</td><td>Show routing table and default gateway</td><td>-</td></tr>
+      <tr><td>ping -c 4 &lt;host&gt;</td><td>Send 4 ICMP Echo Requests, read TTL</td><td>-c = count</td></tr>
+      <tr><td>traceroute &lt;host&gt;</td><td>Map the route, uses ICMP Type 11</td><td>-I = use ICMP instead of UDP</td></tr>
+      <tr><td>nslookup &lt;host&gt;</td><td>Quick DNS lookup</td><td>-</td></tr>
+      <tr><td>dig &lt;host&gt; &lt;type&gt;</td><td>DNS lookup with full output</td><td>+short = compact output</td></tr>
+      <tr><td>ss -tlnp</td><td>Show listening TCP ports and processes</td><td>-u adds UDP</td></tr>
+      <tr><td>cat /etc/resolv.conf</td><td>Show configured DNS server</td><td>-</td></tr>
+    </table>
+
+  </div>
+
+  <div class="section">
+    <div class="section-title">Exam-Style Questions</div>
+
+    <div class="callout exam">
+      <span class="callout-icon">&#127919;</span>
+      <div>These questions test B1 theory. Answer without looking at your notes first.</div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>You ping a host and receive a TTL of 126 in the response. What operating system is likely running, and how many hops away is it?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Windows (default TTL 128). The TTL is 126, which is 128 minus 2, so the host is 2 hops away. Linux would start at 64 and Cisco at 255.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>What ICMP type does traceroute exploit to map network hops?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="Type 11|ICMP 11|time exceeded|icmp type 11">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>A service on a compromised Linux host is showing as <code>127.0.0.1:3306</code> in <code>ss -tlnp</code>. What does this tell you, and why is it significant post-exploitation?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Port 3306 (MySQL) is bound to loopback only - it cannot be reached from the network. External nmap scans would not detect it. Post-exploitation, with a shell on the machine, you have direct local access to the database. This is significant because databases often contain credentials, PII, or business data that demonstrate the full impact of the compromise.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>What DNS record type would you query to find the mail server for a domain?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="MX|MX record|mail exchange">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>You run <code>ip a</code> and see the following line under <code>eth0</code>: <code>inet 10.1.33.14/24</code>. What is your IP address, and what is the network address of your subnet?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Your IP address is 10.1.33.14. The /24 means the first three octets define the network, so the network address is 10.1.33.0/24. Valid host addresses on this subnet run from 10.1.33.1 to 10.1.33.254, with 10.1.33.255 as the broadcast address.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="background:#0d1117;border:2px solid #2ea043;border-radius:6px;padding:20px 24px;margin-bottom:28px;">
+    <div style="color:#2ea043;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">&#10003; Lab Complete - Key Takeaways</div>
+    <div style="color:#ccc;font-size:13px;">Before scanning anything, know your own machine. <code>ip a</code> gives your IP and subnet. <code>ip r</code> gives your gateway. <code>/etc/resolv.conf</code> gives your DNS server. These three pieces of information define your position on the network. TTL values in ping replies are a passive OS fingerprinting technique you will use in Lab B8-A. Everything you have done here runs on the target too - when you have a shell, the first thing you run is exactly this.</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B1-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+  function checkAnswer(btn) {
+    const box = btn.closest('.answer-box');
+    const input = box.querySelector('input[data-answer]');
+    const feedback = box.querySelector('.answer-feedback');
+    const accepted = input.dataset.answer.split('|').map(s => s.trim().toLowerCase());
+    const given = input.value.trim().toLowerCase();
+    feedback.removeAttribute('hidden');
+    if (accepted.some(a => given.includes(a) || a.includes(given))) {
+      feedback.className = 'answer-feedback correct';
+      feedback.textContent = 'Correct.';
+    } else {
+      feedback.className = 'answer-feedback incorrect';
+      feedback.textContent = 'Not quite - check the reference table or ask your instructor.';
+    }
+  }
+
+  function showModel(btn) {
+    const answer = btn.nextElementSibling;
+    if (answer.hasAttribute('hidden')) {
+      answer.removeAttribute('hidden');
+      btn.textContent = 'Hide Answer';
+    } else {
+      answer.setAttribute('hidden', '');
+      btn.textContent = 'Model Answer';
+    }
+  }
+</script>
+</body>
+</html>
