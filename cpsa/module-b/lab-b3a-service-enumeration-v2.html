@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab B3-A: Service and Protocol Enumeration</title>
+<style>
+  :root {
+    --orange: #E84E0F;
+    --black: #1A1A1A;
+    --dark: #2a2a2a;
+    --mid: #444;
+    --light: #f5f5f5;
+    --border: #ddd;
+    --green: #2d6a2d;
+    --green-bg: #eafaea;
+    --amber: #7a4f00;
+    --amber-bg: #fff8e1;
+    --red: #8b0000;
+    --red-bg: #fff0f0;
+    --blue: #003580;
+    --blue-bg: #eef4ff;
+    --teal: #0D5C63;
+    --teal-bg: #e6f4f5;
+    --purple: #5a1d6e;
+    --purple-bg: #fdf0ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: var(--black); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--black); color: #fff; padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-block { background: var(--orange); color: #fff; font-weight: 900; font-size: 20px; padding: 8px 14px; letter-spacing: 1px; }
+  .course-title { font-size: 13px; color: #aaa; margin-top: 2px; }
+  .lab-badge { background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 3px; letter-spacing: 1px; }
+
+  .hero { background: var(--dark); color: #fff; padding: 32px 40px; border-bottom: 4px solid var(--orange); }
+  .hero-meta { display: flex; gap: 24px; margin-bottom: 12px; flex-wrap: wrap; }
+  .hero-meta span { font-size: 12px; color: #aaa; }
+  .hero-meta strong { color: #fff; }
+  .hero h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .hero p { color: #ccc; font-size: 14px; max-width: 700px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--orange); border-bottom: 2px solid var(--orange); padding-bottom: 6px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .objective-list { list-style: none; }
+  .objective-list li { padding: 8px 0 8px 28px; position: relative; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .objective-list li:before { content: "▶"; color: var(--orange); position: absolute; left: 0; font-size: 11px; top: 10px; }
+  .objective-list li:last-child { border-bottom: none; }
+
+  .step { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+  .step-header { background: var(--black); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+  .step-num { background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 15px; }
+  .step-body { padding: 16px 20px; }
+  .step-body p { margin-bottom: 10px; font-size: 14px; }
+
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px 16px; border-radius: 4px; font-size: 13px; overflow-x: auto; margin: 10px 0; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.5; }
+  .comment { color: #6a9955; }
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .output { color: #b5cea8; }
+  .domain { color: #dcdcaa; }
+  .ip { color: #4ec9b0; }
+
+  .answer-box { border: 2px dashed var(--border); border-radius: 4px; padding: 12px 16px; margin: 10px 0; min-height: 60px; background: #fafafa; }
+  .answer-box .label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .answer-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 8px; padding: 4px 2px; font-size: 14px; background: transparent; display: block; }
+  .answer-area { width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 8px; font-size: 13px; font-family: inherit; min-height: 70px; resize: vertical; }
+
+  .callout { border-radius: 4px; padding: 12px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .callout-icon { font-size: 16px; flex-shrink: 0; }
+  .callout.info { background: var(--blue-bg); border-left: 4px solid var(--blue); color: var(--blue); }
+  .callout.warn { background: var(--amber-bg); border-left: 4px solid #c8a000; color: var(--amber); }
+  .callout.tip { background: var(--green-bg); border-left: 4px solid var(--green); color: var(--green); }
+  .callout.exam { background: var(--purple-bg); border-left: 4px solid #7b2d8b; color: var(--purple); }
+  .callout.real { background: var(--teal-bg); border-left: 4px solid var(--teal); color: var(--teal); }
+
+  /* WHY THIS MATTERS block */
+  .why-block { background: var(--teal); border-radius: 4px; margin: 16px 0; overflow: hidden; }
+  .why-header { color: #fff; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; padding: 10px 16px; }
+  .why-item { background: var(--teal-bg); border-left: 4px solid var(--teal); padding: 10px 16px; font-size: 13px; color: #0a3b3f; margin: 0; border-bottom: 1px solid #c0dfe1; }
+  .why-item:last-child { border-bottom: none; }
+  .why-item strong { color: var(--teal); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: var(--black); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--light); }
+  td.fill { background: #fffde7; font-style: italic; color: #888; }
+
+  .rec-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  .rec-table th { background: var(--teal); color: #fff; padding: 8px 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
+  .rec-table td { padding: 8px 12px; border-bottom: 1px solid #c0dfe1; vertical-align: top; }
+  .rec-table tr:nth-child(even) td { background: var(--teal-bg); }
+  .rec-table code { background: #1e1e1e; color: #9cdcfe; padding: 1px 5px; border-radius: 2px; font-family: monospace; }
+
+  .question { background: var(--light); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .question .q-num { font-weight: 700; color: var(--orange); font-size: 13px; margin-bottom: 6px; }
+  .question p { font-size: 14px; margin-bottom: 8px; }
+
+  .check-btn { background: var(--orange); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .check-btn:hover { opacity: 0.9; }
+  .model-btn { background: var(--dark); color: #fff; border: none; border-radius: 3px; padding: 6px 14px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+  .model-btn:hover { opacity: 0.85; }
+  .answer-feedback { margin-top: 8px; padding: 8px 12px; border-radius: 3px; font-size: 13px; }
+  .answer-feedback.correct { background: var(--green-bg); color: var(--green); border-left: 3px solid var(--green); }
+  .answer-feedback.incorrect { background: var(--red-bg); color: var(--red); border-left: 3px solid var(--red); }
+  .model-answer { margin-top: 8px; padding: 8px 12px; background: var(--blue-bg); border-left: 3px solid var(--blue); font-size: 13px; color: var(--blue); border-radius: 0 3px 3px 0; }
+
+  .preflight { background: #0d1117; border: 2px solid var(--orange); border-radius: 6px; padding: 20px 24px; margin-bottom: 28px; }
+  .preflight h3 { color: var(--orange); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preflight-intro { font-size: 13px; color: #8b949e; margin: 0 0 14px 0; }
+  .preflight-checklist { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .preflight-checklist li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #ccc; cursor: pointer; user-select: none; }
+  .preflight-checklist li input[type="checkbox"] { accent-color: var(--orange); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .preflight-checklist li.checked { color: #3fb950; }
+
+  .scenario-box { background: var(--blue-bg); border: 1px solid #b3d0ff; border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+  .scenario-box h3 { color: var(--blue); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .scenario-box p { font-size: 14px; color: var(--dark); line-height: 1.6; }
+
+  .live-target { background: #1a2f1a; border: 2px solid #2ea043; border-radius: 6px; padding: 16px 20px; margin-bottom: 20px; }
+  .live-target h3 { color: #2ea043; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .live-target p { color: #ccc; font-size: 13px; margin-bottom: 6px; }
+  .live-target code { color: #79c0ff; font-family: monospace; font-size: 14px; }
+
+  .footer { background: var(--black); color: #888; text-align: center; padding: 16px; font-size: 12px; margin-top: 40px; }
+  .footer span { color: var(--orange); }
+
+  .part-intro { background: #f9f9f9; border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; color: var(--dark); line-height: 1.65; }
+  .part-intro strong { color: var(--black); }
+
+  .dns-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .dns-table th { background: var(--blue); color: #fff; padding: 7px 12px; text-align: left; font-size: 12px; }
+  .dns-table td { padding: 7px 12px; border-bottom: 1px solid #c8d8f0; }
+  .dns-table tr:nth-child(even) td { background: var(--blue-bg); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-block">MCA</div>
+    <div>
+      <div style="font-weight:700;font-size:16px;">My Cyber Academy</div>
+      <div class="course-title">CREST CPSA - Module B: Core Technical Skills</div>
+    </div>
+  </div>
+  <div class="lab-badge">LAB B3-A</div>
+</div>
+
+<div class="hero">
+  <div class="hero-meta">
+    <span><strong>Module:</strong> B3 - Network Services and Protocols</span>
+    <span><strong>Duration:</strong> 60 minutes</span>
+    <span><strong>Platform:</strong> Kali Linux</span>
+    <span><strong>Type:</strong> Active Enumeration</span>
+  </div>
+  <h1>Service and Protocol Enumeration</h1>
+  <p>This lab teaches protocol-level enumeration before you ever run nmap. You will query DNS records, perform a live zone transfer against a real misconfigured server, attempt SMB null sessions, perform anonymous LDAP binds, and query SNMP. Each section explains what you are doing and why it matters on a real engagement.</p>
+</div>
+
+<div class="container">
+
+  <!-- Scenario -->
+  <div class="scenario-box">
+    <h3>Engagement Scenario</h3>
+    <p>You have been contracted to perform an internal penetration test against Syntex Solutions. You have been given a foothold on the internal network and a scope that covers the <code>syntex.local</code> domain and the <code>syntexsolutions.net</code> external domain. Before you run any active scanning tools, your job is to squeeze as much intelligence as possible out of the protocols themselves. Everything in this lab is something you would do in the first 30 minutes of a real engagement.</p>
+  </div>
+
+  <!-- Preflight -->
+  <div class="preflight">
+    <h3>&#9654; Pre-Lab Checklist</h3>
+    <p class="preflight-intro">Your instructor will give you a target IP for the internal Syntex lab VM. Write it down before you start. Part 1 also uses a live public target - details are in that section.</p>
+    <ul class="preflight-checklist">
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Labs B1-A and B2-A completed</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> Target IP received from instructor and written below</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> You can ping the target IP (confirm connectivity first)</li>
+      <li><input type="checkbox" onchange="this.parentElement.classList.toggle('checked',this.checked)"> You have internet access from your Kali VM (needed for Part 1 zone transfer)</li>
+    </ul>
+    <div style="margin-top:16px;">
+      <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">My internal target IP for this lab (Syntex DC)</div>
+      <input type="text" placeholder="e.g. 10.1.x.x - fill this in before you start" style="background:#161b22;border:1px solid #30363d;border-radius:4px;padding:8px 12px;font-family:monospace;font-size:14px;color:#79c0ff;width:320px;">
+    </div>
+  </div>
+
+  <!-- Objectives -->
+  <div class="section">
+    <div class="section-title">Objectives</div>
+    <ul class="objective-list">
+      <li>Understand what DNS is, why pentesters use <code>dig</code>, and what each record type reveals</li>
+      <li>Enumerate DNS records for a target domain using <code>dig</code> against the internal Syntex lab</li>
+      <li>Perform a live DNS zone transfer against a deliberately misconfigured public server and understand what it exposes</li>
+      <li>Enumerate SMB shares via null session with <code>smbclient</code></li>
+      <li>Attempt an anonymous LDAP bind with <code>ldapsearch</code></li>
+      <li>Query SNMP community strings with <code>snmpwalk</code></li>
+      <li>Build a complete pre-nmap intelligence picture from protocol responses alone</li>
+    </ul>
+  </div>
+
+  <!-- PART 0: dig primer -->
+  <div class="section">
+    <div class="section-title">Part 0 - Understanding DNS and dig</div>
+
+    <div class="part-intro">
+      <strong>Before you touch any tools, read this.</strong> DNS is the phone book of the internet. Every device on a network has a name, and DNS maps that name to an IP address. When you are on an engagement, DNS is one of the first things you query - not because you are attacking DNS itself, but because a DNS server holds a map of everything on the network. If you can get that map, you know what targets exist before you have scanned a single port.
+      <br><br>
+      <strong>Why dig instead of nslookup?</strong> <code>nslookup</code> is the Windows tool most people know. It works, but it hides information and behaves inconsistently across platforms. <code>dig</code> (Domain Information Groper) is what pentesters and sysadmins use because it shows you the raw DNS response - exactly what the server sent back. On a CREST exam and on real engagements, <code>dig</code> is the tool you use.
+    </div>
+
+    <div class="why-block">
+      <div class="why-header">Why This Matters to a Pentester</div>
+      <div class="why-item"><strong>DNS reveals the attack surface.</strong> Every hostname in DNS is a potential target. Mail servers, internal admin panels, staging environments, old forgotten servers - they all show up in DNS if the zone is configured sloppily.</div>
+      <div class="why-item"><strong>DNS misconfigurations are common and critical.</strong> A zone transfer that is open to the world is a critical finding. It hands you the complete internal hostname list in one command - something that would take hours of active scanning to discover any other way.</div>
+      <div class="why-item"><strong>DNS is passive from a network perspective.</strong> Querying DNS does not set off IDS alerts the way a port scan does. You are sending normal DNS queries - exactly what every computer on the network does all day. This makes it one of the least detectable forms of reconnaissance.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">0</div><div class="step-title">DNS record types - what they reveal</div></div>
+      <div class="step-body">
+        <p>DNS stores different types of records. Each type tells you something different about the target. This is what you are looking for when you query DNS on an engagement:</p>
+        <table class="dns-table">
+          <tr><th>Record Type</th><th>What It Stores</th><th>Why a Pentester Cares</th></tr>
+          <tr>
+            <td><strong>A</strong></td>
+            <td>Hostname to IPv4 address</td>
+            <td>The basic building block - gives you IPs for every named host. Find <code>vpn.target.com</code> and you have found the VPN gateway.</td>
+          </tr>
+          <tr>
+            <td><strong>AAAA</strong></td>
+            <td>Hostname to IPv6 address</td>
+            <td>Often forgotten in security controls. IPv6 addresses may bypass firewalls that only filter IPv4.</td>
+          </tr>
+          <tr>
+            <td><strong>MX</strong></td>
+            <td>Mail server hostnames and priority</td>
+            <td>Identifies mail infrastructure. Mail servers are often less hardened than web servers and are prime phishing or relay targets.</td>
+          </tr>
+          <tr>
+            <td><strong>NS</strong></td>
+            <td>Authoritative name servers for the domain</td>
+            <td>Tells you which servers hold the zone. These are your targets for a zone transfer attempt.</td>
+          </tr>
+          <tr>
+            <td><strong>TXT</strong></td>
+            <td>Arbitrary text - SPF, DKIM, DMARC, verification tokens</td>
+            <td>Weak SPF (<code>~all</code>) means you can spoof email from the domain. Missing DMARC means phishing emails will land in inboxes. Sometimes contains internal notes or credentials left by mistake.</td>
+          </tr>
+          <tr>
+            <td><strong>CNAME</strong></td>
+            <td>Alias pointing to another hostname</td>
+            <td>Can reveal cloud infrastructure (<code>s3.amazonaws.com</code>), internal staging environments, or takeover-vulnerable subdomain aliases.</td>
+          </tr>
+          <tr>
+            <td><strong>SOA</strong></td>
+            <td>Start of Authority - zone metadata</td>
+            <td>Contains the primary nameserver, admin email address (useful for OSINT), and zone serial number.</td>
+          </tr>
+          <tr>
+            <td><strong>AXFR</strong></td>
+            <td>Zone Transfer - a copy of the entire zone</td>
+            <td>The jackpot. If allowed, returns every single record in the zone. This is a critical misconfiguration.</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">0b</div><div class="step-title">Anatomy of a dig command</div></div>
+      <div class="step-body">
+        <p>dig follows a consistent pattern. Understanding it means you can build any query you need:</p>
+        <pre><span class="comment"># Full syntax</span>
+<span class="cmd">dig</span> <span class="flag">[@server]</span> <span class="domain">&lt;name&gt;</span> <span class="flag">[type]</span>
+
+<span class="comment"># Example: ask the DNS server at 10.1.1.10 for the A record of syntex.local</span>
+<span class="cmd">dig</span> <span class="flag">@10.1.1.10</span> <span class="domain">syntex.local</span> <span class="flag">A</span>
+
+<span class="comment"># If you leave out @server, dig uses your system's configured DNS resolver</span>
+<span class="comment"># On an engagement you almost always specify @server to query the target directly</span>
+
+<span class="comment"># The +short flag strips the metadata and shows just the answer</span>
+<span class="cmd">dig</span> <span class="flag">@10.1.1.10</span> <span class="domain">syntex.local</span> <span class="flag">A +short</span>
+
+<span class="comment"># axfr is a query type, not a flag - same syntax as any other record type</span>
+<span class="cmd">dig</span> <span class="flag">axfr @10.1.1.10</span> <span class="domain">syntex.local</span></pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>The <code>@server</code> part tells dig which DNS server to ask. Without it, your query goes to your own machine's configured resolver - which knows nothing about the target's internal domain. Always specify <code>@&lt;TARGET_IP&gt;</code> when querying an internal domain.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 1: DNS Enumeration -->
+  <div class="section">
+    <div class="section-title">Part 1 - DNS Enumeration (Internal)</div>
+
+    <div class="part-intro">
+      This section queries the internal Syntex lab DNS server. Use the <code>&lt;TARGET_IP&gt;</code> your instructor gave you. The domain is <code>syntex.local</code> - this is the internal Active Directory domain for the Syntex organisation. You are querying it directly because you are inside the network.
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>DNS runs on port 53. On a Windows domain controller, the DNS service is almost always running because Active Directory depends on it. The DC is both the AD controller and the DNS server for the internal domain.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">1</div><div class="step-title">Query DNS record types against the internal Syntex domain</div></div>
+      <div class="step-body">
+        <p>Use dig to query the target's DNS server directly. This tells you what records are exposed and what services are running internally.</p>
+        <pre><span class="comment"># Query A record - what IP does this hostname resolve to?</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span> <span class="flag">A</span>
+
+<span class="comment"># Query all record types at once</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span> <span class="flag">ANY</span>
+
+<span class="comment"># Query MX records - what mail servers does this domain use?</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span> <span class="flag">MX</span>
+
+<span class="comment"># Query NS records - what name servers are authoritative for this zone?</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span> <span class="flag">NS</span>
+
+<span class="comment"># Query TXT records - SPF, DMARC, or anything stored as text</span>
+<span class="cmd">dig</span> <span class="flag">@&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span> <span class="flag">TXT</span></pre>
+        <div class="answer-box">
+          <div class="label">Record your DNS findings</div>
+          <input class="answer-line" type="text" placeholder="A record result - what IP was returned?">
+          <input class="answer-line" type="text" placeholder="MX records found (if any):">
+          <input class="answer-line" type="text" placeholder="NS records - which server is authoritative?">
+          <input class="answer-line" type="text" placeholder="TXT records (SPF, DMARC, or anything else)?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">2</div><div class="step-title">Attempt a DNS zone transfer against the internal domain</div></div>
+      <div class="step-body">
+        <p>A zone transfer copies the entire DNS zone to another server. This is a legitimate mechanism - secondary DNS servers use it to stay in sync with the primary. The problem is when a DNS server is configured to allow zone transfers from <strong>anyone</strong>, not just authorised secondary servers.</p>
+        <p>Try it against the internal Syntex domain. This requires you to be inside the lab network:</p>
+        <pre><span class="comment"># Attempt AXFR zone transfer against the internal domain</span>
+<span class="cmd">dig</span> <span class="flag">axfr @&lt;TARGET_IP&gt;</span> <span class="domain">syntex.local</span></pre>
+        <p>The result will be one of two things. If the transfer succeeds, you will see every DNS record in the zone - hostnames, IPs, mail servers, internal services - all in one response. If it fails, you will see <code>Transfer failed: REFUSED</code> or <code>Transfer failed: SERVFAIL</code>.</p>
+        <div class="answer-box">
+          <div class="label">Internal zone transfer result</div>
+          <input class="answer-line" type="text" placeholder="Did the zone transfer succeed? (yes / REFUSED / SERVFAIL)">
+          <input class="answer-line" type="text" placeholder="If yes - how many records were returned?">
+          <input class="answer-line" type="text" placeholder="Any interesting internal hostnames revealed?">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 1b: LIVE AXFR -->
+  <div class="section">
+    <div class="section-title">Part 1b - Live Zone Transfer (Public Target)</div>
+
+    <div class="live-target">
+      <h3>&#9654; Live Target - Deliberately Misconfigured Public DNS Server</h3>
+      <p>Your instructor has set up a real BIND9 DNS server on the internet with <code>allow-transfer { any; };</code> configured. This is exactly the misconfiguration you would find on a real engagement. The server is:</p>
+      <p style="margin-top:10px;"><strong>Domain:</strong> <code>syntexsolutions.net</code></p>
+      <p><strong>Nameserver:</strong> <code>ns1.syntexsolutions.net</code></p>
+      <p><strong>Server IP:</strong> <code>20.24.202.6</code></p>
+      <p style="margin-top:10px; color:#8b949e; font-size:12px;">This server is hosted on Azure and is intentionally misconfigured for training purposes. Do not attempt to interact with it in any other way - zone transfer queries only.</p>
+    </div>
+
+    <div class="why-block">
+      <div class="why-header">Why This Matters to a Pentester</div>
+      <div class="why-item"><strong>This is a real finding.</strong> On a genuine engagement, finding an open AXFR on a public DNS server is a critical vulnerability. You are about to do exactly what an attacker does on day one of a real penetration test.</div>
+      <div class="why-item"><strong>Zone transfers reveal the full network map.</strong> Internal hostnames, service accounts referenced in TXT records, mail infrastructure, internal IP addresses exposed through A records - all of it comes back in one query. This is information that would take hours to enumerate any other way.</div>
+      <div class="why-item"><strong>The impact is reconnaissance, not direct compromise.</strong> AXFR itself does not give you access to anything. What it gives you is a complete target list. That is stage one of every attack chain.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">3</div><div class="step-title">Enumerate DNS records for syntexsolutions.net</div></div>
+      <div class="step-body">
+        <p>Before attempting the zone transfer, run the standard record queries against the public domain. This builds your picture of the target's external infrastructure.</p>
+        <pre><span class="comment"># Query the NS records first - confirm which nameserver is authoritative</span>
+<span class="cmd">dig</span> <span class="domain">syntexsolutions.net</span> <span class="flag">NS</span>
+
+<span class="comment"># Query A record via the authoritative nameserver directly</span>
+<span class="cmd">dig</span> <span class="flag">@<span class="ip">20.24.202.6</span></span> <span class="domain">syntexsolutions.net</span> <span class="flag">A</span>
+
+<span class="comment"># Query MX records - what mail servers does the company use?</span>
+<span class="cmd">dig</span> <span class="flag">@<span class="ip">20.24.202.6</span></span> <span class="domain">syntexsolutions.net</span> <span class="flag">MX</span>
+
+<span class="comment"># TXT records - SPF, DMARC, any other configuration</span>
+<span class="cmd">dig</span> <span class="flag">@<span class="ip">20.24.202.6</span></span> <span class="domain">syntexsolutions.net</span> <span class="flag">TXT</span></pre>
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div>Look at the SPF record carefully. A <code>~all</code> (tilde) in the SPF record means <em>soft fail</em> - email from unknown sources will still be delivered. A well-configured domain uses <code>-all</code> (hard fail). Weak SPF is a phishing enabler and is worth flagging in a report.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">syntexsolutions.net external DNS records</div>
+          <input class="answer-line" type="text" placeholder="NS record - which nameserver is authoritative?">
+          <input class="answer-line" type="text" placeholder="A record - what IP does the domain resolve to?">
+          <input class="answer-line" type="text" placeholder="MX record - what mail server(s)?">
+          <input class="answer-line" type="text" placeholder="TXT record - is SPF present? Is it ~all or -all?">
+          <input class="answer-line" type="text" placeholder="Any DMARC record? (try: dig TXT _dmarc.syntexsolutions.net)">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">4</div><div class="step-title">Perform the zone transfer - retrieve the full zone</div></div>
+      <div class="step-body">
+        <p>Now attempt the zone transfer. You can query via the IP address or via the nameserver hostname - both work here because the server allows transfers from any source.</p>
+        <pre><span class="comment"># Method 1 - zone transfer via IP address (most reliable)</span>
+<span class="cmd">dig</span> <span class="flag">axfr @<span class="ip">20.24.202.6</span></span> <span class="domain">syntexsolutions.net</span>
+
+<span class="comment"># Method 2 - zone transfer via nameserver hostname</span>
+<span class="cmd">dig</span> <span class="flag">axfr @ns1.syntexsolutions.net</span> <span class="domain">syntexsolutions.net</span></pre>
+
+        <p>When the transfer succeeds, you will see the complete zone file. Work through the output and answer the questions below. This is the kind of analysis you would do on a real engagement - reading the zone file and extracting intelligence from it.</p>
+
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>Pipe the output to a file so you can search it: <code>dig axfr @20.24.202.6 syntexsolutions.net &gt; axfr_output.txt</code> then use <code>grep</code> to filter. For example: <code>grep -i "svc\|admin\|internal" axfr_output.txt</code></div>
+        </div>
+
+        <div class="answer-box">
+          <div class="label">Zone transfer analysis - syntexsolutions.net</div>
+          <input class="answer-line" type="text" placeholder="Total number of records in the zone:">
+          <input class="answer-line" type="text" placeholder="Internal hostnames revealed (e.g. BMGDC01, BMGFS01...):">
+          <input class="answer-line" type="text" placeholder="Service accounts visible in the zone (e.g. svc.backup...):">
+          <input class="answer-line" type="text" placeholder="Any TXT records with internal notes or credentials?">
+          <input class="answer-line" type="text" placeholder="Any CNAME records pointing to cloud infrastructure?">
+          <input class="answer-line" type="text" placeholder="What would an attacker now know about the internal network?">
+        </div>
+
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> DNS zone transfers (AXFR) are a classic misconfiguration question. The exam will test whether you know the query type name (AXFR), the tool (dig), the syntax, and critically - what information a successful transfer reveals. The answer is not just "hostname list" - it also includes internal IP addresses, mail infrastructure, service accounts referenced in TXT records, and anything else stored in DNS.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 2: SMB -->
+  <div class="section">
+    <div class="section-title">Part 2 - SMB Enumeration</div>
+
+    <div class="part-intro">
+      SMB (Server Message Block) is the Windows file-sharing protocol. It runs on port 445. In this lab you are querying the internal Syntex lab VM using the target IP your instructor gave you. Use <code>&lt;TARGET_IP&gt;</code> for all commands in this section.
+    </div>
+
+    <div class="why-block">
+      <div class="why-header">Why This Matters to a Pentester</div>
+      <div class="why-item"><strong>SMB null sessions are still found in the wild.</strong> A null session is an anonymous connection to SMB with no credentials at all. Modern Windows defaults block this, but legacy systems, NAS devices, and misconfigured servers still expose it. On internal networks you will find it regularly.</div>
+      <div class="why-item"><strong>Share enumeration reveals data stores.</strong> Even if you cannot read the files, knowing a share called <code>IT_Backups</code> or <code>Finance_Reports</code> exists tells you exactly where to focus once you have credentials.</div>
+      <div class="why-item"><strong>IPC$ null sessions enable user enumeration.</strong> The IPC$ (inter-process communication) share is used for named pipes. On some configurations, connecting to IPC$ anonymously lets you enumerate local users and groups - that is your starting point for password spraying.</div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div>SMB (port 445) is one of the most dangerous services to expose. Null sessions - anonymous connections with no credentials - allow share enumeration on misconfigured Windows hosts.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">5</div><div class="step-title">List SMB shares with a null session</div></div>
+      <div class="step-body">
+        <p>A null session uses an empty username and password. The <code>-N</code> flag tells smbclient not to prompt for a password. The <code>-L</code> flag lists available shares.</p>
+        <pre><span class="comment"># List shares on the target - null session (no credentials)</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;TARGET_IP&gt; <span class="flag">-N</span>
+
+<span class="comment"># If the target is a Windows domain member, also specify the domain</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;TARGET_IP&gt; <span class="flag">-N -W</span> SYNTEX
+
+<span class="comment"># If you are getting authentication errors, try specifying empty credentials explicitly</span>
+<span class="cmd">smbclient</span> <span class="flag">-L</span> //&lt;TARGET_IP&gt; <span class="flag">-U ""</span> <span class="flag">-N</span></pre>
+        <p>Shares ending in <code>$</code> are hidden administrative shares. <code>C$</code> is the full C drive, <code>ADMIN$</code> is the Windows directory, <code>IPC$</code> is the inter-process communication share. These exist on every Windows machine. Any share <strong>without</strong> a <code>$</code> is a custom share that someone created.</p>
+        <div class="answer-box">
+          <div class="label">SMB enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the null session succeed? (yes / access denied / no response)">
+          <input class="answer-line" type="text" placeholder="Shares listed (all names):">
+          <input class="answer-line" type="text" placeholder="Any non-default shares (without $)?">
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">6</div><div class="step-title">Connect to a share and list contents</div></div>
+      <div class="step-body">
+        <p>If you found any readable shares, try connecting. The <code>-N</code> flag skips the password prompt.</p>
+        <pre><span class="comment"># Connect to a specific share anonymously</span>
+<span class="cmd">smbclient</span> //&lt;TARGET_IP&gt;/&lt;SHARENAME&gt; <span class="flag">-N</span>
+
+<span class="comment"># Once connected, useful smbclient commands:</span>
+<span class="comment"># ls                 - list files and directories</span>
+<span class="comment"># get filename       - download a file to your local machine</span>
+<span class="comment"># mget *             - download all files</span>
+<span class="comment"># exit               - disconnect</span></pre>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>On a real engagement, finding a world-readable share is always worth documenting even if it looks empty. Configuration files, old backups, scripts with hardcoded credentials, and forgotten documents with passwords in the filename have all been found on "empty" SMB shares. Download everything and search it offline.</div>
+        </div>
+        <div class="answer-box">
+          <div class="label">Share access results</div>
+          <input class="answer-line" type="text" placeholder="Share name you connected to (if any):">
+          <input class="answer-line" type="text" placeholder="Files or directories visible:">
+          <input class="answer-line" type="text" placeholder="Anything interesting downloaded?">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 3: LDAP -->
+  <div class="section">
+    <div class="section-title">Part 3 - LDAP Anonymous Bind</div>
+
+    <div class="part-intro">
+      LDAP (Lightweight Directory Access Protocol) is the query interface for Active Directory. It runs on port 389. Use <code>&lt;TARGET_IP&gt;</code> for all commands in this section. The domain is <code>syntex.local</code>.
+    </div>
+
+    <div class="why-block">
+      <div class="why-header">Why This Matters to a Pentester</div>
+      <div class="why-item"><strong>LDAP is the front door to Active Directory.</strong> Everything stored in AD is accessible via LDAP - user accounts, groups, computer accounts, password policies, service accounts. If you can query it without credentials, you get the full user list immediately.</div>
+      <div class="why-item"><strong>Even a failed bind is useful.</strong> If LDAP is running and the port is open, Active Directory is running. That shapes your whole attack plan - you know Kerberoasting is on the table, you know you are hunting domain credentials, you know password spraying is worth attempting.</div>
+      <div class="why-item"><strong>Anonymous bind is not the only path.</strong> Even when anonymous bind is blocked, any valid domain account can query LDAP. Getting any single set of domain credentials opens the full directory to you.</div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <div>LDAP (port 389) is the query interface for Active Directory. An anonymous bind - connecting without credentials - is allowed by default on some older AD configurations. Even a failed anonymous bind confirms LDAP is running, which means Active Directory is present.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">7</div><div class="step-title">Attempt an LDAP anonymous bind and enumerate the directory</div></div>
+      <div class="step-body">
+        <p>ldapsearch queries LDAP directories. The <code>-x</code> flag means simple authentication (not SASL). An empty bind DN with no password attempts an anonymous bind - connecting without credentials.</p>
+        <pre><span class="comment"># First attempt - try querying the base DN anonymously</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b ""</span> <span class="flag">-s base</span>
+
+<span class="comment"># If the base DN query works, try enumerating user accounts</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b "DC=syntex,DC=local"</span> "(objectClass=user)" sAMAccountName
+
+<span class="comment"># Enumerate groups - what groups exist in the domain?</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b "DC=syntex,DC=local"</span> "(objectClass=group)" cn
+
+<span class="comment"># Enumerate computer accounts - what machines are domain-joined?</span>
+<span class="cmd">ldapsearch</span> <span class="flag">-x -H</span> ldap://&lt;TARGET_IP&gt; <span class="flag">-b "DC=syntex,DC=local"</span> "(objectClass=computer)" cn</pre>
+        <p>If anonymous bind is blocked, you will see <code>ldap_bind: Inappropriate authentication (48)</code>. This still tells you LDAP is running. If it succeeds, you will get directory objects back.</p>
+        <div class="answer-box">
+          <div class="label">LDAP enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the anonymous bind succeed? (yes / no - what error code?)">
+          <input class="answer-line" type="text" placeholder="If yes - what did the base DN query return?">
+          <input class="answer-line" type="text" placeholder="Any user accounts enumerated?">
+          <input class="answer-line" type="text" placeholder="Any groups visible?">
+          <input class="answer-line" type="text" placeholder="Does LDAP being present confirm Active Directory is running?">
+        </div>
+        <div class="callout exam">
+          <span class="callout-icon">&#127919;</span>
+          <div><strong>CREST Exam Link:</strong> The exam will ask what you can enumerate via LDAP on an Active Directory domain controller. The answer includes user accounts, groups, group membership, computer accounts, and password policy. Even with authentication required, Kerberoasting abuses the authenticated LDAP interface - understanding LDAP structure is fundamental to AD attacks.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 4: SNMP -->
+  <div class="section">
+    <div class="section-title">Part 4 - SNMP Enumeration</div>
+
+    <div class="part-intro">
+      SNMP (Simple Network Management Protocol) runs on UDP port 161. It is used to manage and monitor network devices - routers, switches, servers. Use <code>&lt;TARGET_IP&gt;</code> for all commands in this section.
+    </div>
+
+    <div class="why-block">
+      <div class="why-header">Why This Matters to a Pentester</div>
+      <div class="why-item"><strong>SNMP exposes the device configuration.</strong> A successful SNMP walk against a router or switch returns interface IP addresses, routing tables, ARP cache, running processes, software versions, and hardware serial numbers. This is essentially a full device inventory handed to you without authentication.</div>
+      <div class="why-item"><strong>Default community strings are everywhere.</strong> <code>public</code> is the default read community string in SNMPv1 and v2c. Devices ship with it enabled and network teams often never change it. Finding a device with SNMP and the default community string is a common finding on internal tests.</div>
+      <div class="why-item"><strong>SNMP runs on UDP - easy to miss.</strong> Most port scans default to TCP. UDP scanning is slower and noisier. SNMP at port 161/UDP is often overlooked, which is exactly why querying it manually before nmap is worthwhile - you might find it before an automated scan would.</div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;</span>
+      <div>SNMP runs on UDP port 161. SNMPv1 and v2c use community strings as the only authentication. The default read community string is <code>public</code>. If this is not changed, an attacker can read the full device configuration - interface IPs, running processes, software versions - without any credentials.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">8</div><div class="step-title">Query SNMP with the default community string</div></div>
+      <div class="step-body">
+        <p>snmpwalk walks the SNMP MIB (Management Information Base) tree and returns everything the device exposes under a given OID. We start with the default community string <code>public</code> and SNMPv2c.</p>
+        <pre><span class="comment"># Walk the full SNMP tree with the default community string</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt;
+
+<span class="comment"># Query specific OIDs - system description (OS, version, uptime)</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.1.1.0</span>
+
+<span class="comment"># Running processes - what software is active on the host?</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.25.4.2.1.2</span>
+
+<span class="comment"># Network interfaces and their IPs</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c public</span> &lt;TARGET_IP&gt; <span class="flag">1.3.6.1.2.1.2.2.1.2</span>
+
+<span class="comment"># Try the other default community strings if public fails</span>
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c private</span> &lt;TARGET_IP&gt;
+<span class="cmd">snmpwalk</span> <span class="flag">-v2c -c manager</span> &lt;TARGET_IP&gt;</pre>
+        <p>If the community string is correct you will see a large amount of output. If SNMP is not running or the string is wrong, you will see <code>Timeout: No Response from &lt;TARGET_IP&gt;</code>.</p>
+        <div class="answer-box">
+          <div class="label">SNMP enumeration results</div>
+          <input class="answer-line" type="text" placeholder="Did the community string 'public' work? (yes / no / timeout)">
+          <input class="answer-line" type="text" placeholder="System description - OS version and uptime if returned:">
+          <input class="answer-line" type="text" placeholder="Any running processes visible?">
+          <input class="answer-line" type="text" placeholder="Any network interface information returned?">
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">&#10003;</span>
+          <div>If <code>public</code> does not work, try <code>private</code> (the default write community string), <code>manager</code>, and the target organisation's name or abbreviation. Community strings are often set to company names. <code>syntex</code>, <code>SYNTEX</code>, or the company's city name are worth trying.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 5: Consolidation -->
+  <div class="section">
+    <div class="section-title">Part 5 - Build Your Pre-Nmap Intelligence Picture</div>
+
+    <div class="part-intro">
+      This is where the lab comes together. A good pentester does not run nmap first and ask questions later. You run protocol-level enumeration first, then nmap confirms what you already suspect. By this point in the lab you should already have a picture of the target. Fill it in now.
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-num">9</div><div class="step-title">Consolidate your findings into a pre-nmap picture</div></div>
+      <div class="step-body">
+        <p>Using only the protocol-level enumeration from this lab, fill in this table. This is the intelligence picture you would bring to a team debrief before running any active scanning tools.</p>
+
+        <table>
+          <tr><th>Service</th><th>Port/Protocol</th><th>Running?</th><th>Misconfigured?</th><th>Key Finding</th></tr>
+          <tr>
+            <td>DNS (internal)</td>
+            <td>53/TCP+UDP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">AXFR open?</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Records found, zone transfer result</td>
+          </tr>
+          <tr>
+            <td>DNS (external - syntexsolutions.net)</td>
+            <td>53/TCP+UDP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes</td>
+            <td class="fill" contenteditable="true" spellcheck="false">AXFR open to any source</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Internal hostnames, service accounts exposed</td>
+          </tr>
+          <tr>
+            <td>SMB</td>
+            <td>445/TCP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Null session allowed?</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Shares found, files accessible</td>
+          </tr>
+          <tr>
+            <td>LDAP / Active Directory</td>
+            <td>389/TCP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Anonymous bind allowed?</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Anonymous bind result, AD confirmed</td>
+          </tr>
+          <tr>
+            <td>SNMP</td>
+            <td>161/UDP</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Yes / No</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Default community string?</td>
+            <td class="fill" contenteditable="true" spellcheck="false">Community string worked? Info returned?</td>
+          </tr>
+        </table>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ</span>
+          <div>An nmap scan of this same host will confirm these ports are open - but it will not tell you whether SMB accepts null sessions, whether LDAP allows anonymous binds, what community string SNMP uses, or what records are in the DNS zone. Protocol-level enumeration fills that gap. By the time you open nmap, you should already know what services are running and what their security posture looks like.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EXAM QUESTIONS -->
+  <div class="section">
+    <div class="section-title">Exam-Style Questions</div>
+
+    <div class="question">
+      <div class="q-num">Q1</div>
+      <p>What DNS query type requests a full copy of a zone's records from a DNS server?</p>
+      <div class="answer-box">
+        <input class="answer-line" type="text" placeholder="Answer:" data-answer="AXFR|axfr|zone transfer|dns zone transfer">
+        <button class="check-btn" onclick="checkAnswer(this)">Check Answer</button>
+        <div class="answer-feedback" hidden></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q2</div>
+      <p>You run <code>dig axfr @20.24.202.6 syntexsolutions.net</code> and receive the full zone. Write out three distinct types of information a pentester can extract from this zone transfer output and explain why each is useful.</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>1. Internal hostnames and IPs - reveals the network map including servers that are not externally accessible (BMGDC01, BMGFS01, etc). Every hostname is a potential target. 2. Service accounts referenced in TXT records or as hostnames - service accounts often have weak or non-expiring passwords and are prime targets for Kerberoasting. 3. Mail infrastructure details (MX records, SPF, DMARC) - weak SPF (~all) enables email spoofing for phishing; missing or permissive DMARC means spoofed emails reach inboxes. The zone transfer is critical not because of what it directly compromises, but because of the complete intelligence picture it hands the attacker.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q3</div>
+      <p>What is a null session in the context of SMB, and why is it a security concern?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>A null session is an anonymous connection to an SMB server using an empty username and password. It is a security concern because on misconfigured systems it allows an unauthenticated attacker to enumerate shares, user accounts (via IPC$), and sometimes read sensitive file content - all without any credentials. Modern Windows defaults block null sessions, but legacy systems and misconfigured servers still allow them. Even share enumeration without file access tells an attacker exactly where sensitive data is stored.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q4</div>
+      <p>SNMP is running on a target. The community string <code>public</code> returns data. What security version of SNMP is this, and what is the primary weakness?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>SNMPv1 or v2c - both use community strings as cleartext authentication passed in every packet. The community string travels in plaintext and can be captured by anyone on the network path. SNMPv3 addresses this with proper authentication (MD5/SHA) and optional encryption (DES/AES). Using the default public community string is a critical misconfiguration - it means the device has essentially no authentication. The read community string gives full read access to device configuration; the write community string (often private) allows configuration changes.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q5</div>
+      <p>What port does LDAP run on, and what does a successful anonymous bind tell you about the target environment?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>LDAP runs on port 389 (636 for LDAPS over TLS). A successful anonymous bind means the server allows unauthenticated queries to the directory. On Active Directory this can expose the full user list, group memberships, computer accounts, and password policy without any credentials. The presence of LDAP itself strongly suggests Active Directory is in use - this tells you Kerberos is available, that Kerberoasting may be viable, and that domain credential harvesting is the primary attack path.</div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-num">Q6</div>
+      <p>Explain the difference between <code>dig syntexsolutions.net NS</code> and <code>dig @20.24.202.6 syntexsolutions.net NS</code>. When would you use each?</p>
+      <div class="answer-box">
+        <textarea class="answer-area" placeholder="Your answer..."></textarea>
+        <button class="model-btn" onclick="showModel(this)">Model Answer</button>
+        <div class="model-answer" hidden>Without @server, dig sends the query to your machine's configured DNS resolver (usually your ISP or corporate DNS). With @20.24.202.6, dig queries that specific server directly. For external domains, querying without @server works because public DNS resolvers know the answer. For internal domains (syntex.local), you must use @server to query the target's DNS server directly - your resolver has no idea what syntex.local is. For testing specific server behaviour (like AXFR), you always use @server to target the nameserver you want to test, regardless of whether the domain is internal or external.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Takeaways -->
+  <div style="background:#0d1117;border:2px solid #2ea043;border-radius:6px;padding:20px 24px;margin-bottom:28px;">
+    <div style="color:#2ea043;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">&#10003; Lab Complete - Key Takeaways</div>
+    <div style="color:#ccc;font-size:13px;line-height:1.65;">
+      Protocol-level enumeration gives you information that nmap cannot. A DNS zone transfer hands you the complete hostname list in one query - you have done this against a real server today. An SMB null session gives you share names and potentially file access without credentials. An LDAP anonymous bind reveals the directory structure. SNMP with the default community string exposes the device configuration.<br><br>
+      By the time you open nmap, you should already have a picture of what is running. The B4 scanning labs build on this - nmap confirms ports are open, but enumeration tells you what to do with them. Everything in this lab produces findings that belong in a real penetration test report.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>My Cyber Academy</span> &nbsp;|&nbsp; CREST CPSA &nbsp;|&nbsp; Module B - Core Technical Skills &nbsp;|&nbsp; Lab B3-A &nbsp;|&nbsp; mycyberacademy.co.uk
+</div>
+
+<script>
+  function checkAnswer(btn) {
+    const box = btn.closest('.answer-box');
+    const input = box.querySelector('input[data-answer]');
+    const feedback = box.querySelector('.answer-feedback');
+    const accepted = input.dataset.answer.split('|').map(s => s.trim().toLowerCase());
+    const given = input.value.trim().toLowerCase();
+    feedback.removeAttribute('hidden');
+    if (accepted.some(a => given.includes(a) || a.includes(given))) {
+      feedback.className = 'answer-feedback correct';
+      feedback.textContent = 'Correct.';
+    } else {
+      feedback.className = 'answer-feedback incorrect';
+      feedback.textContent = 'Not quite - review the DNS section or ask your instructor.';
+    }
+  }
+
+  function showModel(btn) {
+    const answer = btn.nextElementSibling;
+    if (answer.hasAttribute('hidden')) {
+      answer.removeAttribute('hidden');
+      btn.textContent = 'Hide Answer';
+    } else {
+      answer.setAttribute('hidden', '');
+      btn.textContent = 'Model Answer';
+    }
+  }
+
+  // Preflight checkbox persistence
+  document.querySelectorAll('.preflight-checklist input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => cb.parentElement.classList.toggle('checked', cb.checked));
+  });
+</script>
+</body>
+</html>
