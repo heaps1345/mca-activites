@@ -135,30 +135,45 @@ LABS = [
         "title": "Lab B1-A: Kali CLI Networking Orientation",
         "slug": "lab-b1a-cli-networking-v1.html",
         "intro": (
-            "Before scanning a target you need to understand your own Kali machine's network configuration. "
-            "In this lab you will use ip, ping, traceroute, nslookup, dig and ss to explore your interface "
-            "settings, routing table and DNS configuration - the same commands that underpin every "
-            "subsequent CPSA recon task."
+            "Think of this lab as checking your own driving licence and reading the road signs before "
+            "you set off on a journey. Before you can probe a target network you need to know exactly "
+            "where YOUR machine sits - its IP address, its gateway, its DNS server. A pen tester who "
+            "does not know their own network configuration is like a safecracker who forgot to bring "
+            "their stethoscope.\n\n"
+            "In this lab you will use `ip a`, `ip r`, `ping`, `traceroute`, `nslookup`, `dig` and `ss` "
+            "to map your own Kali machine's network setup from the command line. Every one of these "
+            "commands comes up on the CPSA exam - and every one of them is something you will reach "
+            "for on every real engagement."
         ),
     },
     {
         "title": "Lab B2-A: Passive Network Reconnaissance",
         "slug": "lab-b2a-network-recon-v1.html",
         "intro": (
-            "Passive reconnaissance gathers information without sending probes to the target. "
-            "In this lab you will use arp, ip neigh, /etc/hosts and Wireshark to identify hosts, "
-            "MAC addresses and OS fingerprinting clues from traffic already on the network - "
-            "no active scanning required."
+            "Imagine sitting in a coffee shop and working out who is in the room just by listening - "
+            "without asking anyone a single question. That is passive reconnaissance. You are gathering "
+            "intelligence from traffic that is already flowing around you, leaving no footprint on the "
+            "target whatsoever.\n\n"
+            "In this lab you will use `arp`, `ip neigh`, `/etc/hosts` and Wireshark to pull MAC "
+            "addresses, identify live hosts and read OS fingerprinting clues out of ICMP TTL values - "
+            "all without sending a single active probe. The CPSA exam loves TTL-based OS fingerprinting: "
+            "Linux returns 64, Windows returns 128, Cisco returns 255. By the end of this lab you will "
+            "be able to spot an OS from a packet capture alone."
         ),
     },
     {
         "title": "Lab B3-A: Protocol-Level Service Enumeration",
         "slug": "lab-b3a-service-enumeration-v1.html",
         "intro": (
-            "CPSA requires you to enumerate services at the protocol level, not just with Nmap. "
-            "In this lab you will query DNS (including a zone transfer attempt), SMB null sessions, "
-            "LDAP anonymous binds and SNMP default community strings directly from the CLI - "
-            "building the technique knowledge the exam tests."
+            "Nmap tells you a port is open. This lab teaches you what to actually DO with it. "
+            "Think of Nmap as a burglar alarm detector - it tells you which doors exist. This lab "
+            "teaches you to pick the locks. Each protocol has its own native query language and its "
+            "own class of misconfiguration, and CPSA expects you to know them all.\n\n"
+            "You will work through four protocols used in almost every real-world internal assessment: "
+            "DNS (including a zone transfer attempt that dumps the entire internal namespace in one "
+            "command), SMB null sessions, LDAP anonymous binds and SNMP default community strings. "
+            "The target IP is assigned by your instructor - fill it in at the top of the lab before "
+            "you start."
         ),
     },
 ]
