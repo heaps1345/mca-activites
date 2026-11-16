@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPSA Module B - TCP Packets</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #131825;
+    --surface-hover: #1a2035;
+    --border: #1e2a42;
+    --accent: #00d4aa;
+    --accent-dim: #00d4aa22;
+    --danger: #ff4757;
+    --danger-dim: #ff475722;
+    --warning: #ffa502;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --correct: #00d4aa;
+    --incorrect: #ff4757;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* ---- LESSON STYLES ---- */
+  .lesson { margin-bottom: 3rem; }
+
+  .lesson h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lesson p {
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .flag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .flag-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .flag-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .flag-bit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .flag-desc { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+
+  .packet-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.88rem;
+  }
+
+  .packet-table th {
+    background: var(--surface);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+
+  .packet-table td {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .packet-table tr:nth-child(even) td { background: #0d1120; }
+
+  .mono { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 0.85em; }
+
+  .callout {
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 0.9rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .callout strong { color: var(--accent); }
+
+  .handshake {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+  }
+
+  .hs-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+  }
+
+  .hs-step {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    min-width: 48px;
+  }
+
+  .hs-flags {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    min-width: 90px;
+  }
+
+  .hs-desc { font-size: 0.88rem; color: var(--text); }
+
+  .divider {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  /* ---- QUIZ STYLES ---- */
+  .quiz-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .quiz-header h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .quiz-header p { color: var(--text-dim); font-size: 0.88rem; }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .question-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    margin-bottom: 1rem;
+  }
+
+  .question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+
+  .option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    text-align: left;
+  }
+
+  .option:hover:not(.disabled) { background: var(--surface-hover); border-color: var(--accent); }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option.correct { border-color: var(--correct); background: rgba(0,212,170,0.1); }
+  .option.incorrect { border-color: var(--incorrect); background: var(--danger-dim); }
+  .option.disabled { cursor: default; }
+
+  .explanation {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent); }
+
+  #submit-btn {
+    background: var(--accent);
+    color: #0a0e17;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+
+  #submit-btn:disabled { opacity: 0.35; cursor: default; }
+
+  .results {
+    text-align: center;
+    padding: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .results h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .score-label { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  .restart-btn {
+    background: var(--surface-hover);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1.75rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+  }
+
+  .restart-btn:hover { border-color: var(--accent); }
+
+  #quiz-section { display: none; }
+  #start-screen {
+    text-align: center;
+    padding: 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  #start-screen h2 {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  #start-screen p { color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+  .start-btn {
+    background: var(--accent);
+    color: #0a0e17;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem 2rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>CPSA Module B - TCP Packets</h1>
+    <p>Flags, headers, and where TCP packets are used in real attacks</p>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- LESSON -->
+  <!-- ============================================================ -->
+  <div class="lesson">
+
+    <h2>01 - The TCP Header</h2>
+    <p>Every TCP segment carries a fixed 20-byte header before the data payload. The fields you need to know for CPSA are:</p>
+
+    <table class="packet-table">
+      <tr>
+        <th>Field</th>
+        <th>Size</th>
+        <th>What it does</th>
+      </tr>
+      <tr>
+        <td><span class="mono">Source Port</span></td>
+        <td>16 bit</td>
+        <td>Sending port (ephemeral, e.g. 54321 for a client)</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Destination Port</span></td>
+        <td>16 bit</td>
+        <td>Target service port (e.g. 80, 443, 22)</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Sequence Number</span></td>
+        <td>32 bit</td>
+        <td>Tracks byte position in the stream - used to reassemble segments in order</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Acknowledgement Number</span></td>
+        <td>32 bit</td>
+        <td>Next expected byte from the other side. Only valid when ACK flag is set</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Flags (Control Bits)</span></td>
+        <td>9 bit</td>
+        <td>SYN, ACK, FIN, RST, PSH, URG, ECE, CWR, NS - control the connection state</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Window Size</span></td>
+        <td>16 bit</td>
+        <td>How many bytes the receiver can accept - used for flow control</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Checksum</span></td>
+        <td>16 bit</td>
+        <td>Error detection across the header and data</td>
+      </tr>
+    </table>
+
+    <h2>02 - TCP Flags</h2>
+    <p>Flags are single bits in the TCP header. Each one signals a specific action or state. These are the six you will see constantly in CPSA labs and exam questions:</p>
+
+    <div class="flag-grid">
+      <div class="flag-card">
+        <div class="flag-name">SYN - Synchronise</div>
+        <div class="flag-bit">Bit 1</div>
+        <div class="flag-desc">Initiates a connection. Sent in the first packet of a three-way handshake. Also used by nmap in a SYN scan (-sS) to probe ports without completing the handshake.</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-name">ACK - Acknowledge</div>
+        <div class="flag-bit">Bit 4</div>
+        <div class="flag-desc">Confirms receipt of data. Present in almost every packet after the initial SYN. The ACK scan (-sA) sends only ACK packets to map firewall rules.</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-name">FIN - Finish</div>
+        <div class="flag-bit">Bit 0</div>
+        <div class="flag-desc">Graceful connection teardown. A FIN scan (-sF) sends FIN packets to closed ports - they respond with RST, open ports stay silent.</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-name">RST - Reset</div>
+        <div class="flag-bit">Bit 2</div>
+        <div class="flag-desc">Abruptly terminates a connection. A closed port sends RST in response to unexpected packets. RST injection can be used to hijack or tear down sessions.</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-name">PSH - Push</div>
+        <div class="flag-bit">Bit 3</div>
+        <div class="flag-desc">Tells the receiver to pass buffered data to the application immediately rather than waiting for the buffer to fill. Common in interactive sessions like SSH and Telnet.</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-name">URG - Urgent</div>
+        <div class="flag-bit">Bit 5</div>
+        <div class="flag-desc">Marks data as urgent - the receiver processes it ahead of the queue. Rarely used in modern applications but appears in Xmas scan packets alongside FIN and PSH.</div>
+      </div>
+    </div>
+
+    <h2>03 - The Three-Way Handshake</h2>
+    <p>TCP connections always start with a three-way handshake. Understanding exactly which flags are set at each step is a core CPSA exam requirement.</p>
+
+    <div class="handshake">
+      <div class="hs-row">
+        <span class="hs-step">Step 1</span>
+        <span class="hs-flags">SYN</span>
+        <span class="hs-desc">Client sends SYN with a random Initial Sequence Number (ISN). No data yet - just requesting a connection.</span>
+      </div>
+      <div class="hs-row">
+        <span class="hs-step">Step 2</span>
+        <span class="hs-flags">SYN-ACK</span>
+        <span class="hs-desc">Server responds with its own ISN (SYN) and acknowledges the client's sequence number (ACK). Both SYN and ACK bits are set.</span>
+      </div>
+      <div class="hs-row">
+        <span class="hs-step">Step 3</span>
+        <span class="hs-flags">ACK</span>
+        <span class="hs-desc">Client acknowledges the server's ISN. Connection is now established and data transfer can begin.</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>CPSA exam angle:</strong> A SYN scan (-sS) sends only the first SYN and never completes the handshake. If the port is open, the target returns SYN-ACK - nmap immediately sends RST to tear it down without logging a full connection. This is why it is called a "half-open" or "stealth" scan.
+    </div>
+
+    <h2>04 - TCP Packets in Penetration Testing</h2>
+    <p>Different nmap scan types craft TCP packets with specific flag combinations. Each produces a different response from open, closed, and filtered ports.</p>
+
+    <table class="packet-table">
+      <tr>
+        <th>Scan Type</th>
+        <th>Flags Sent</th>
+        <th>Open Port Response</th>
+        <th>Closed Port Response</th>
+        <th>Use Case</th>
+      </tr>
+      <tr>
+        <td><span class="mono">-sS (SYN)</span></td>
+        <td>SYN</td>
+        <td>SYN-ACK</td>
+        <td>RST</td>
+        <td>Default scan - fast, low noise, no full connection</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sT (Connect)</span></td>
+        <td>SYN then full handshake</td>
+        <td>SYN-ACK then ACK</td>
+        <td>RST</td>
+        <td>Used when raw socket access unavailable (no root)</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sA (ACK)</span></td>
+        <td>ACK</td>
+        <td>RST (unfiltered)</td>
+        <td>RST (unfiltered)</td>
+        <td>Maps firewall rules - does not detect open/closed, only filtered vs unfiltered</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sF (FIN)</span></td>
+        <td>FIN</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Bypasses some stateless firewalls and packet filters</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sN (Null)</span></td>
+        <td>None (no flags)</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Same bypass technique as FIN - RFC-compliant closed ports send RST</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sX (Xmas)</span></td>
+        <td>FIN + PSH + URG</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>"Lights up like a Christmas tree" - same logic as FIN and Null</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Key rule for FIN, Null and Xmas scans:</strong> These only work reliably against RFC-compliant TCP stacks. Windows systems send RST for both open and closed ports in response to these packets - making the results unreliable on Windows targets.
+    </div>
+
+    <h2>05 - TCP Sequence Numbers and Session Hijacking</h2>
+    <p>Sequence numbers are 32-bit counters that track which bytes have been sent. Early TCP implementations used predictable ISNs (incrementing by a fixed amount) which made session hijacking trivial - an attacker who could predict the next sequence number could inject packets into an established connection.</p>
+
+    <p>Modern systems use cryptographically random ISNs. However sequence number analysis still matters in CPSA for:</p>
+
+    <table class="packet-table">
+      <tr>
+        <th>Technique</th>
+        <th>How Sequence Numbers Are Used</th>
+      </tr>
+      <tr>
+        <td>OS Fingerprinting</td>
+        <td>Different OS stacks generate ISNs with different patterns. Nmap's -O flag analyses ISN randomness as one of several fingerprinting signals.</td>
+      </tr>
+      <tr>
+        <td>Wireshark Analysis</td>
+        <td>Sequence and ACK numbers let you reconstruct the conversation order and spot retransmissions, resets, and injection attempts.</td>
+      </tr>
+      <tr>
+        <td>RST Injection</td>
+        <td>Sending a RST with a valid sequence number tears down an established session - used in IDS evasion and denial of service.</td>
+      </tr>
+    </table>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- ============================================================ -->
+  <!-- QUIZ -->
+  <!-- ============================================================ -->
+  <div id="start-screen">
+    <h2>Knowledge Check</h2>
+    <p>15 questions on TCP flags, headers, handshakes and scan types</p>
+    <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-section">
+    <div class="quiz-header">
+      <h2>Knowledge Check</h2>
+      <p>TCP Packets - Flags, Headers and Scan Types</p>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="quiz-body"></div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'cpsa_b_tcp_packets_v1';
+
+const questions = [
+  {
+    section: 'TCP Flags',
+    q: 'Which TCP flag is used to initiate a new connection?',
+    options: ['ACK', 'SYN', 'FIN', 'RST'],
+    correct: 1,
+    explanation: 'SYN (Synchronise) is always the first flag sent when establishing a TCP connection. It carries the Initial Sequence Number and signals "I want to connect".'
+  },
+  {
+    section: 'TCP Flags',
+    q: 'A packet arrives with only the RST flag set. What does this indicate?',
+    options: ['A new connection is being requested', 'The connection is being gracefully closed', 'The connection is being abruptly terminated or refused', 'Data is being pushed to the application immediately'],
+    correct: 2,
+    explanation: 'RST (Reset) abruptly terminates a connection with no further negotiation. It is also sent by closed ports in response to unexpected packets like SYN or ACK probes.'
+  },
+  {
+    section: 'TCP Flags',
+    q: 'Which two flags are set together during the second step of the three-way handshake?',
+    options: ['SYN and FIN', 'SYN and RST', 'SYN and ACK', 'ACK and PSH'],
+    correct: 2,
+    explanation: 'The server responds to the client\'s SYN with SYN-ACK - SYN to establish its own sequence number, and ACK to acknowledge the client\'s ISN.'
+  },
+  {
+    section: 'TCP Flags',
+    q: 'What does the PSH (Push) flag tell the receiving system to do?',
+    options: ['Reject the connection', 'Send the data as urgent priority ahead of the queue', 'Pass buffered data to the application immediately without waiting for the buffer to fill', 'Request acknowledgement of the previous segment'],
+    correct: 2,
+    explanation: 'PSH bypasses the buffer and delivers data straight to the application. You see it frequently in interactive protocols like SSH and Telnet where every keystroke matters.'
+  },
+  {
+    section: 'Three-Way Handshake',
+    q: 'In a standard TCP three-way handshake, what does the client send in step 3?',
+    options: ['SYN', 'SYN-ACK', 'ACK', 'FIN-ACK'],
+    correct: 2,
+    explanation: 'Step 3 is a plain ACK from the client, acknowledging the server\'s ISN. After this the connection is fully established and data can flow in both directions.'
+  },
+  {
+    section: 'Three-Way Handshake',
+    q: 'An nmap SYN scan (-sS) discovers an open port. What does nmap send after receiving the SYN-ACK?',
+    options: ['ACK to complete the handshake', 'FIN to close the connection cleanly', 'RST to abort the connection immediately', 'Nothing - it ignores the response'],
+    correct: 2,
+    explanation: 'A SYN scan is "half-open" - nmap sends RST after getting SYN-ACK to tear down the connection before it is fully established. This avoids creating a logged session.'
+  },
+  {
+    section: 'Three-Way Handshake',
+    q: 'Which nmap scan type completes the full three-way handshake?',
+    options: ['-sS (SYN scan)', '-sT (TCP Connect scan)', '-sA (ACK scan)', '-sN (Null scan)'],
+    correct: 1,
+    explanation: '-sT (TCP Connect) uses the OS\'s normal connect() call, completing the full handshake. It is used when raw socket access is unavailable, such as when running nmap without root privileges.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'An nmap ACK scan (-sA) receives an RST response. What does this tell you about the port?',
+    options: ['The port is open', 'The port is closed', 'The port is unfiltered - a packet reached it and got a response', 'The port is filtered by a firewall'],
+    correct: 2,
+    explanation: 'An ACK scan does not detect open vs closed - it maps firewall rules. RST means the packet reached the target (unfiltered). No response or ICMP unreachable means filtered.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'Which three flags does an nmap Xmas scan (-sX) set?',
+    options: ['SYN, ACK, RST', 'FIN, ACK, SYN', 'FIN, PSH, URG', 'FIN, RST, PSH'],
+    correct: 2,
+    explanation: 'FIN, PSH and URG - the name comes from the idea that all those bits lit up looks like a Christmas tree. Like FIN and Null scans, open ports do not respond and closed ports send RST.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'You run a Null scan (-sN) against a Windows target. Every port returns RST regardless of whether it is open or closed. Why?',
+    options: ['Windows always blocks Null scans with its firewall', 'Windows TCP stacks do not follow the RFC behaviour for unexpected packets - they send RST for both open and closed ports', 'The scan requires root privileges to work on Windows', 'Null scans only work over IPv6'],
+    correct: 1,
+    explanation: 'FIN, Null and Xmas scans exploit RFC 793 behaviour where open ports silently drop unexpected packets. Windows does not follow this - it sends RST for all ports, making these scans unreliable against Windows targets.'
+  },
+  {
+    section: 'TCP Header',
+    q: 'How large is the standard TCP header with no options?',
+    options: ['8 bytes', '16 bytes', '20 bytes', '32 bytes'],
+    correct: 2,
+    explanation: 'The standard TCP header is 20 bytes. It can grow up to 60 bytes when TCP options (like timestamps or MSS) are included, indicated by the Data Offset field.'
+  },
+  {
+    section: 'TCP Header',
+    q: 'What is the purpose of the TCP Window Size field?',
+    options: ['It sets the TTL for the packet', 'It tells the receiver how many bytes can be accepted before the sender must wait for an ACK - used for flow control', 'It identifies the application protocol being used', 'It tracks the number of retransmissions'],
+    correct: 1,
+    explanation: 'Window Size controls flow - it prevents a fast sender from overwhelming a slow receiver. A window of 0 means "stop sending, my buffer is full". TCP window scaling extends this for high-speed networks.'
+  },
+  {
+    section: 'TCP Header',
+    q: 'Which TCP field is used to reassemble out-of-order segments?',
+    options: ['Checksum', 'Window Size', 'Acknowledgement Number', 'Sequence Number'],
+    correct: 3,
+    explanation: 'The Sequence Number tracks the byte position of each segment in the stream. The receiver uses sequence numbers to put segments back in the correct order even if they arrive out of sequence.'
+  },
+  {
+    section: 'Penetration Testing',
+    q: 'During a pentest you capture a TCP packet with FIN, PSH and URG all set, destined for port 80. What type of scan is this most likely from?',
+    options: ['SYN scan', 'Connect scan', 'Xmas scan', 'ACK scan'],
+    correct: 2,
+    explanation: 'FIN + PSH + URG is the signature of an nmap Xmas scan (-sX). No legitimate application traffic uses this combination - seeing it in a capture is a clear indicator of reconnaissance.'
+  },
+  {
+    section: 'Penetration Testing',
+    q: 'Session hijacking against early TCP implementations was possible because of a weakness in which header field?',
+    options: ['Source Port', 'Window Size', 'Initial Sequence Number (ISN)', 'Checksum'],
+    correct: 2,
+    explanation: 'Early systems used predictable ISNs - often incrementing by a fixed amount. An attacker who predicted the next sequence number could inject forged packets into an established TCP session. Modern systems use cryptographically random ISNs to prevent this.'
+  },
+];
+
+let currentQuestion = 0;
+let answers = [];
+let answered = false;
+let selectedOption = null;
+let filteredQuestions = [];
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentQuestion, answers, answered, selectedOption,
+      filteredQuestions: filteredQuestions.map(q => questions.indexOf(q))
+    }));
+  } catch(e) {}
+}
+
+function clearState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.filteredQuestions) || s.filteredQuestions.length === 0) return false;
+    currentQuestion = s.currentQuestion || 0;
+    answers = s.answers || [];
+    answered = s.answered || false;
+    selectedOption = s.selectedOption !== undefined ? s.selectedOption : null;
+    filteredQuestions = s.filteredQuestions.map(i => questions[i]).filter(Boolean);
+    return filteredQuestions.length > 0;
+  } catch(e) { return false; }
+}
+
+function startQuiz() {
+  clearState();
+  filteredQuestions = [...questions];
+  currentQuestion = 0;
+  answers = [];
+  answered = false;
+  selectedOption = null;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = filteredQuestions[currentQuestion];
+  const pct = (currentQuestion / filteredQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="question-counter">Question ${currentQuestion + 1} of ${filteredQuestions.length}</div>
+    <div class="section-tag">${q.section}</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options" id="options">
+      ${q.options.map((opt, i) => `
+        <button class="option" onclick="selectOption(${i})">${opt}</button>
+      `).join('')}
+    </div>
+    <div class="explanation" id="explanation"><strong>Explanation:</strong> ${q.explanation}</div>
+    <button id="submit-btn" onclick="submitAnswer()" disabled>
+      ${answered ? (currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results') : 'Submit Answer'}
+    </button>
+  `;
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  selectedOption = idx;
+  document.querySelectorAll('.option').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('submit-btn').disabled = false;
+  saveState();
+}
+
+function submitAnswer() {
+  if (!answered && selectedOption === null) return;
+
+  if (!answered) {
+    answered = true;
+    const q = filteredQuestions[currentQuestion];
+    const isCorrect = selectedOption === q.correct;
+    answers.push({ section: q.section, correct: isCorrect });
+    saveState();
+
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+    btn.disabled = false;
+    saveState();
+    return;
+  }
+
+  currentQuestion++;
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    renderResults();
+  } else {
+    answered = false;
+    selectedOption = null;
+    saveState();
+    renderQuestion();
+  }
+}
+
+function renderResults() {
+  const total = answers.length;
+  const correct = answers.filter(a => a.correct).length;
+  const pct = Math.round((correct / total) * 100);
+  let msg = pct === 100 ? 'Perfect score - solid TCP knowledge.' : pct >= 80 ? 'Strong result - review any you missed.' : pct >= 60 ? 'Good base - revisit the scan types section.' : 'Go back through the lesson and try again.';
+
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="results">
+      <h2>Quiz Complete</h2>
+      <div class="score">${correct}/${total}</div>
+      <div class="score-label">${pct}% - ${msg}</div>
+      <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+    </div>
+  `;
+}
+
+function restartQuiz() {
+  clearState();
+  currentQuestion = 0;
+  answers = [];
+  answered = false;
+  selectedOption = null;
+  filteredQuestions = [...questions];
+  renderQuestion();
+}
+
+// Resume or start
+if (loadState()) {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    document.getElementById('start-screen').style.display = 'block';
+    document.getElementById('quiz-section').style.display = 'none';
+  } else if (answered) {
+    renderQuestion();
+    const q = filteredQuestions[currentQuestion];
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+  } else {
+    renderQuestion();
+    if (selectedOption !== null) {
+      document.querySelectorAll('.option').forEach((el, i) => {
+        el.classList.toggle('selected', i === selectedOption);
+      });
+      document.getElementById('submit-btn').disabled = false;
+    }
+  }
+}
+</script>
+</body>
+</html>
