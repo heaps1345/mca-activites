@@ -71,13 +71,16 @@ const cards = [
   { q: "What is Bicep?", a: "A domain-specific language (DSL) that simplifies authoring ARM templates. Uses a cleaner, more readable syntax than raw JSON. Compiles down to ARM templates. Designed specifically for Azure deployments." },
 ];
 let current = 0;
+const FC_KEY = 'az_900_sec_5_az900_s5_flashcards';
+function savePos() { try { localStorage.setItem(FC_KEY, current); } catch(e) {} }
+function loadPos(len) { try { const v = parseInt(localStorage.getItem(FC_KEY)); if (!isNaN(v) && v >= 0 && v < len) { current = v; } } catch(e) {} }
 const card = document.getElementById('card'), question = document.getElementById('question'), answer = document.getElementById('answer'), counter = document.getElementById('counter'), prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn'), progressBar = document.getElementById('progressBar');
 function render() { card.classList.remove('flipped'); setTimeout(() => { question.textContent = cards[current].q; answer.textContent = cards[current].a; }, 150); counter.textContent = `${current+1} / ${cards.length}`; prevBtn.disabled = current === 0; nextBtn.disabled = current === cards.length-1; progressBar.style.width = `${((current+1)/cards.length)*100}%`; }
 document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
 function next() { if (current < cards.length-1) { current++; render(); } }
-function prev() { if (current > 0) { current--; render(); } }
+function prev() { if (current > 0) { current--; render(); savePos(); } }
 document.addEventListener('keydown', e => { if (e.key==='ArrowRight') next(); if (e.key==='ArrowLeft') prev(); if (e.key===' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
-render();
+loadPos(deck ? deck.length : cards.length); render();
 </script>
 </body>
 </html>

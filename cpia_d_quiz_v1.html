@@ -499,13 +499,44 @@ const questions = [
   }
 ];
 
+const STORAGE_KEY = 'cpia_d_quiz_v1';
+
 let currentQuestion = 0;
 let answers = [];
 let selectedOption = null;
 let answered = false;
-let mode = 'all'; // 'all' or section-specific
+let mode = 'all';
 let filteredQuestions = [];
 let shuffledIndices = [];
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      mode, currentQuestion, answers, answered, selectedOption,
+      filteredQuestions: filteredQuestions.map(q => questions.indexOf(q))
+    }));
+  } catch(e) {}
+}
+
+function clearState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.filteredQuestions) || s.filteredQuestions.length === 0) return false;
+    mode = s.mode || 'all';
+    currentQuestion = s.currentQuestion || 0;
+    answers = s.answers || [];
+    answered = s.answered || false;
+    selectedOption = s.selectedOption !== undefined ? s.selectedOption : null;
+    filteredQuestions = s.filteredQuestions.map(i => questions[i]).filter(Boolean);
+    return filteredQuestions.length > 0;
+  } catch(e) { return false; }
+}
 
 function shuffle(arr) {
   const a = [...arr];
@@ -533,6 +564,7 @@ function startQuiz(section) {
   answers = [];
   selectedOption = null;
   answered = false;
+  clearState();
   renderQuestion();
 }
 
@@ -596,6 +628,7 @@ function selectOption(idx) {
     el.classList.toggle('selected', i === idx);
   });
   document.getElementById('submit-btn').disabled = false;
+  saveState();
 }
 
 function submitAnswer() {
@@ -605,8 +638,10 @@ function submitAnswer() {
     selectedOption = null;
     answered = false;
     if (currentQuestion >= filteredQuestions.length) {
+      clearState();
       renderResults();
     } else {
+      saveState();
       renderQuestion();
     }
     return;
@@ -616,6 +651,7 @@ function submitAnswer() {
   const q = filteredQuestions[currentQuestion];
   const isCorrect = selectedOption === q.correct;
   answers.push({ section: q.section, correct: isCorrect });
+  saveState();
 
   document.querySelectorAll('.option').forEach((el, i) => {
     el.classList.add('disabled');
@@ -674,7 +710,33 @@ function renderResults() {
   `;
 }
 
-renderStart();
+if (loadState()) {
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState(); renderStart();
+  } else if (answered) {
+    renderQuestion();
+    const q = filteredQuestions[currentQuestion];
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+  } else {
+    renderQuestion();
+    if (selectedOption !== null) {
+      document.querySelectorAll('.option').forEach((el, i) => {
+        el.classList.toggle('selected', i === selectedOption);
+      });
+      document.getElementById('submit-btn').disabled = false;
+    }
+  }
+} else {
+  renderStart();
+}
 </script>
 </body>
 </html>

@@ -71,6 +71,9 @@ const cards = [
   { q: "What is the difference between a region and a geography?", a: "A geography is a broader area (e.g. United Kingdom, Europe, United States) that contains two or more paired regions. It defines data residency and compliance boundaries." },
 ];
 let current = 0;
+const FC_KEY = 'az_900_sec_2_az900_s2_flashcards';
+function savePos() { try { localStorage.setItem(FC_KEY, current); } catch(e) {} }
+function loadPos(len) { try { const v = parseInt(localStorage.getItem(FC_KEY)); if (!isNaN(v) && v >= 0 && v < len) { current = v; } } catch(e) {} }
 const card = document.getElementById('card');
 const question = document.getElementById('question');
 const answer = document.getElementById('answer');
@@ -87,10 +90,10 @@ function render() {
   progressBar.style.width = `${((current + 1) / cards.length) * 100}%`;
 }
 document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
-function next() { if (current < cards.length - 1) { current++; render(); } }
-function prev() { if (current > 0) { current--; render(); } }
+function next() { if (current < cards.length - 1) { current++; render(); savePos(); } }
+function prev() { if (current > 0) { current--; render(); savePos(); } }
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); if (e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
-render();
+loadPos(deck ? deck.length : cards.length); render();
 </script>
 </body>
 </html>

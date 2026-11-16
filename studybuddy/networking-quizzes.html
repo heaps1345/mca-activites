@@ -163,14 +163,41 @@ const NSG_Q = [
 
 // ===== STATE =====
 let state = {};
+const SB_KEY = 'studybuddy_networking_quizzes';
 
-function initQuiz(id) {
+function saveState() {
+  try {
+    const snap = {};
+    Object.keys(state).forEach(id => {
+      const s = state[id];
+      snap[id] = { idx: s.idx, score: s.score };
+    });
+    localStorage.setItem(SB_KEY, JSON.stringify(snap));
+  } catch(e) {}
+}
+
+function loadStateSnapshot() {
+  try {
+    const raw = localStorage.getItem(SB_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function initQuiz(id, snap) {
   const s = {idx:0, answered:null, score:{c:0,t:0}};
   if (id === 'ipv4') s.order = shuffle([...IPV4_Q]).slice(0,10);
   else if (id === 'rfc') s.order = [...RFC_Q];
   else if (id === 'subnet') s.order = [...SUBNET_Q];
   else if (id === 'ports') { s.order = shuffle([...PORT_Q]); s.input = ''; }
   else if (id === 'nsg') s.order = [...NSG_Q];
+  if (snap && snap[id]) {
+    const saved = snap[id];
+    if (typeof saved.idx === 'number' && saved.idx >= 0 && saved.idx <= s.order.length) {
+      s.idx = saved.idx;
+    }
+    if (saved.score) s.score = saved.score;
+  }
   state[id] = s;
 }
 
@@ -187,13 +214,14 @@ const QUIZZES = [
 
 function init() {
   const nav = document.getElementById('topNav');
+  const snap = loadStateSnapshot();
   QUIZZES.forEach(q => {
     const btn = document.createElement('button');
     btn.textContent = q.label;
     btn.id = 'nav-' + q.id;
     btn.onclick = () => showQuiz(q.id);
     nav.appendChild(btn);
-    initQuiz(q.id);
+    initQuiz(q.id, snap);
   });
   showQuiz('ipv4');
 }
@@ -448,6 +476,7 @@ function answer(id, choice) {
   s.answered = {correct};
   s.score.t++;
   if (correct) s.score.c++;
+  saveState();
   render(id);
 }
 
@@ -465,11 +494,13 @@ function checkPort() {
 function next(id) {
   state[id].idx++;
   state[id].answered = null;
+  saveState();
   render(id);
 }
 
 function resetQuiz(id) {
-  initQuiz(id);
+  initQuiz(id, null);
+  saveState();
   render(id);
 }
 

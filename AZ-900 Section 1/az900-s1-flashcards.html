@@ -71,6 +71,9 @@ const cards = [
   { q: "What is the most common cause of cloud security incidents?", a: "Customer misconfiguration — not a failure by the cloud provider. Misconfigured access controls, open storage accounts, and weak identity policies are the top causes." },
 ];
 let current = 0;
+const FC_KEY = 'az_900_section_1_az900_s1_flashcards';
+function savePos() { try { localStorage.setItem(FC_KEY, current); } catch(e) {} }
+function loadPos(len) { try { const v = parseInt(localStorage.getItem(FC_KEY)); if (!isNaN(v) && v >= 0 && v < len) { current = v; } } catch(e) {} }
 const card = document.getElementById('card');
 const question = document.getElementById('question');
 const answer = document.getElementById('answer');
@@ -91,10 +94,10 @@ function render() {
   progressBar.style.width = `${((current + 1) / cards.length) * 100}%`;
 }
 document.getElementById('cardContainer').addEventListener('click', () => card.classList.toggle('flipped'));
-function next() { if (current < cards.length - 1) { current++; render(); } }
-function prev() { if (current > 0) { current--; render(); } }
+function next() { if (current < cards.length - 1) { current++; render(); savePos(); } }
+function prev() { if (current > 0) { current--; render(); savePos(); } }
 document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); if (e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); } });
-render();
+loadPos(deck ? deck.length : cards.length); render();
 </script>
 </body>
 </html>

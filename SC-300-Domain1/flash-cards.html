@@ -58,6 +58,9 @@
 <script>
 const cards = [{"q": "What is the difference between a Member user and a Guest user in Entra ID?", "a": "Member users are internal employees with full directory read access. Guest users (B2B) are external collaborators with limited access, invited via email or direct link."}, {"q": "What are the three ways to create Entra ID users?", "a": "1. Direct creation in Entra admin center / PowerShell / Graph API\n2. Bulk import via CSV\n3. Sync from on-premises AD via Entra Connect"}, {"q": "What is External ID in Microsoft Entra?", "a": "External ID is the umbrella feature for managing identities outside your organization \u2014 covering B2B collaboration (partners/guests) and B2C (customer-facing apps with their own sign-in experiences)."}, {"q": "What is B2B Direct Connect vs B2B Collaboration?", "a": "B2B Collaboration creates a guest account in your tenant. B2B Direct Connect establishes a mutual trust between two tenants \u2014 users appear as external but no guest object is created; used for Teams shared channels."}, {"q": "What is Cross-Tenant Synchronization?", "a": "Cross-Tenant Sync automatically provisions and synchronizes users from one Entra tenant to another \u2014 typically used within a multi-tenant enterprise to allow collaboration as if users were members."}, {"q": "What is the 4 External ID Models framework?", "a": "Microsoft's four patterns for external access:\n1. B2B Collaboration (guests)\n2. B2B Direct Connect (trusted orgs, Teams)\n3. External ID for customers (B2C)\n4. Cross-tenant sync (multi-tenant orgs)"}, {"q": "What is the default user role in Entra ID and what can they do?", "a": "The 'User' built-in role \u2014 can read most directory objects, update their own profile, register applications (if enabled), create groups (if enabled). Cannot read other users' auth methods or manage directory settings."}, {"q": "How do you bulk-create users in Entra ID?", "a": "Download the CSV template from Entra admin center > Users > Bulk operations > Bulk create. Populate required fields (displayName, userPrincipalName, passwordProfile) and upload. Max 50,000 rows."}, {"q": "What is an Entra ID Custom Security Attribute?", "a": "Admin-defined attributes attached to Entra objects (users, service principals) to store business-specific data. Used for attribute-based access control (ABAC). Only Attribute Assignment Administrators can read/write them."}, {"q": "What licenses are required for External ID (B2B)?", "a": "B2B Collaboration is included in all Entra ID editions. The inviting tenant's license tier governs guest access to premium features (MFA, Conditional Access, Identity Protection). Guests do not consume a seat in the inviting tenant under the 1:5 ratio rule (up to Entra ID P1)."}];
 let idx = 0;
+const FC_KEY = 'sc_300_domain1_flashcards';
+function saveIdx() { try { localStorage.setItem(FC_KEY, idx); } catch(e) {} }
+function loadIdx() { try { const v = parseInt(localStorage.getItem(FC_KEY)); if (!isNaN(v) && v >= 0 && v < cards.length) { idx = v; } } catch(e) {} }
 function show() {
   const c = cards[idx];
   document.getElementById('front-text').textContent = c.q;
@@ -66,9 +69,9 @@ function show() {
   document.getElementById('card').classList.remove('flipped');
 }
 function flip() { document.getElementById('card').classList.toggle('flipped'); }
-function next() { idx = (idx+1) % cards.length; show(); }
-function prev() { idx = (idx-1+cards.length) % cards.length; show(); }
-show();
+function next() { idx = (idx+1) % cards.length; show(); saveIdx(); }
+function prev() { idx = (idx-1+cards.length) % cards.length; show(); saveIdx(); }
+loadIdx(); show();
 </script>
 </body>
 </html>

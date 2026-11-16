@@ -61,7 +61,10 @@ function render() {
       <div class="explanation" id="exp-${qi}">${q.exp}</div>
     </div>`).join('');
 }
-function pick(qi,oi) { answered[qi] = oi; }
+function pick(qi,oi) {
+  answered[qi] = oi;
+  try { localStorage.setItem('sc300_domain3_quiz', JSON.stringify(answered)); } catch(e) {}
+}
 function submit() {
   let score = 0;
   qs.forEach((q,qi) => {
@@ -79,8 +82,24 @@ function submit() {
     `<div class="score-box">${score}/${qs.length} &nbsp;·&nbsp; ${pct}%<br>
      <small style="font-size:1rem;font-weight:400;color:#E8E8F0">${pct>=80?'✅ Pass territory':'📚 Keep studying'}</small></div>`;
 }
-function reset() { answered = {}; render(); document.getElementById('score-area').innerHTML=''; }
+function reset() {
+  answered = {};
+  try { localStorage.removeItem('sc300_domain3_quiz'); } catch(e) {}
+  render();
+  document.getElementById('score-area').innerHTML='';
+}
+// Restore any saved answers
+try {
+  const saved = localStorage.getItem('sc300_domain3_quiz');
+  if (saved) { answered = JSON.parse(saved) || {}; }
+} catch(e) {}
 render();
+// Re-select saved radio buttons after render
+Object.keys(answered).forEach(qi => {
+  const oi = answered[qi];
+  const radio = document.querySelector(`input[name="q${qi}"][value="${oi}"]`);
+  if (radio) radio.checked = true;
+});
 </script>
 </body>
 </html>

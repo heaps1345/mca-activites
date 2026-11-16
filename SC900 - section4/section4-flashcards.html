@@ -104,6 +104,9 @@ const allCards = [
 
 let deck = [...allCards];
 let current = 0;
+const FC_KEY = 'sc900___section4_section4_flashcards';
+function savePos() { try { localStorage.setItem(FC_KEY, current); } catch(e) {} }
+function loadPos(len) { try { const v = parseInt(localStorage.getItem(FC_KEY)); if (!isNaN(v) && v >= 0 && v < len) { current = v; } } catch(e) {} }
 let flipped = false;
 
 function render() {
@@ -121,6 +124,7 @@ function flipCard() {
 }
 
 function changeCard(dir) {
+  savePos();
   const n = current + dir;
   if (n < 0 || n >= deck.length) return;
   flipped = false;
@@ -146,7 +150,7 @@ document.getElementById('scene').addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') changeCard(-1);
 });
 
-render();
+loadPos(deck ? deck.length : cards.length); render();
 </script>
 </body>
 </html>
