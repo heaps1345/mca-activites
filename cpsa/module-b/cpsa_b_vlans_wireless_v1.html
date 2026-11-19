@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPSA Module B - VLANs and Wireless</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #131825;
+    --surface-hover: #1a2035;
+    --border: #1e2a42;
+    --accent: #00d4aa;
+    --accent-dim: #00d4aa22;
+    --danger: #ff4757;
+    --danger-dim: #ff475722;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --correct: #00d4aa;
+    --incorrect: #ff4757;
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+  .toc-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .toc-links a { font-size: 0.8rem; color: var(--text-dim); text-decoration: none; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 4px; padding: 0.25rem 0.6rem; transition: color 0.2s, border-color 0.2s; }
+  .toc-links a:hover { color: var(--accent); border-color: var(--accent); }
+
+  .lesson { margin-bottom: 3rem; }
+  .lesson h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; color: var(--accent); margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); scroll-margin-top: 1rem; }
+  .lesson p { color: var(--text); line-height: 1.7; margin-bottom: 0.9rem; font-size: 0.93rem; }
+  .lesson h3 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 1.5rem 0 0.6rem; }
+
+  .big-concept { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.4rem; margin: 1.2rem 0; }
+  .big-concept-title { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent); font-weight: 700; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .big-concept p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+  .big-concept p:last-child { margin-bottom: 0; }
+
+  .analogy { background: #0d1120; border-left: 3px solid #a855f7; border-radius: 0 6px 6px 0; padding: 0.85rem 1rem; margin: 1rem 0; font-size: 0.88rem; line-height: 1.6; font-style: italic; color: #c4b5fd; }
+  .analogy strong { color: #a855f7; font-style: normal; }
+
+  .callout { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 0.85rem 1rem; margin: 1rem 0; font-size: 0.88rem; line-height: 1.6; }
+  .callout strong { color: var(--accent); }
+  .callout.warn { border-left-color: #ffa502; }
+  .callout.warn strong { color: #ffa502; }
+  .callout.exam { border-left-color: #a855f7; }
+  .callout.exam strong { color: #a855f7; }
+  .callout.danger { border-left-color: var(--danger); }
+  .callout.danger strong { color: var(--danger); }
+
+  .broken-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+  .broken-card { border-radius: 8px; padding: 0.9rem 1rem; border: 1px solid; }
+  .broken-card.red { background: var(--danger-dim); border-color: var(--danger); }
+  .broken-card.amber { background: rgba(255,165,2,0.08); border-color: #ffa502; }
+  .broken-card.green { background: var(--accent-dim); border-color: var(--accent); }
+  .broken-card .bc-name { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .broken-card.red .bc-name { color: var(--danger); }
+  .broken-card.amber .bc-name { color: #ffa502; }
+  .broken-card.green .bc-name { color: var(--accent); }
+  .broken-card .bc-status { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .broken-card.red .bc-status { color: var(--danger); }
+  .broken-card.amber .bc-status { color: #ffa502; }
+  .broken-card.green .bc-status { color: var(--accent); }
+  .broken-card .bc-desc { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+
+  .steps { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0; }
+  .step { display: flex; gap: 1rem; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--accent); min-width: 1.5rem; }
+  .step-text { font-size: 0.88rem; line-height: 1.5; }
+
+  .data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+  .data-table th { background: var(--surface); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 0.6rem 0.8rem; text-align: left; border: 1px solid var(--border); }
+  .data-table td { padding: 0.6rem 0.8rem; border: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .data-table tr:nth-child(even) td { background: #0d1120; }
+  .mono { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 0.85em; }
+
+  hr.divider { border: none; border-top: 2px solid var(--border); margin: 3rem 0; }
+
+  /* QUIZ */
+  .quiz-header { text-align: center; margin-bottom: 1.5rem; }
+  .quiz-header h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent); margin-bottom: 0.4rem; }
+  .quiz-header p { color: var(--text-dim); font-size: 0.88rem; }
+  .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 2rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .question-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.75rem; }
+  .section-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent); background: var(--accent-dim); padding: 0.2rem 0.6rem; border-radius: 3px; margin-bottom: 1rem; }
+  .question-text { font-size: 1.05rem; font-weight: 600; line-height: 1.5; margin-bottom: 1.4rem; }
+  .options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .option { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1.1rem; cursor: pointer; transition: all 0.2s; font-size: 0.93rem; text-align: left; font-family: 'Inter', sans-serif; color: var(--text); }
+  .option:hover:not(.disabled) { background: var(--surface-hover); border-color: var(--accent); }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option.correct { border-color: var(--correct); background: rgba(0,212,170,0.1); }
+  .option.incorrect { border-color: var(--incorrect); background: var(--danger-dim); }
+  .option.disabled { cursor: default; }
+  .explanation { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.88rem; line-height: 1.6; display: none; }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent); }
+  #submit-btn { background: var(--accent); color: #0a0e17; border: none; border-radius: 8px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+  #submit-btn:disabled { opacity: 0.35; cursor: default; }
+  .results { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .results h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: var(--accent); margin-bottom: 1rem; }
+  .score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+  .score-label { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .restart-btn { background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1.75rem; font-size: 0.9rem; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .restart-btn:hover { border-color: var(--accent); }
+  #quiz-section { display: none; }
+  #start-screen { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  #start-screen h2 { font-family: 'JetBrains Mono', monospace; color: var(--accent); margin-bottom: 0.75rem; }
+  #start-screen p { color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .start-btn { background: var(--accent); color: #0a0e17; border: none; border-radius: 8px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>CPSA Module B - VLANs and Wireless</h1>
+    <p>VLAN hopping attacks, wireless encryption, and how to break them</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Sections</div>
+    <div class="toc-links">
+      <a href="#s1">What is a VLAN?</a>
+      <a href="#s2">Double-Tagging</a>
+      <a href="#s3">Switch Spoofing</a>
+      <a href="#s4">Wireless Encryption</a>
+      <a href="#s5">Breaking WEP</a>
+      <a href="#s6">Breaking WPA2</a>
+      <a href="#s7">Breaking WPS</a>
+      <a href="#s8">Quick Reference</a>
+    </div>
+  </div>
+
+  <div class="lesson">
+
+    <!-- ============================================================ -->
+    <h2 id="s1">01 - What is a VLAN?</h2>
+
+    <p>A VLAN (Virtual LAN) splits one physical network into multiple separate logical networks. Think of a hospital: one physical set of switches, but separate VLANs for clinical systems, admin, guest WiFi, and building management. Traffic on the guest VLAN cannot reach the clinical VLAN - at least, that is the idea.</p>
+
+    <div class="big-concept">
+      <div class="big-concept-title">The Core Idea</div>
+      <p>Each VLAN gets an ID (a number, 1-4094). Switches tag frames with their VLAN ID using the 802.1Q protocol. A switch only delivers frames to ports that belong to the same VLAN.</p>
+      <p><strong>Native VLAN</strong> - the default VLAN on a trunk port. Frames on the native VLAN are sent untagged (no 802.1Q header). By default on Cisco kit this is VLAN 1. This matters a lot - see the double-tagging attack below.</p>
+      <p><strong>Trunk port</strong> - a port that carries traffic for multiple VLANs (typically switch-to-switch links). Access ports carry traffic for one VLAN only.</p>
+    </div>
+
+    <div class="callout exam">
+      <strong>Why pentesters care:</strong> VLAN segmentation is one of the most common security controls on internal networks - and one of the most commonly misconfigured. A client will tell you their guest WiFi is segmented from their finance servers. VLAN hopping lets you test whether that is actually true.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s2">02 - VLAN Hopping: Double-Tagging Attack</h2>
+
+    <p>Double-tagging exploits how switches handle the native VLAN. If you are connected to a port on the native VLAN, you can craft a packet with two 802.1Q tags stacked on top of each other. The result: your packet ends up in a VLAN you are not supposed to be in.</p>
+
+    <h3>How it works step by step</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Attacker is connected to a port on the <strong>native VLAN</strong> (e.g. VLAN 1)</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Attacker crafts a frame with <strong>two 802.1Q tags</strong> - outer tag = VLAN 1 (native), inner tag = VLAN 20 (target)</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><strong>First switch</strong> strips the outer tag (VLAN 1 = native, so it removes it) and forwards the frame on the trunk link</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Second switch</strong> sees the inner tag (VLAN 20) and delivers the frame to VLAN 20</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-text">Attacker is now talking to hosts on VLAN 20 - without ever being authorised on that VLAN</div></div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Important limitation:</strong> Double-tagging is one-way. The target host's replies go back through normal routing - they do not automatically find their way back to the attacker. This means it works for attacks like sending a malicious packet, but not for a full two-way session without additional techniques.
+    </div>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> You put two envelopes inside each other. The outer envelope is addressed to the front desk (native VLAN). The receptionist opens it, sees it is for the internal post, and passes it on. The inner envelope is addressed to the finance director's office (VLAN 20). The internal post system delivers it there - no one checked whether you were allowed to send mail to finance.
+    </div>
+
+    <h3>Defence</h3>
+    <div class="callout">
+      <strong>Fix 1:</strong> Change the native VLAN to an unused VLAN ID that carries no legitimate traffic. VLAN 999, say. No real traffic uses it, so double-tagged frames targeting it go nowhere.<br><br>
+      <strong>Fix 2:</strong> Explicitly tag the native VLAN on all trunk ports so it is treated the same as any other VLAN.<br><br>
+      <strong>Fix 3:</strong> Never put end-user devices or attacker-reachable ports on the native VLAN.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s3">03 - VLAN Hopping: Switch Spoofing Attack</h2>
+
+    <p>Cisco switches use a protocol called DTP (Dynamic Trunking Protocol) to automatically negotiate trunk links between themselves. The idea is to make it easy to connect two switches together without manual configuration. The problem: if DTP is enabled on an access port and an attacker connects a device that speaks DTP, the switch will negotiate a trunk link with the attacker - handing them access to every VLAN.</p>
+
+    <div class="big-concept">
+      <div class="big-concept-title">What Happens</div>
+      <p>Attacker plugs in and sends DTP negotiate frames. The switch sees another "switch" and starts negotiating. Trunk link comes up. Attacker now receives traffic from all VLANs, not just the one they are plugged into.</p>
+    </div>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> You walk into a building wearing a staff uniform and carrying a clipboard. The receptionist assumes you are staff and hands you a master key instead of a visitor pass. You now have access to every room.
+    </div>
+
+    <h3>Defence</h3>
+    <div class="callout">
+      <strong>Fix 1:</strong> Disable DTP on all access ports: <span class="mono">switchport nonegotiate</span><br><br>
+      <strong>Fix 2:</strong> Hardcode access ports as access mode: <span class="mono">switchport mode access</span><br><br>
+      <strong>Fix 3:</strong> Hardcode trunk ports explicitly rather than relying on auto-negotiation.
+    </div>
+
+    <div class="callout exam">
+      <strong>CREST exam angle:</strong> Know both attacks by name and mechanism. Double-tagging requires the attacker to be on the native VLAN and exploits 802.1Q tag stripping. Switch spoofing exploits DTP auto-negotiation. Know the defences for each.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s4">04 - Wireless Encryption: What's Broken and What Isn't</h2>
+
+    <p>Wireless security has had a rough history. Several standards that were once considered acceptable are now trivially broken. You need to know exactly what is broken, why, and what tool breaks it.</p>
+
+    <div class="broken-grid">
+      <div class="broken-card red">
+        <div class="bc-name">WEP</div>
+        <div class="bc-status">BROKEN - DO NOT USE</div>
+        <div class="bc-desc">RC4 stream cipher with weak, reused IVs. Crackable in minutes with aircrack-ng. No modern use case.</div>
+      </div>
+      <div class="broken-card amber">
+        <div class="bc-name">WPA / TKIP</div>
+        <div class="bc-status">WEAK - AVOID</div>
+        <div class="bc-desc">Improvement on WEP but has design flaws in TKIP. Deprecated. Should not be in use.</div>
+      </div>
+      <div class="broken-card amber">
+        <div class="bc-name">WPA2-PSK</div>
+        <div class="bc-status">VULNERABLE TO WEAK PASSWORDS</div>
+        <div class="bc-desc">Secure protocol but vulnerable to offline dictionary attack if a weak passphrase is used. Capture the 4-way handshake, crack offline with hashcat.</div>
+      </div>
+      <div class="broken-card green">
+        <div class="bc-name">WPA2-Enterprise</div>
+        <div class="bc-status">SECURE (IF CONFIGURED CORRECTLY)</div>
+        <div class="bc-desc">Uses 802.1X and RADIUS - each user gets individual credentials. No shared passphrase to crack.</div>
+      </div>
+      <div class="broken-card green">
+        <div class="bc-name">WPA3 / SAE</div>
+        <div class="bc-status">SECURE</div>
+        <div class="bc-desc">Simultaneous Authentication of Equals replaces the vulnerable 4-way handshake. Offline cracking is not possible even with a weak password.</div>
+      </div>
+      <div class="broken-card red">
+        <div class="bc-name">WPS</div>
+        <div class="bc-status">BROKEN - DISABLE IT</div>
+        <div class="bc-desc">8-digit PIN split as two independent 4-digit halves. Only 11,000 combinations needed. Reaver/Bully brute-force it in hours.</div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s5">05 - Breaking WEP</h2>
+
+    <p>WEP uses the RC4 stream cipher. The problem is not RC4 itself - it is how WEP uses it. WEP generates a 24-bit Initialisation Vector (IV) and prepends it to the key before encrypting. 24 bits gives only about 16 million possible IVs. On a busy network, IVs start repeating within minutes. When you have enough packets with repeated IVs, you can mathematically recover the key - no brute force needed.</p>
+
+    <div class="big-concept">
+      <div class="big-concept-title">The Attack Flow</div>
+      <p>1. Put your wireless adapter into monitor mode</p>
+      <p>2. Capture packets on the target network - you need enough IVs (typically 20,000-40,000 unique IVs)</p>
+      <p>3. Speed up IV collection by injecting ARP packets (forces the AP to respond repeatedly, generating more IVs)</p>
+      <p>4. Run aircrack-ng against the captured file - it statistically recovers the WEP key</p>
+    </div>
+
+    <div class="callout danger">
+      <strong>Still found in the wild:</strong> Legacy IoT devices, old access points, industrial equipment, and some home routers still run WEP. Finding WEP on an engagement is an automatic critical finding. Tool: aircrack-ng (pre-installed in Kali).
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s6">06 - Breaking WPA2-PSK</h2>
+
+    <p>WPA2-PSK itself is not broken - but if the passphrase is weak, it can be cracked offline after capturing the authentication handshake. The key exchange happens in a 4-step process (the 4-way handshake) when a client connects to the access point. That handshake contains enough information to verify a passphrase guess - without needing to reconnect to the network.</p>
+
+    <div class="big-concept">
+      <div class="big-concept-title">The Attack Flow</div>
+      <p>1. Put your adapter into monitor mode on the target channel</p>
+      <p>2. Capture traffic and wait for a client to connect - or send a deauthentication frame to force a client to reconnect</p>
+      <p>3. Capture the 4-way handshake</p>
+      <p>4. Take the capture file offline and run hashcat with a wordlist (rockyou.txt is the classic starting point)</p>
+      <p>5. If the passphrase is in the wordlist or guessable, hashcat recovers it</p>
+    </div>
+
+    <div class="callout">
+      <strong>Key point:</strong> You are not attacking the encryption - you are doing an offline dictionary attack against the passphrase. A strong random passphrase (20+ characters) makes this attack impractical even with the full rockyou.txt wordlist. A weak passphrase like "password123" falls in seconds.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s7">07 - Breaking WPS</h2>
+
+    <p>WPS (Wi-Fi Protected Setup) was designed to make it easy to add devices to a network without typing a long passphrase - just enter an 8-digit PIN. The problem is a catastrophic design flaw: the router validates the first 4 digits of the PIN separately from the last 4 digits. This means instead of 100,000,000 combinations (10^8), there are only about 11,000 combinations to try (10^4 + 10^4).</p>
+
+    <div class="big-concept">
+      <div class="big-concept-title">Why 11,000?</div>
+      <p>The PIN is 8 digits. The last digit is a checksum (calculated, not random). So there are 7 real digits.</p>
+      <p>The router checks digits 1-4 first, then digits 5-7. That means: 10,000 combinations for the first half + 1,000 for the second half = ~11,000 total guesses needed. A brute-force that would take years becomes a matter of hours.</p>
+    </div>
+
+    <div class="callout danger">
+      <strong>Tools:</strong> Reaver and Bully both exploit this. Even if WPS is "disabled" in the UI, some routers still respond to WPS handshakes. Always test it. Finding WPS enabled on an engagement is a critical finding.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s8">08 - Quick Reference</h2>
+
+    <table class="data-table">
+      <tr>
+        <th>Attack</th>
+        <th>What It Exploits</th>
+        <th>Requirement</th>
+        <th>Tool</th>
+        <th>Defence</th>
+      </tr>
+      <tr>
+        <td>VLAN Double-Tagging</td>
+        <td>802.1Q native VLAN tag stripping</td>
+        <td>Attacker on native VLAN</td>
+        <td>Scapy, manual crafting</td>
+        <td>Change native VLAN to unused ID</td>
+      </tr>
+      <tr>
+        <td>Switch Spoofing</td>
+        <td>DTP auto-negotiation on access ports</td>
+        <td>DTP enabled on port</td>
+        <td>Yersinia</td>
+        <td>switchport nonegotiate on all access ports</td>
+      </tr>
+      <tr>
+        <td>WEP Crack</td>
+        <td>Weak IVs in RC4 implementation</td>
+        <td>Enough IV captures (~20k)</td>
+        <td>aircrack-ng</td>
+        <td>Stop using WEP</td>
+      </tr>
+      <tr>
+        <td>WPA2 Handshake Crack</td>
+        <td>Weak passphrase, offline dictionary</td>
+        <td>Captured 4-way handshake</td>
+        <td>aircrack-ng, hashcat</td>
+        <td>Strong random passphrase (20+ chars)</td>
+      </tr>
+      <tr>
+        <td>WPS PIN Brute-Force</td>
+        <td>Split PIN validation flaw</td>
+        <td>WPS enabled on AP</td>
+        <td>Reaver, Bully</td>
+        <td>Disable WPS completely</td>
+      </tr>
+    </table>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- QUIZ -->
+  <div id="start-screen">
+    <h2>Knowledge Check</h2>
+    <p>15 questions on VLAN attacks and wireless security</p>
+    <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-section">
+    <div class="quiz-header">
+      <h2>Knowledge Check</h2>
+      <p>VLANs and Wireless</p>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="quiz-body"></div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'cpsa_b_vlans_wireless_v1';
+
+const questions = [
+  {
+    section: 'VLANs',
+    q: 'What is the purpose of a VLAN?',
+    options: [
+      'To increase the speed of a network by reducing collisions',
+      'To logically segment a network into separate broadcast domains without needing separate physical hardware',
+      'To encrypt traffic between network devices',
+      'To replace physical routers with virtual ones'
+    ],
+    correct: 1,
+    explanation: 'A VLAN (Virtual LAN) segments one physical network into multiple logical networks. Devices on different VLANs cannot communicate at Layer 2 without a router or Layer 3 switch. This is used to isolate sensitive systems without buying separate hardware.'
+  },
+  {
+    section: 'VLANs',
+    q: 'What is the native VLAN on a trunk port?',
+    options: [
+      'The VLAN with the highest traffic volume',
+      'The VLAN used by administrators only',
+      'The default VLAN whose frames are sent untagged on a trunk link',
+      'The VLAN that all new devices are assigned to automatically'
+    ],
+    correct: 2,
+    explanation: 'The native VLAN is the default VLAN on a trunk port. Frames belonging to the native VLAN are transmitted without an 802.1Q tag. On Cisco devices this defaults to VLAN 1. This untagged behaviour is what the double-tagging attack exploits.'
+  },
+  {
+    section: 'VLANs',
+    q: 'In a VLAN double-tagging attack, what must be true about the attacker\'s position?',
+    options: [
+      'The attacker must be on a trunk port',
+      'The attacker must be on the native VLAN',
+      'The attacker must have administrator credentials on the switch',
+      'The attacker must be on the target VLAN'
+    ],
+    correct: 1,
+    explanation: 'Double-tagging requires the attacker to be on the native VLAN. The outer 802.1Q tag matches the native VLAN - when the first switch strips it off (because native VLAN frames are untagged), the inner tag targeting the victim VLAN is exposed and delivered by the second switch.'
+  },
+  {
+    section: 'VLANs',
+    q: 'A double-tagging attack is described as "one-way". What does this mean?',
+    options: [
+      'It only works on one switch model',
+      'The attacker can send frames to the target VLAN but cannot receive responses via the same path',
+      'It can only be performed once before the switch detects it',
+      'It only works in one direction on the cable'
+    ],
+    correct: 1,
+    explanation: 'Double-tagging allows the attacker to inject frames into a target VLAN, but the victim\'s responses follow normal routing back and do not automatically return via the double-tagged path. The attacker cannot receive replies without additional techniques - making it useful for injection attacks but not full two-way sessions.'
+  },
+  {
+    section: 'VLANs',
+    q: 'What is the best defence against VLAN double-tagging?',
+    options: [
+      'Enable DTP on all trunk ports',
+      'Assign all users to VLAN 1',
+      'Change the native VLAN to an unused VLAN ID that carries no legitimate traffic',
+      'Enable WPA2 encryption on the switches'
+    ],
+    correct: 2,
+    explanation: 'If the native VLAN is changed to an unused VLAN ID (e.g. VLAN 999 with nothing on it), double-tagged frames from an attacker on that unused VLAN have nowhere to go - no legitimate ports are on that VLAN. This breaks the attack completely.'
+  },
+  {
+    section: 'VLANs',
+    q: 'What protocol does the switch spoofing attack exploit?',
+    options: [
+      '802.1Q VLAN tagging',
+      'DTP (Dynamic Trunking Protocol)',
+      'STP (Spanning Tree Protocol)',
+      'CDP (Cisco Discovery Protocol)'
+    ],
+    correct: 1,
+    explanation: 'DTP (Dynamic Trunking Protocol) is a Cisco protocol that automatically negotiates trunk links between switches. If DTP is enabled on an access port and an attacker sends DTP negotiate frames, the switch treats the attacker\'s device as another switch and brings up a trunk link - giving access to all VLANs.'
+  },
+  {
+    section: 'VLANs',
+    q: 'Which command disables DTP negotiation on a Cisco switch port?',
+    options: [
+      'switchport mode trunk',
+      'no vlan dot1q tag native',
+      'switchport nonegotiate',
+      'spanning-tree portfast'
+    ],
+    correct: 2,
+    explanation: '"switchport nonegotiate" disables DTP on a port, preventing it from negotiating trunk links. Combined with "switchport mode access" to hardcode it as an access port, this fully prevents the switch spoofing attack on that port.'
+  },
+  {
+    section: 'Wireless',
+    q: 'Why is WEP considered broken?',
+    options: [
+      'It uses a symmetric encryption algorithm',
+      'The RC4 cipher is too slow for modern hardware',
+      'It uses short, frequently repeated Initialisation Vectors (IVs) that allow statistical key recovery',
+      'It requires a physical cable to distribute the key'
+    ],
+    correct: 2,
+    explanation: 'WEP uses a 24-bit IV prepended to the key before encryption. With only ~16 million possible IVs, they repeat quickly on a busy network. Enough captured packets with repeated IVs allow aircrack-ng to statistically recover the WEP key - typically in minutes.'
+  },
+  {
+    section: 'Wireless',
+    q: 'Which tool is the standard choice for cracking WEP?',
+    options: ['hashcat', 'John the Ripper', 'aircrack-ng', 'Reaver'],
+    correct: 2,
+    explanation: 'aircrack-ng is the standard tool for WEP cracking. It captures packets with the airodump-ng companion tool, optionally injects ARP packets to speed up IV collection with aireplay-ng, and then statistically cracks the key from the captured IVs.'
+  },
+  {
+    section: 'Wireless',
+    q: 'What needs to be captured to perform an offline dictionary attack against WPA2-PSK?',
+    options: [
+      'The WPA2 encryption key',
+      'The 4-way authentication handshake between a client and the access point',
+      'The SSID and BSSID of the network',
+      'The MAC address of the access point'
+    ],
+    correct: 1,
+    explanation: 'The WPA2 4-way handshake contains a MIC (Message Integrity Code) that can be used to verify passphrase guesses offline. Once captured, you can run hashcat against it with a wordlist without ever reconnecting to the network. The handshake is captured when a client connects - or you can force a reconnect with a deauthentication frame.'
+  },
+  {
+    section: 'Wireless',
+    q: 'A client uses WPA2-PSK with the passphrase "Summer2024!". Is this network secure against offline cracking?',
+    options: [
+      'Yes - WPA2 is unbreakable',
+      'Yes - the passphrase contains a capital letter and special character',
+      'No - this is a weak passphrase that would appear in wordlists and rule-based attacks',
+      'No - WPA2-PSK does not support special characters'
+    ],
+    correct: 2,
+    explanation: '"Summer2024!" is a classic weak passphrase - a dictionary word, capitalised, with a year and punctuation. This pattern is in every serious wordlist and trivially handled by hashcat rule sets. WPA2-PSK is only as strong as the passphrase. A strong random 20+ character passphrase makes offline cracking impractical.'
+  },
+  {
+    section: 'Wireless',
+    q: 'WPS uses an 8-digit PIN. Why can it be crute-forced in roughly 11,000 guesses instead of 100 million?',
+    options: [
+      'Modern hardware can test 100 million guesses per second',
+      'The router validates the first 4 digits and last 4 digits separately, and the last digit is a checksum',
+      'WPS uses a 4-digit PIN not an 8-digit one',
+      'The PIN is transmitted in plaintext'
+    ],
+    correct: 1,
+    explanation: 'The router checks the first half of the PIN (4 digits = 10,000 combinations) and then the second half (3 real digits + 1 checksum = 1,000 combinations) independently. This means only ~11,000 total guesses are needed instead of 100 million - a catastrophic design flaw exploited by Reaver and Bully.'
+  },
+  {
+    section: 'Wireless',
+    q: 'Which tools are used to exploit the WPS PIN vulnerability?',
+    options: ['aircrack-ng and airodump-ng', 'hashcat and John the Ripper', 'Reaver and Bully', 'Metasploit and Nmap'],
+    correct: 2,
+    explanation: 'Reaver and Bully are the standard tools for WPS PIN brute-forcing. They send WPS authentication attempts and use the split-validation flaw to narrow down the PIN to around 11,000 guesses. Some routers implement lockout after failed attempts, but many do not.'
+  },
+  {
+    section: 'Wireless',
+    q: 'Which wireless standard is currently considered secure against the attacks covered in this lesson?',
+    options: ['WEP', 'WPA/TKIP', 'WPA2-PSK with any passphrase', 'WPA3/SAE'],
+    correct: 3,
+    explanation: 'WPA3 uses SAE (Simultaneous Authentication of Equals) which replaces the vulnerable 4-way handshake. Even if the passphrase is weak, offline dictionary attacks are not possible against WPA3. WEP is broken, WPA/TKIP is deprecated, and WPA2-PSK is vulnerable to offline cracking with a weak passphrase.'
+  },
+  {
+    section: 'Wireless',
+    q: 'You are on a penetration test and discover an access point with WPS enabled. The client says it is safe because WPS is "disabled" in the router admin panel. What do you do?',
+    options: [
+      'Accept the client\'s word and move on',
+      'Test it anyway - some routers still respond to WPS handshakes even when supposedly disabled',
+      'Only test it if you have the WPS PIN',
+      'Skip wireless testing as it is out of scope for internal assessments'
+    ],
+    correct: 1,
+    explanation: 'Some routers have a known issue where WPS responds to handshake requests even when "disabled" in the UI. Always test it regardless of what the admin panel says. Run Reaver or Bully and see if the router responds. Finding a responding WPS implementation when the client believed it was disabled is a valid critical finding.'
+  }
+];
+
+let currentQuestion = 0;
+let answers = [];
+let answered = false;
+let selectedOption = null;
+let filteredQuestions = [];
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentQuestion, answers, answered, selectedOption,
+      filteredQuestions: filteredQuestions.map(q => questions.indexOf(q))
+    }));
+  } catch(e) {}
+}
+
+function clearState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.filteredQuestions) || s.filteredQuestions.length === 0) return false;
+    currentQuestion = s.currentQuestion || 0;
+    answers = s.answers || [];
+    answered = s.answered || false;
+    selectedOption = s.selectedOption !== undefined ? s.selectedOption : null;
+    filteredQuestions = s.filteredQuestions.map(i => questions[i]).filter(Boolean);
+    return filteredQuestions.length > 0;
+  } catch(e) { return false; }
+}
+
+function startQuiz() {
+  clearState();
+  filteredQuestions = [...questions];
+  currentQuestion = 0; answers = []; answered = false; selectedOption = null;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = filteredQuestions[currentQuestion];
+  const pct = (currentQuestion / filteredQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="question-counter">Question ${currentQuestion + 1} of ${filteredQuestions.length}</div>
+    <div class="section-tag">${q.section}</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options" id="options">
+      ${q.options.map((opt, i) => `<button class="option" onclick="selectOption(${i})">${opt}</button>`).join('')}
+    </div>
+    <div class="explanation" id="explanation"><strong>Explanation:</strong> ${q.explanation}</div>
+    <button id="submit-btn" onclick="submitAnswer()" ${answered ? '' : 'disabled'}>
+      ${answered ? (currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results') : 'Submit Answer'}
+    </button>
+  `;
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  selectedOption = idx;
+  document.querySelectorAll('.option').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  document.getElementById('submit-btn').disabled = false;
+  saveState();
+}
+
+function submitAnswer() {
+  if (!answered && selectedOption === null) return;
+  if (!answered) {
+    answered = true;
+    const q = filteredQuestions[currentQuestion];
+    answers.push({ section: q.section, correct: selectedOption === q.correct });
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+    btn.disabled = false;
+    saveState();
+    return;
+  }
+  currentQuestion++;
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    renderResults();
+  } else {
+    answered = false; selectedOption = null;
+    saveState();
+    renderQuestion();
+  }
+}
+
+function renderResults() {
+  const total = answers.length;
+  const correct = answers.filter(a => a.correct).length;
+  const pct = Math.round((correct / total) * 100);
+  const msg = pct === 100 ? 'Nailed it.' : pct >= 80 ? 'Solid - check any misses.' : pct >= 60 ? 'Getting there - review VLAN attacks and WPS.' : 'Go back through the lesson and try again.';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="results">
+      <h2>Quiz Complete</h2>
+      <div class="score">${correct}/${total}</div>
+      <div class="score-label">${pct}% - ${msg}</div>
+      <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+    </div>
+  `;
+}
+
+function restartQuiz() {
+  clearState();
+  currentQuestion = 0; answers = []; answered = false; selectedOption = null;
+  filteredQuestions = [...questions];
+  renderQuestion();
+}
+
+if (loadState()) {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    document.getElementById('start-screen').style.display = 'block';
+    document.getElementById('quiz-section').style.display = 'none';
+  } else if (answered) {
+    renderQuestion();
+    const q = filteredQuestions[currentQuestion];
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+  } else {
+    renderQuestion();
+    if (selectedOption !== null) {
+      document.querySelectorAll('.option').forEach((el, i) => el.classList.toggle('selected', i === selectedOption));
+      document.getElementById('submit-btn').disabled = false;
+    }
+  }
+}
+</script>
+</body>
+</html>
