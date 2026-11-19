@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPSA Module B - Nmap Deep Dive</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --surface: #131825;
+    --surface-hover: #1a2035;
+    --border: #1e2a42;
+    --accent: #00d4aa;
+    --accent-dim: #00d4aa22;
+    --danger: #ff4757;
+    --danger-dim: #ff475722;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --correct: #00d4aa;
+    --incorrect: #ff4757;
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; color: var(--accent); margin-bottom: 0.5rem; }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* NAV */
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 2rem; }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+  .toc-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .toc-links a { font-size: 0.8rem; color: var(--text-dim); text-decoration: none; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 4px; padding: 0.25rem 0.6rem; transition: color 0.2s, border-color 0.2s; }
+  .toc-links a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* LESSON */
+  .lesson { margin-bottom: 3rem; }
+  .lesson h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; color: var(--accent); margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); scroll-margin-top: 1rem; }
+  .lesson p { color: var(--text); line-height: 1.7; margin-bottom: 0.9rem; font-size: 0.93rem; }
+
+  /* CODE */
+  .code-block { background: #0d1120; border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.1rem; margin: 0.9rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; overflow-x: auto; line-height: 1.6; }
+  .c { color: #4a7c5f; } /* comment */
+  .cmd { color: #9cdcfe; }
+  .flag { color: #ce9178; }
+  .val { color: #b5cea8; }
+  .hi { color: var(--accent); font-weight: 700; }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+  .data-table th { background: var(--surface); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; padding: 0.6rem 0.8rem; text-align: left; border: 1px solid var(--border); }
+  .data-table td { padding: 0.6rem 0.8rem; border: 1px solid var(--border); vertical-align: top; }
+  .data-table tr:nth-child(even) td { background: #0d1120; }
+  .mono { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 0.85em; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 0.85rem 1rem; margin: 1rem 0; font-size: 0.88rem; line-height: 1.6; }
+  .callout strong { color: var(--accent); }
+  .callout.warn { border-left-color: #ffa502; }
+  .callout.warn strong { color: #ffa502; }
+  .callout.exam { border-left-color: #a855f7; }
+  .callout.exam strong { color: #a855f7; }
+
+  /* STATE GRID */
+  .state-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.85rem; margin: 1rem 0; }
+  .state-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1rem; }
+  .state-name { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-bottom: 0.4rem; }
+  .state-desc { font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+
+  /* TIMING GRID */
+  .timing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1rem 0; }
+  .timing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; }
+  .t-num { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; color: var(--accent); font-weight: 700; }
+  .t-name { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+  .t-desc { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+
+  /* DIVIDER */
+  hr.divider { border: none; border-top: 2px solid var(--border); margin: 3rem 0; }
+
+  /* QUIZ */
+  .quiz-header { text-align: center; margin-bottom: 1.5rem; }
+  .quiz-header h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent); margin-bottom: 0.4rem; }
+  .quiz-header p { color: var(--text-dim); font-size: 0.88rem; }
+  .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 2rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .question-counter { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.75rem; }
+  .section-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent); background: var(--accent-dim); padding: 0.2rem 0.6rem; border-radius: 3px; margin-bottom: 1rem; }
+  .question-text { font-size: 1.05rem; font-weight: 600; line-height: 1.5; margin-bottom: 1.4rem; }
+  .options { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .option { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.9rem 1.1rem; cursor: pointer; transition: all 0.2s; font-size: 0.93rem; text-align: left; font-family: 'Inter', sans-serif; color: var(--text); }
+  .option:hover:not(.disabled) { background: var(--surface-hover); border-color: var(--accent); }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option.correct { border-color: var(--correct); background: rgba(0,212,170,0.1); }
+  .option.incorrect { border-color: var(--incorrect); background: var(--danger-dim); }
+  .option.disabled { cursor: default; }
+  .explanation { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.88rem; line-height: 1.6; display: none; }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent); }
+  #submit-btn { background: var(--accent); color: #0a0e17; border: none; border-radius: 8px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+  #submit-btn:disabled { opacity: 0.35; cursor: default; }
+  .results { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .results h2 { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: var(--accent); margin-bottom: 1rem; }
+  .score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+  .score-label { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .restart-btn { background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1.75rem; font-size: 0.9rem; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .restart-btn:hover { border-color: var(--accent); }
+  #quiz-section { display: none; }
+  #start-screen { text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  #start-screen h2 { font-family: 'JetBrains Mono', monospace; color: var(--accent); margin-bottom: 0.75rem; }
+  #start-screen p { color: var(--text-dim); margin-bottom: 1.5rem; font-size: 0.9rem; }
+  .start-btn { background: var(--accent); color: #0a0e17; border: none; border-radius: 8px; padding: 0.85rem 2rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>CPSA Module B - Nmap Deep Dive</h1>
+    <p>Scan types, port states, timing, OS detection, NSE scripts, output and evasion</p>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Sections</div>
+    <div class="toc-links">
+      <a href="#s1">Port States</a>
+      <a href="#s2">Scan Types</a>
+      <a href="#s3">Timing</a>
+      <a href="#s4">OS Detection</a>
+      <a href="#s5">Version Detection</a>
+      <a href="#s6">NSE Scripts</a>
+      <a href="#s7">Output Formats</a>
+      <a href="#s8">Evasion</a>
+      <a href="#s9">Common Commands</a>
+    </div>
+  </div>
+
+  <div class="lesson">
+
+    <!-- ============================================================ -->
+    <h2 id="s1">01 - Port States</h2>
+    <p>Nmap reports six possible port states. CREST candidates must be able to explain each one precisely - especially the difference between closed and filtered, and why open|filtered is unreliable.</p>
+
+    <div class="state-grid">
+      <div class="state-card">
+        <div class="state-name">open</div>
+        <div class="state-desc">An application is actively listening. For TCP: a SYN-ACK was received in response to a SYN probe. This is what you are looking for.</div>
+      </div>
+      <div class="state-card">
+        <div class="state-name">closed</div>
+        <div class="state-desc">The port is accessible but nothing is listening. For TCP: an RST was received. The host is reachable, the port just has no service bound to it.</div>
+      </div>
+      <div class="state-card">
+        <div class="state-name">filtered</div>
+        <div class="state-desc">Nmap cannot determine if the port is open or closed. No response arrived, or an ICMP unreachable was returned. A firewall is likely dropping or rejecting packets.</div>
+      </div>
+      <div class="state-card">
+        <div class="state-name">unfiltered</div>
+        <div class="state-desc">The port is reachable but nmap cannot determine open or closed. Only appears in ACK scan results - it means the packet got through, not that a service is running.</div>
+      </div>
+      <div class="state-card">
+        <div class="state-name">open|filtered</div>
+        <div class="state-desc">Nmap cannot tell whether the port is open or filtered. UDP and stealthy scan types (FIN, Null, Xmas) produce this when no response arrives - both states produce silence.</div>
+      </div>
+      <div class="state-card">
+        <div class="state-name">closed|filtered</div>
+        <div class="state-desc">Only seen in IP ID idle scans. Nmap cannot determine whether the port is closed or filtered.</div>
+      </div>
+    </div>
+
+    <div class="callout exam">
+      <strong>Exam trap:</strong> Filtered and closed are completely different. Closed means the host responded with RST - you can reach it, nothing is running. Filtered means you got no response or an ICMP unreachable - a device is blocking the probe. Many candidates mix these up under time pressure.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s2">02 - Scan Types</h2>
+    <p>Each scan type sends different packets and interprets the response differently. You need to know which flag is set, what privilege level is required, and when to use each one.</p>
+
+    <table class="data-table">
+      <tr>
+        <th>Flag</th>
+        <th>Scan Type</th>
+        <th>Packets Sent</th>
+        <th>Open Response</th>
+        <th>Closed Response</th>
+        <th>Root?</th>
+        <th>Notes</th>
+      </tr>
+      <tr>
+        <td><span class="mono">-sS</span></td>
+        <td>SYN / Half-open</td>
+        <td>SYN</td>
+        <td>SYN-ACK</td>
+        <td>RST</td>
+        <td>Yes</td>
+        <td>Default when root. Fast, low noise, does not complete handshake</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sT</span></td>
+        <td>TCP Connect</td>
+        <td>Full handshake</td>
+        <td>Connection established</td>
+        <td>RST or refused</td>
+        <td>No</td>
+        <td>Default without root. Uses OS connect(). Fully logged at application level</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sU</span></td>
+        <td>UDP</td>
+        <td>UDP packet</td>
+        <td>Varies or none</td>
+        <td>ICMP port unreachable</td>
+        <td>Yes</td>
+        <td>Slow and unreliable. No response = open|filtered. Use --top-ports 20 in exams</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sA</span></td>
+        <td>ACK</td>
+        <td>ACK</td>
+        <td>RST (unfiltered)</td>
+        <td>RST (unfiltered)</td>
+        <td>Yes</td>
+        <td>Does NOT detect open ports. Used to map firewall rules - RST means unfiltered</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sF</span></td>
+        <td>FIN</td>
+        <td>FIN</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Yes</td>
+        <td>Bypasses some stateless firewalls. Unreliable on Windows targets</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sN</span></td>
+        <td>Null</td>
+        <td>No flags set</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Yes</td>
+        <td>Same RFC 793 trick as FIN. Unreliable on Windows</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sX</span></td>
+        <td>Xmas</td>
+        <td>FIN+PSH+URG</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Yes</td>
+        <td>All three flags lit. Same logic as Null and FIN. Unreliable on Windows</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sW</span></td>
+        <td>Window</td>
+        <td>ACK</td>
+        <td>RST with positive window</td>
+        <td>RST with zero window</td>
+        <td>Yes</td>
+        <td>Exploits TCP window field quirks on some OS stacks</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sM</span></td>
+        <td>Maimon</td>
+        <td>FIN+ACK</td>
+        <td>No response</td>
+        <td>RST</td>
+        <td>Yes</td>
+        <td>Named after researcher Uriel Maimon. Works on some BSD-derived stacks</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-sI</span></td>
+        <td>Idle / Zombie</td>
+        <td>SYN via zombie</td>
+        <td>IP ID increment</td>
+        <td>IP ID unchanged</td>
+        <td>Yes</td>
+        <td>True blind scan - source IP is a third party "zombie" host</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Key distinction:</strong> -sA is not a port-finding scan. It tells you whether a port is filtered or unfiltered by the firewall - both open and closed ports return RST (unfiltered) if packets get through. Use it after -sS to understand firewall behaviour, not to find services.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s3">03 - Timing Templates</h2>
+    <p>Nmap has six timing templates controlled with <span class="mono">-T0</span> through <span class="mono">-T5</span>. They affect probe timing, parallelism, and timeout thresholds. Slower templates are harder for IDS to detect but take far longer to complete.</p>
+
+    <div class="timing-grid">
+      <div class="timing-card">
+        <div class="t-num">-T0</div>
+        <div class="t-name">Paranoid</div>
+        <div class="t-desc">One probe every 5 minutes. IDS evasion. Used when you must not be detected and have days to spare.</div>
+      </div>
+      <div class="timing-card">
+        <div class="t-num">-T1</div>
+        <div class="t-name">Sneaky</div>
+        <div class="t-desc">One probe every 15 seconds. Still very slow. For stealthy engagements with more time.</div>
+      </div>
+      <div class="timing-card">
+        <div class="t-num">-T2</div>
+        <div class="t-name">Polite</div>
+        <div class="t-desc">0.4 second delay between probes. Reduces bandwidth and target load. Avoids overloading fragile systems.</div>
+      </div>
+      <div class="timing-card">
+        <div class="t-num">-T3</div>
+        <div class="t-name">Normal</div>
+        <div class="t-desc">Default. Nmap's own adaptive timing. Balances speed and accuracy with no manual adjustment.</div>
+      </div>
+      <div class="timing-card">
+        <div class="t-num">-T4</div>
+        <div class="t-name">Aggressive</div>
+        <div class="t-desc">Assumes a fast, reliable network. Good for lab environments and CTFs. Can cause missed ports on slow or congested networks.</div>
+      </div>
+      <div class="timing-card">
+        <div class="t-num">-T5</div>
+        <div class="t-name">Insane</div>
+        <div class="t-desc">Sacrifices accuracy for maximum speed. Will miss ports on anything other than a local LAN. Rarely used professionally.</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Lab vs real world:</strong> -T4 is fine for the CPSA lab environment. In a real engagement, -T3 is the safer default - T4 will generate enough noise to trigger most modern IDS. Never use -T5 against production targets.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s4">04 - OS Detection</h2>
+    <p>Nmap's OS detection (<span class="mono">-O</span>) sends a series of TCP, UDP and ICMP probes and compares the responses against a database of over 2,600 known OS fingerprints. It analyses multiple fields to make a determination.</p>
+
+    <table class="data-table">
+      <tr>
+        <th>Probe / Field</th>
+        <th>What Nmap Analyses</th>
+      </tr>
+      <tr>
+        <td>TCP ISN</td>
+        <td>Randomness pattern of Initial Sequence Numbers - different OS classes have different generation algorithms</td>
+      </tr>
+      <tr>
+        <td>TCP Options</td>
+        <td>Which options are present, their order, and values (MSS, window scaling, timestamps, SACK)</td>
+      </tr>
+      <tr>
+        <td>IP TTL</td>
+        <td>Starting TTL values - Linux typically starts at 64, Windows at 128, Cisco IOS at 255</td>
+      </tr>
+      <tr>
+        <td>Window Size</td>
+        <td>Default TCP window sizes vary by OS and version</td>
+      </tr>
+      <tr>
+        <td>DF Bit</td>
+        <td>Whether the Don't Fragment bit is set in IP headers</td>
+      </tr>
+      <tr>
+        <td>ICMP Responses</td>
+        <td>How the target responds to malformed ICMP packets - many OS stacks handle these differently</td>
+      </tr>
+      <tr>
+        <td>TCP Closed Port Response</td>
+        <td>RST packet contents and flags differ between OS implementations</td>
+      </tr>
+    </table>
+
+    <div class="code-block">
+<span class="c"># Basic OS detection - requires root, needs at least one open and one closed port</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-O</span> &lt;target&gt;
+
+<span class="c"># Aggressive OS detection - tries harder, more probes</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-O --osscan-guess</span> &lt;target&gt;
+
+<span class="c"># Combined: OS detection + version + scripts + traceroute</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-A</span> &lt;target&gt;
+    </div>
+
+    <div class="callout exam">
+      <strong>CREST exam angle:</strong> You will be asked about TTL-based OS fingerprinting. Know the defaults: Linux/Unix = 64, Windows = 128, Cisco IOS = 255. Nmap's -O does far more than just TTL analysis but TTL is the quick manual indicator when you are reading a packet capture.
+    </div>
+
+    <div class="callout warn">
+      <strong>-O requires:</strong> Root privileges, and nmap needs at least one open and one closed port to make a determination. If all ports are filtered, OS detection will fail or return no match.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s5">05 - Version Detection</h2>
+    <p>Version detection (<span class="mono">-sV</span>) sends additional probes to open ports and attempts to identify the service, protocol, application name and version number. This is what tells you "OpenSSH 8.2p1" rather than just "port 22 open".</p>
+
+    <div class="code-block">
+<span class="c"># Standard version detection</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sV</span> &lt;target&gt;
+
+<span class="c"># Maximum intensity - sends more probes, slower but more thorough</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sV --version-intensity 9</span> &lt;target&gt;
+
+<span class="c"># Intensity scale: 0 (fastest, only most likely probes) to 9 (all probes)</span>
+<span class="c"># Default intensity is 7</span>
+
+<span class="c"># Combined with SYN scan (most common real-world command)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p-</span> &lt;target&gt;
+    </div>
+
+    <p>Version detection works by sending protocol-specific probes and matching the responses against the nmap-service-probes database. It can also trigger NSE scripts that run against detected services automatically when combined with <span class="mono">-sC</span>.</p>
+
+    <!-- ============================================================ -->
+    <h2 id="s6">06 - NSE Scripts</h2>
+    <p>The Nmap Scripting Engine (NSE) allows nmap to run Lua scripts against targets. Scripts are categorised by function. Understanding the categories is an exam requirement - you need to explain what each one does and when you would use it.</p>
+
+    <table class="data-table">
+      <tr>
+        <th>Category</th>
+        <th>What It Does</th>
+        <th>Example Scripts</th>
+      </tr>
+      <tr>
+        <td><span class="mono">auth</span></td>
+        <td>Tests authentication credentials and bypass techniques against services</td>
+        <td>ftp-anon, ssh-auth-methods, http-auth</td>
+      </tr>
+      <tr>
+        <td><span class="mono">broadcast</span></td>
+        <td>Discovers hosts and services on the local network via broadcast packets - does not need a target IP</td>
+        <td>broadcast-dhcp-discover, broadcast-dns-service-discovery</td>
+      </tr>
+      <tr>
+        <td><span class="mono">brute</span></td>
+        <td>Performs brute-force password attacks against services</td>
+        <td>ftp-brute, ssh-brute, http-brute, smb-brute</td>
+      </tr>
+      <tr>
+        <td><span class="mono">default</span></td>
+        <td>Scripts that run with -sC or -A. Safe, fast, commonly useful</td>
+        <td>ssh-hostkey, http-title, smb2-security-mode</td>
+      </tr>
+      <tr>
+        <td><span class="mono">discovery</span></td>
+        <td>Retrieves information about target - usernames, shares, DNS records</td>
+        <td>smb-enum-shares, dns-zone-transfer, snmp-info</td>
+      </tr>
+      <tr>
+        <td><span class="mono">dos</span></td>
+        <td>Tests for denial-of-service vulnerabilities. Use with explicit permission only</td>
+        <td>http-slowloris, smb-flood</td>
+      </tr>
+      <tr>
+        <td><span class="mono">exploit</span></td>
+        <td>Attempts to exploit vulnerabilities - goes beyond detection</td>
+        <td>ms17-010 (EternalBlue)</td>
+      </tr>
+      <tr>
+        <td><span class="mono">external</span></td>
+        <td>Sends data to third-party databases (Whois, GeoIP). Leaks target info externally</td>
+        <td>whois-ip, ip-geolocation-maxmind</td>
+      </tr>
+      <tr>
+        <td><span class="mono">fuzzer</span></td>
+        <td>Sends unexpected or random data to find crashes and unexpected behaviour</td>
+        <td>dns-fuzz</td>
+      </tr>
+      <tr>
+        <td><span class="mono">intrusive</span></td>
+        <td>Likely to crash services or cause denial of service. Never run without authorisation</td>
+        <td>http-shellshock, ftp-vsftpd-backdoor</td>
+      </tr>
+      <tr>
+        <td><span class="mono">malware</span></td>
+        <td>Checks for signs of compromise - backdoors, rootkits, C2 connections</td>
+        <td>smtp-strangeport, auth-spoof</td>
+      </tr>
+      <tr>
+        <td><span class="mono">safe</span></td>
+        <td>Scripts unlikely to crash services or use excessive bandwidth</td>
+        <td>ssl-cert, http-headers, banner</td>
+      </tr>
+      <tr>
+        <td><span class="mono">version</span></td>
+        <td>Used internally by -sV. Extends service version detection</td>
+        <td>Various service probes</td>
+      </tr>
+      <tr>
+        <td><span class="mono">vuln</span></td>
+        <td>Checks for specific vulnerabilities - reports whether a target appears vulnerable</td>
+        <td>smb-vuln-ms17-010, ssl-heartbleed, http-shellshock</td>
+      </tr>
+    </table>
+
+    <div class="code-block">
+<span class="c"># Run default scripts (same as -sC)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script default</span> &lt;target&gt;
+
+<span class="c"># Run all scripts in a category</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script vuln</span> &lt;target&gt;
+
+<span class="c"># Run a specific named script</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb-vuln-ms17-010</span> &lt;target&gt;
+
+<span class="c"># Run multiple specific scripts</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb2-security-mode,smb-protocols</span> &lt;target&gt;
+
+<span class="c"># Run all SMB-related scripts (wildcard)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script "smb-*"</span> &lt;target&gt;
+
+<span class="c"># Run scripts with arguments (e.g. pass credentials)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">--script smb-enum-shares --script-args smbusername=admin,smbpassword=password</span> &lt;target&gt;
+    </div>
+
+    <div class="callout exam">
+      <strong>CREST exam point:</strong> Know the difference between safe, default, intrusive and vuln categories. If asked "what scripts would you run first", the answer is default or safe. Never run brute, dos, exploit or intrusive categories without specific authorisation - these go beyond reconnaissance.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s7">07 - Output Formats</h2>
+    <p>Always save your scan output. CREST examiners want to see that you have documented your findings. Nmap supports five output formats.</p>
+
+    <table class="data-table">
+      <tr>
+        <th>Flag</th>
+        <th>Format</th>
+        <th>Extension</th>
+        <th>Use Case</th>
+      </tr>
+      <tr>
+        <td><span class="mono">-oN</span></td>
+        <td>Normal</td>
+        <td>.nmap / .txt</td>
+        <td>Human-readable output. What you see in the terminal. Good for reports.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-oX</span></td>
+        <td>XML</td>
+        <td>.xml</td>
+        <td>Machine-readable. Importable into Metasploit, Nessus, and other tools.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-oG</span></td>
+        <td>Grepable</td>
+        <td>.gnmap</td>
+        <td>One host per line. Easy to parse with grep, awk, and cut.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-oS</span></td>
+        <td>Script kiddie</td>
+        <td>-</td>
+        <td>Leetspeak output. No practical use - never use in a professional context.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-oA</span></td>
+        <td>All formats</td>
+        <td>.nmap + .xml + .gnmap</td>
+        <td>Saves all three useful formats at once. Best practice on engagements.</td>
+      </tr>
+    </table>
+
+    <div class="code-block">
+<span class="c"># Save all formats - best practice for real engagements</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p- -oA</span> <span class="val">scan-results</span> &lt;target&gt;
+
+<span class="c"># This creates: scan-results.nmap, scan-results.xml, scan-results.gnmap</span>
+
+<span class="c"># Parse grepable output to find open ports quickly</span>
+<span class="cmd">grep</span> <span class="flag">"Ports:"</span> scan-results.gnmap <span class="cmd">| grep</span> <span class="flag">"open"</span>
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s8">08 - Evasion Techniques</h2>
+    <p>Nmap includes several flags that can help bypass firewalls and IDS. These are tested in CPSA and you need to know what each one does - not just the flag name.</p>
+
+    <table class="data-table">
+      <tr>
+        <th>Flag</th>
+        <th>Technique</th>
+        <th>What It Does</th>
+      </tr>
+      <tr>
+        <td><span class="mono">-f</span></td>
+        <td>Fragment packets</td>
+        <td>Splits TCP header across multiple IP fragments. Older firewalls and IDS reassemble before inspecting - some do not.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--mtu &lt;size&gt;</span></td>
+        <td>Custom MTU</td>
+        <td>Sets a specific fragment size (must be a multiple of 8). More control than -f.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-D &lt;decoy1,decoy2,...&gt;</span></td>
+        <td>Decoy scan</td>
+        <td>Sends spoofed packets from decoy IPs alongside your real probes. The target sees multiple source IPs and cannot determine the real attacker.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">-S &lt;IP&gt;</span></td>
+        <td>Spoof source IP</td>
+        <td>Sends packets with a spoofed source address. You cannot receive responses unless routing supports it - usually used with -e and -Pn.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--source-port &lt;port&gt;</span></td>
+        <td>Spoof source port</td>
+        <td>Sets the TCP/UDP source port. Some firewalls trust traffic from port 53 or 80 - this exploits that misconfiguration.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--data-length &lt;n&gt;</span></td>
+        <td>Pad packets</td>
+        <td>Appends random data to packets to change their size. Breaks signatures that match on packet length.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--randomize-hosts</span></td>
+        <td>Randomise scan order</td>
+        <td>Scans hosts in random order rather than sequentially. Harder for IDS to correlate as a single scan event.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--scan-delay &lt;time&gt;</span></td>
+        <td>Manual probe delay</td>
+        <td>Sets a fixed delay between probes. Supplements timing templates for fine-grained rate control.</td>
+      </tr>
+      <tr>
+        <td><span class="mono">--spoof-mac &lt;vendor&gt;</span></td>
+        <td>MAC address spoof</td>
+        <td>Spoofs the source MAC address. Only effective on the local segment - does not cross routers.</td>
+      </tr>
+    </table>
+
+    <div class="callout warn">
+      <strong>Authorisation required:</strong> Evasion techniques do not make scanning legal - they just make it harder to attribute. Always have written authorisation before using any of these in a real engagement.
+    </div>
+
+    <!-- ============================================================ -->
+    <h2 id="s9">09 - Common Command Reference</h2>
+    <p>These are the commands you will use most often in the CPSA lab and exam. Know these by heart.</p>
+
+    <div class="code-block">
+<span class="c"># Host discovery - ping sweep, no port scan</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sn</span> 192.168.1.0/24
+
+<span class="c"># Full TCP SYN scan, all ports, version detection, save all formats</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -p- -oA</span> <span class="val">results</span> &lt;target&gt;
+
+<span class="c"># Combined: OS + version + default scripts + traceroute</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-A</span> &lt;target&gt;
+
+<span class="c"># Full port scan, aggressive timing (lab use)</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -p- -T4</span> &lt;target&gt;
+
+<span class="c"># UDP scan, top 20 ports only</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sU --top-ports 20</span> &lt;target&gt;
+
+<span class="c"># Run default NSE scripts with version detection</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -sV -sC</span> &lt;target&gt;
+
+<span class="c"># Run vuln scripts against specific ports</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sV --script vuln -p 445,80,443</span> &lt;target&gt;
+
+<span class="c"># Skip host discovery (treat all hosts as up) - useful when ICMP is blocked</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -Pn</span> &lt;target&gt;
+
+<span class="c"># Scan specific ports only</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -p 22,80,443,445,3389</span> &lt;target&gt;
+
+<span class="c"># Verbose output - shows results as they come in</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -v</span> &lt;target&gt;
+
+<span class="c"># Fragment packets and use decoys for evasion</span>
+<span class="cmd">sudo nmap</span> <span class="flag">-sS -f -D RND:5</span> &lt;target&gt;
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- ============================================================ -->
+  <!-- QUIZ -->
+  <!-- ============================================================ -->
+  <div id="start-screen">
+    <h2>Knowledge Check</h2>
+    <p>20 questions on port states, scan types, timing, OS detection, NSE scripts, output and evasion</p>
+    <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <div id="quiz-section">
+    <div class="quiz-header">
+      <h2>Knowledge Check</h2>
+      <p>Nmap Deep Dive</p>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="quiz-body"></div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'cpsa_b_nmap_v1';
+
+const questions = [
+  {
+    section: 'Port States',
+    q: 'A port returns RST in response to a SYN probe. What state does nmap report?',
+    options: ['open', 'filtered', 'closed', 'unfiltered'],
+    correct: 2,
+    explanation: 'Closed means the host is reachable and responded with RST - there is nothing listening on that port. Filtered means no response at all, or an ICMP unreachable.'
+  },
+  {
+    section: 'Port States',
+    q: 'Nmap sends a SYN probe and receives no response. What state will it report?',
+    options: ['closed', 'filtered', 'open|filtered', 'unfiltered'],
+    correct: 1,
+    explanation: 'No response to a SYN probe means the port is filtered - a firewall or other device is silently dropping the packet. If an ICMP port unreachable arrives instead, the port is also filtered.'
+  },
+  {
+    section: 'Port States',
+    q: 'Which scan type produces "unfiltered" port states?',
+    options: ['SYN scan (-sS)', 'ACK scan (-sA)', 'UDP scan (-sU)', 'FIN scan (-sF)'],
+    correct: 1,
+    explanation: 'The ACK scan (-sA) produces "unfiltered" when RST is received - it means packets got through the firewall but the scan cannot distinguish open from closed. It maps firewall rules, not services.'
+  },
+  {
+    section: 'Port States',
+    q: 'You run a Null scan and get no response from a port. What state does nmap report and what does it mean?',
+    options: ['closed - nothing is running', 'filtered - a firewall is blocking', 'open|filtered - cannot distinguish open from filtered', 'open - the service is running'],
+    correct: 2,
+    explanation: 'FIN, Null and Xmas scans exploit the fact that open ports silently drop unexpected packets while closed ports send RST. No response could mean either state - hence open|filtered.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'Which nmap scan type does NOT require root/administrator privileges?',
+    options: ['-sS (SYN scan)', '-sT (TCP Connect scan)', '-sU (UDP scan)', '-sA (ACK scan)'],
+    correct: 1,
+    explanation: '-sT uses the OS socket connect() call which does not require raw socket access. All other scan types that craft custom packets (SYN, UDP, ACK, FIN, Null, Xmas) require root or Administrator privileges.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'An nmap ACK scan returns RST from ports 22, 80 and 443 on a target. What does this tell you?',
+    options: ['Ports 22, 80 and 443 are open with services running', 'Ports 22, 80 and 443 are closed - nothing is listening', 'Ports 22, 80 and 443 are unfiltered - packets are reaching the target', 'The target is not responding correctly'],
+    correct: 2,
+    explanation: 'An ACK scan cannot detect open vs closed - both return RST. RST means "unfiltered" - the packet got through whatever is in the path. No response would mean "filtered". Use -sS to find actual services.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'You need to run nmap without root privileges. Which scan type will nmap default to?',
+    options: ['-sS (SYN scan)', '-sF (FIN scan)', '-sT (TCP Connect scan)', '-sN (Null scan)'],
+    correct: 2,
+    explanation: 'Without root, nmap defaults to -sT (TCP Connect) which uses the OS network stack rather than raw sockets. It is slower and noisier than -sS because every open port creates a full logged connection.'
+  },
+  {
+    section: 'Scan Types',
+    q: 'Which three scan types are unreliable against Windows targets?',
+    options: ['SYN, Connect and ACK', 'FIN, Null and Xmas', 'UDP, ACK and Window', 'SYN, FIN and Xmas'],
+    correct: 1,
+    explanation: 'FIN (-sF), Null (-sN) and Xmas (-sX) rely on RFC 793 behaviour where open ports silently drop unexpected packets. Windows does not follow this - it sends RST for both open and closed ports, making results unreliable.'
+  },
+  {
+    section: 'Timing',
+    q: 'Which timing template is nmap\'s default?',
+    options: ['-T2 (Polite)', '-T3 (Normal)', '-T4 (Aggressive)', '-T5 (Insane)'],
+    correct: 1,
+    explanation: '-T3 (Normal) is nmap\'s default timing. It uses adaptive timing to balance speed and accuracy. -T4 is commonly used in lab and CTF environments but generates significantly more noise.'
+  },
+  {
+    section: 'Timing',
+    q: 'Which timing template sends one probe every 5 minutes?',
+    options: ['-T0 (Paranoid)', '-T1 (Sneaky)', '-T2 (Polite)', '-T3 (Normal)'],
+    correct: 0,
+    explanation: '-T0 (Paranoid) is the slowest template - one probe every 5 minutes. It is designed for maximum IDS evasion when you have days or weeks available. T1 (Sneaky) sends one probe every 15 seconds.'
+  },
+  {
+    section: 'OS Detection',
+    q: 'A packet capture shows a TTL of 118 arriving from a target. Which OS family does this suggest?',
+    options: ['Linux - starts at 64', 'Windows - starts at 128', 'Cisco IOS - starts at 255', 'FreeBSD - starts at 64'],
+    correct: 1,
+    explanation: 'Windows starts with TTL 128. Each hop decrements it by 1. TTL 118 suggests approximately 10 hops from a Windows host. Linux starts at 64 and Cisco IOS at 255 - these would give very different observed values.'
+  },
+  {
+    section: 'OS Detection',
+    q: 'Which nmap flag combines OS detection, version detection, default scripts and traceroute in a single command?',
+    options: ['-O', '-sV', '-sC', '-A'],
+    correct: 3,
+    explanation: '-A is the aggressive scan flag. It enables -O (OS detection), -sV (version detection), -sC (default scripts) and --traceroute in one command. Use -O alone if you only need OS detection without the rest.'
+  },
+  {
+    section: 'OS Detection',
+    q: 'Nmap\'s OS detection fails and returns "OS details: No exact OS matches". What is the most likely reason?',
+    options: ['The target is running a very old OS', 'Nmap cannot find both an open and a closed port on the target', 'The target is on a different network segment', 'Version detection (-sV) was not run first'],
+    correct: 1,
+    explanation: 'OS detection requires at least one open port and one closed port to generate the probe responses it needs. If all ports are filtered or all are open, the fingerprint is incomplete and nmap cannot match it.'
+  },
+  {
+    section: 'NSE Scripts',
+    q: 'What does the "default" NSE category contain?',
+    options: ['All available scripts', 'Only scripts that exploit vulnerabilities', 'Scripts that are safe, fast and useful - run with -sC or -A', 'Scripts that require authentication credentials'],
+    correct: 2,
+    explanation: 'The default category contains scripts that are considered safe, fast and broadly useful. They run automatically with -sC or -A. They include things like ssh-hostkey, http-title and smb2-security-mode.'
+  },
+  {
+    section: 'NSE Scripts',
+    q: 'A script is in the "intrusive" NSE category. What does this tell you?',
+    options: ['It requires root privileges', 'It is likely to cause service crashes or denial of service', 'It sends data to third-party databases', 'It only works on Windows targets'],
+    correct: 1,
+    explanation: 'Intrusive scripts are likely to crash services, consume excessive resources, or trigger alerts. Never run them without explicit authorisation. The brute and exploit categories carry similar risks.'
+  },
+  {
+    section: 'NSE Scripts',
+    q: 'Which NSE category checks whether a target is vulnerable to specific CVEs like MS17-010?',
+    options: ['auth', 'discovery', 'safe', 'vuln'],
+    correct: 3,
+    explanation: 'The vuln category runs scripts that check for specific known vulnerabilities. smb-vuln-ms17-010 (EternalBlue), ssl-heartbleed and http-shellshock are all in the vuln category.'
+  },
+  {
+    section: 'Output Formats',
+    q: 'Which nmap output flag saves all three useful formats simultaneously?',
+    options: ['-oN', '-oX', '-oG', '-oA'],
+    correct: 3,
+    explanation: '-oA (All formats) creates three files: .nmap (normal/human-readable), .xml (machine-readable, importable to Metasploit), and .gnmap (grepable, easy to parse with grep/awk). Best practice on real engagements.'
+  },
+  {
+    section: 'Output Formats',
+    q: 'You want to import nmap results into Metasploit. Which output format should you use?',
+    options: ['-oN (Normal)', '-oX (XML)', '-oG (Grepable)', '-oS (Script kiddie)'],
+    correct: 1,
+    explanation: '-oX produces XML output which Metasploit\'s db_import command can consume directly. This lets you import all discovered hosts and services into Metasploit\'s database without manual re-entry.'
+  },
+  {
+    section: 'Evasion',
+    q: 'What does the nmap -D flag do?',
+    options: ['Fragments packets to bypass firewalls', 'Sends packets from multiple decoy IP addresses to obscure the real source', 'Disables ping probes before scanning', 'Sets a custom delay between probes'],
+    correct: 1,
+    explanation: '-D sends spoofed packets from decoy IPs alongside your real probes. The target sees multiple source IPs and cannot determine which one is the actual attacker. "-D RND:5" uses 5 randomly generated decoy addresses.'
+  },
+  {
+    section: 'Evasion',
+    q: 'A firewall is configured to trust traffic sourced from port 53. Which nmap flag would you use to exploit this?',
+    options: ['--source-port 53', '-D 53.53.53.53', '--spoof-mac 53', '-f --mtu 53'],
+    correct: 0,
+    explanation: '--source-port (or -g) sets the TCP/UDP source port of scan packets. Some firewalls trust DNS (port 53) or HTTP (port 80) traffic - setting the source port to match can bypass these misconfigured rules.'
+  }
+];
+
+let currentQuestion = 0;
+let answers = [];
+let answered = false;
+let selectedOption = null;
+let filteredQuestions = [];
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentQuestion, answers, answered, selectedOption,
+      filteredQuestions: filteredQuestions.map(q => questions.indexOf(q))
+    }));
+  } catch(e) {}
+}
+
+function clearState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s || !Array.isArray(s.filteredQuestions) || s.filteredQuestions.length === 0) return false;
+    currentQuestion = s.currentQuestion || 0;
+    answers = s.answers || [];
+    answered = s.answered || false;
+    selectedOption = s.selectedOption !== undefined ? s.selectedOption : null;
+    filteredQuestions = s.filteredQuestions.map(i => questions[i]).filter(Boolean);
+    return filteredQuestions.length > 0;
+  } catch(e) { return false; }
+}
+
+function startQuiz() {
+  clearState();
+  filteredQuestions = [...questions];
+  currentQuestion = 0;
+  answers = [];
+  answered = false;
+  selectedOption = null;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = filteredQuestions[currentQuestion];
+  const pct = (currentQuestion / filteredQuestions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="question-counter">Question ${currentQuestion + 1} of ${filteredQuestions.length}</div>
+    <div class="section-tag">${q.section}</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options" id="options">
+      ${q.options.map((opt, i) => `<button class="option" onclick="selectOption(${i})">${opt}</button>`).join('')}
+    </div>
+    <div class="explanation" id="explanation"><strong>Explanation:</strong> ${q.explanation}</div>
+    <button id="submit-btn" onclick="submitAnswer()" ${answered ? '' : 'disabled'}>
+      ${answered ? (currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results') : 'Submit Answer'}
+    </button>
+  `;
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  selectedOption = idx;
+  document.querySelectorAll('.option').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  document.getElementById('submit-btn').disabled = false;
+  saveState();
+}
+
+function submitAnswer() {
+  if (!answered && selectedOption === null) return;
+  if (!answered) {
+    answered = true;
+    const q = filteredQuestions[currentQuestion];
+    answers.push({ section: q.section, correct: selectedOption === q.correct });
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+    btn.disabled = false;
+    saveState();
+    return;
+  }
+  currentQuestion++;
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    renderResults();
+  } else {
+    answered = false;
+    selectedOption = null;
+    saveState();
+    renderQuestion();
+  }
+}
+
+function renderResults() {
+  const total = answers.length;
+  const correct = answers.filter(a => a.correct).length;
+  const pct = Math.round((correct / total) * 100);
+  const msg = pct === 100 ? 'Perfect - solid nmap knowledge.' : pct >= 80 ? 'Strong result - review any misses.' : pct >= 60 ? 'Good base - revisit scan types and NSE.' : 'Go back through the lesson sections and try again.';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="results">
+      <h2>Quiz Complete</h2>
+      <div class="score">${correct}/${total}</div>
+      <div class="score-label">${pct}% - ${msg}</div>
+      <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+    </div>
+  `;
+}
+
+function restartQuiz() {
+  clearState();
+  currentQuestion = 0; answers = []; answered = false; selectedOption = null;
+  filteredQuestions = [...questions];
+  renderQuestion();
+}
+
+if (loadState()) {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'block';
+  if (currentQuestion >= filteredQuestions.length) {
+    clearState();
+    document.getElementById('start-screen').style.display = 'block';
+    document.getElementById('quiz-section').style.display = 'none';
+  } else if (answered) {
+    renderQuestion();
+    const q = filteredQuestions[currentQuestion];
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.add('disabled');
+      if (i === q.correct) el.classList.add('correct');
+      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+    });
+    document.getElementById('explanation').classList.add('show');
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+  } else {
+    renderQuestion();
+    if (selectedOption !== null) {
+      document.querySelectorAll('.option').forEach((el, i) => el.classList.toggle('selected', i === selectedOption));
+      document.getElementById('submit-btn').disabled = false;
+    }
+  }
+}
+</script>
+</body>
+</html>
