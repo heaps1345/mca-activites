@@ -550,3 +550,83 @@
 
 
 </script>
+<!-- Save bar -->
+<div id="mca-save-bar" style="position:fixed;bottom:0;left:0;right:0;background:#1a1f2e;border-top:1px solid #2d3748;padding:10px 20px;display:flex;align-items:center;gap:12px;z-index:9999;font-family:Inter,sans-serif;">
+  <span style="font-size:12px;color:#888;flex:1;">Your answers are saved automatically in this browser.</span>
+  <span id="mca-save-toast" style="font-size:12px;color:#00d4aa;opacity:0;transition:opacity 0.4s;min-width:120px;">&#10003; Answers saved</span>
+  <button id="mca-save-btn" style="background:#00d4aa;color:#0a0e17;border:none;padding:6px 14px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;">Save Now</button>
+  <button id="mca-clear-btn" style="background:transparent;color:#f85149;border:1px solid #f85149;padding:6px 14px;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;">Clear Answers</button>
+</div>
+<div style="height:50px;"></div>
+<script>
+// --- localStorage persistence ---
+(function() {
+  var STORAGE_KEY = 'mca_lab_' + window.location.pathname.split('/').pop().replace('.html','');
+
+  function saveAnswers() {
+    var data = {};
+    document.querySelectorAll('input.answer-line, textarea.answer-area').forEach(function(el, i) {
+      data['field_' + i] = el.value;
+    });
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(el, i) {
+      data['chk_' + i] = el.checked;
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+    showSaveToast();
+  }
+
+  function loadAnswers() {
+    var raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { return; }
+    if (!raw) return;
+    var data;
+    try { data = JSON.parse(raw); } catch(e) { return; }
+    document.querySelectorAll('input.answer-line, textarea.answer-area').forEach(function(el, i) {
+      if (data['field_' + i] !== undefined) el.value = data['field_' + i];
+    });
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(el, i) {
+      if (data['chk_' + i] !== undefined) {
+        el.checked = data['chk_' + i];
+        el.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+
+  function clearAnswers() {
+    if (!confirm('Clear all saved answers for this lab? This cannot be undone.')) return;
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+    document.querySelectorAll('input.answer-line, textarea.answer-area').forEach(function(el) {
+      el.value = '';
+    });
+    document.querySelectorAll('input[type="checkbox"]').forEach(function(el) {
+      el.checked = false;
+      el.dispatchEvent(new Event('change'));
+    });
+    showSaveToast('Answers cleared');
+  }
+
+  function showSaveToast(msg) {
+    var t = document.getElementById('mca-save-toast');
+    if (!t) return;
+    t.textContent = msg || '\u2713 Answers saved';
+    t.style.opacity = '1';
+    setTimeout(function() { t.style.opacity = '0'; }, 2000);
+  }
+
+  document.addEventListener('input', function(e) {
+    if (e.target.matches('input.answer-line, textarea.answer-area')) saveAnswers();
+  });
+  document.addEventListener('change', function(e) {
+    if (e.target.matches('input[type="checkbox"]')) saveAnswers();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var saveBtn = document.getElementById('mca-save-btn');
+    var clearBtn = document.getElementById('mca-clear-btn');
+    if (saveBtn) saveBtn.addEventListener('click', saveAnswers);
+    if (clearBtn) clearBtn.addEventListener('click', clearAnswers);
+    loadAnswers();
+  });
+})();
+// --- end persistence ---
+</script>
