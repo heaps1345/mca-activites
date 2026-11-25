@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPSA Revision Quiz - My Cyber Academy</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --amber: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --cyan: #39c5cf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* LOADING */
+  #loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 1rem; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #error-box { display: none; background: #2d1117; border: 1px solid var(--red); border-radius: 8px; padding: 1.5rem; max-width: 500px; text-align: center; }
+  #error-box h2 { color: var(--red); margin-bottom: 0.5rem; }
+  #error-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+  #error-box code { background: var(--surface2); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem; word-break: break-all; }
+
+  /* MAIN APP */
+  #app { display: none; max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  /* MODULE FILTER */
+  .filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .mod-btn {
+    padding: 0.4rem 1rem; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer; font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .mod-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mod-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+  .mod-btn[data-mod="A"].active { background: var(--purple); border-color: var(--purple); }
+  .mod-btn[data-mod="B"].active { background: var(--cyan); border-color: var(--cyan); }
+  .mod-btn[data-mod="C"].active { background: var(--orange); border-color: var(--orange); }
+  .mod-btn[data-mod="E"].active { background: var(--green); border-color: var(--green); }
+
+  /* PROGRESS */
+  .progress-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; margin-bottom: 0.4rem; }
+  .progress-bar { height: 6px; border-radius: 4px; background: var(--accent); transition: width 0.3s; }
+  .progress-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1.5rem; margin-bottom: 1rem;
+  }
+  .q-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.6rem; display: flex; gap: 0.5rem; }
+  .q-mod-tag {
+    padding: 0.1rem 0.5rem; border-radius: 10px; font-weight: 600;
+    background: var(--surface2); color: var(--muted);
+  }
+  .q-mod-tag[data-mod="A"] { background: #2d1f4e; color: var(--purple); }
+  .q-mod-tag[data-mod="B"] { background: #0d2d3a; color: var(--cyan); }
+  .q-mod-tag[data-mod="C"] { background: #2d1f00; color: var(--orange); }
+  .q-mod-tag[data-mod="E"] { background: #0d2d1a; color: var(--green); }
+  .q-text { font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
+  .q-text code { background: var(--surface2); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.9em; color: var(--cyan); }
+
+  .opts { display: flex; flex-direction: column; gap: 0.5rem; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 1rem;
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+    background: var(--surface2); transition: all 0.15s; user-select: none;
+  }
+  .opt:hover:not(.locked) { border-color: var(--accent); background: #161f2e; }
+  .opt-letter {
+    min-width: 24px; height: 24px; border-radius: 50%; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; color: var(--muted); flex-shrink: 0;
+  }
+  .opt-text { font-size: 0.95rem; line-height: 1.4; padding-top: 2px; }
+  .opt.selected { border-color: var(--accent); background: #101d2e; }
+  .opt.selected .opt-letter { background: var(--accent); color: #000; }
+  .opt.correct { border-color: var(--green); background: #0d1f12; }
+  .opt.correct .opt-letter { background: var(--green); color: #000; }
+  .opt.wrong { border-color: var(--red); background: #1f0d0d; }
+  .opt.wrong .opt-letter { background: var(--red); color: #fff; }
+  .opt.locked { cursor: default; }
+
+  .explanation {
+    margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px;
+    background: #0d1f12; border-left: 3px solid var(--green); font-size: 0.9rem;
+    line-height: 1.5; display: none;
+  }
+  .explanation.wrong-exp { background: #1a0d0d; border-left-color: var(--red); }
+  .explanation strong { color: var(--text); }
+
+  /* NAV */
+  .nav-row { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+  .btn {
+    padding: 0.5rem 1.25rem; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text); cursor: pointer; font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+  .btn.primary:hover { background: #79bbff; border-color: #79bbff; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* RESULTS */
+  #results { display: none; }
+  .score-ring-wrap { display: flex; justify-content: center; margin: 1.5rem 0; }
+  .score-ring { position: relative; width: 140px; height: 140px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring circle { fill: none; stroke-width: 10; }
+  .ring-bg { stroke: var(--surface2); }
+  .ring-fg { stroke: var(--green); stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+  .ring-fg.amber { stroke: var(--amber); }
+  .ring-fg.red { stroke: var(--red); }
+  .ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-pct { font-size: 2rem; font-weight: 700; }
+  .ring-sub { font-size: 0.75rem; color: var(--muted); }
+
+  .result-title { text-align: center; font-size: 1.3rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .result-sub { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  .mod-breakdown { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .mod-breakdown h3 { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .mod-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+  .mod-label { width: 90px; font-size: 0.85rem; color: var(--muted); flex-shrink: 0; }
+  .mod-bar-wrap { flex: 1; background: var(--surface2); border-radius: 4px; height: 8px; }
+  .mod-bar { height: 8px; border-radius: 4px; transition: width 0.6s; }
+  .mod-score-label { font-size: 0.8rem; color: var(--muted); flex-shrink: 0; min-width: 50px; text-align: right; }
+
+  .result-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+
+  /* REVIEW */
+  #review { display: none; }
+  .review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+
+  /* WRONG-ONLY FILTER */
+  .toggle-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--muted); }
+  .toggle-row input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .toggle-row label { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- LOADING STATE -->
+<div id="loading">
+  <div class="spinner"></div>
+  <span style="color:var(--muted);font-size:0.9rem;">Loading question bank...</span>
+  <div id="error-box">
+    <h2>Could not load questions</h2>
+    <p>The quiz fetches questions from GitHub. Make sure you are connected to the internet, or try opening the page from GitHub Pages.</p>
+    <p style="margin-top:0.5rem;">URL tried:<br><code id="fetch-url"></code></p>
+  </div>
+</div>
+
+<!-- MAIN QUIZ APP -->
+<div id="app">
+  <h1>CPSA Revision Quiz</h1>
+  <p class="subtitle" id="quiz-subtitle">My Cyber Academy - November 2026 Cohort</p>
+
+  <div class="filter-row" id="filter-row">
+    <button class="mod-btn active" data-mod="ALL">All Modules</button>
+    <button class="mod-btn" data-mod="A">Module A - Methodology</button>
+    <button class="mod-btn" data-mod="B">Module B - Network Recon</button>
+    <button class="mod-btn" data-mod="C">Module C - OSINT / DNS</button>
+    <button class="mod-btn" data-mod="E">Module E - Windows / AD</button>
+  </div>
+
+  <!-- QUIZ VIEW -->
+  <div id="quiz">
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label"></div>
+    <div id="q-container"></div>
+    <div class="nav-row">
+      <button class="btn" id="prev-btn" onclick="nav(-1)">Previous</button>
+      <button class="btn primary" id="next-btn" onclick="nav(1)">Next</button>
+      <button class="btn primary" id="finish-btn" onclick="showResults()" style="display:none">See Results</button>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="results">
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle class="ring-bg" cx="70" cy="70" r="60"/>
+          <circle class="ring-fg" id="ring-fg" cx="70" cy="70" r="60" stroke-dasharray="376.99" stroke-dashoffset="376.99"/>
+        </svg>
+        <div class="ring-label">
+          <span class="ring-pct" id="ring-pct">0%</span>
+          <span class="ring-sub" id="ring-sub">0 / 0</span>
+        </div>
+      </div>
+    </div>
+    <p class="result-title" id="result-title"></p>
+    <p class="result-sub" id="result-sub"></p>
+
+    <div class="mod-breakdown" id="mod-breakdown"></div>
+
+    <div class="result-actions">
+      <button class="btn primary" onclick="showReview(false)">Review All Answers</button>
+      <button class="btn" onclick="showReview(true)">Wrong Answers Only</button>
+      <button class="btn" onclick="restart()">Restart Quiz</button>
+    </div>
+  </div>
+
+  <!-- REVIEW VIEW -->
+  <div id="review">
+    <div class="review-header">
+      <h2 style="font-size:1.1rem;">Answer Review</h2>
+      <button class="btn" onclick="backToResults()">Back to Results</button>
+    </div>
+    <div class="toggle-row">
+      <input type="checkbox" id="wrong-only-toggle" onchange="toggleWrongOnly(this.checked)">
+      <label for="wrong-only-toggle">Show wrong answers only</label>
+    </div>
+    <div id="review-container"></div>
+    <div style="text-align:center;margin-top:1.5rem;">
+      <button class="btn primary" onclick="restart()">Start Over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- CONFIG ----
+const QUESTIONS_URL = 'https://raw.githubusercontent.com/heaps1345/mca-activites/main/cpsa/questions.json';
+
+// ---- STATE ----
+let ALL_Q = [];
+let questions = [];
+let answers = {};
+let current = 0;
+let activeModule = 'ALL';
+
+const LETTERS = ['A','B','C','D','E'];
+const MOD_NAMES = { A: 'Module A', B: 'Module B', C: 'Module C', E: 'Module E' };
+const MOD_COLORS = { A: '#bc8cff', B: '#39c5cf', C: '#f0883e', E: '#3fb950' };
+
+// ---- LOAD ----
+document.getElementById('fetch-url').textContent = QUESTIONS_URL;
+
+fetch(QUESTIONS_URL)
+  .then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then(data => {
+    ALL_Q = data;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    startQuiz();
+  })
+  .catch(err => {
+    document.querySelector('#loading .spinner').style.display = 'none';
+    document.querySelector('#loading span').style.display = 'none';
+    document.getElementById('error-box').style.display = 'block';
+    console.error('Failed to load questions:', err);
+  });
+
+// ---- QUIZ LOGIC ----
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  const pool = activeModule === 'ALL' ? ALL_Q : ALL_Q.filter(q => q.module === activeModule);
+  questions = shuffle(pool);
+  answers = {};
+  current = 0;
+  document.getElementById('quiz').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('review').style.display = 'none';
+  renderQ();
+}
+
+function setModule(mod) {
+  activeModule = mod;
+  document.querySelectorAll('.mod-btn').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  startQuiz();
+}
+
+document.getElementById('filter-row').addEventListener('click', e => {
+  if (e.target.classList.contains('mod-btn')) setModule(e.target.dataset.mod);
+});
+
+function renderQ() {
+  const q = questions[current];
+  const total = questions.length;
+  const answered = Object.keys(answers).length;
+
+  // Progress
+  const pct = (current / total) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `Question ${current + 1} of ${total} - ${answered} answered`;
+
+  // Nav buttons
+  document.getElementById('prev-btn').disabled = current === 0;
+  const isLast = current === total - 1;
+  document.getElementById('next-btn').style.display = isLast ? 'none' : '';
+  document.getElementById('finish-btn').style.display = isLast ? '' : 'none';
+  document.getElementById('finish-btn').disabled = answered < total;
+
+  const userAns = answers[q.id];
+  const locked = userAns !== undefined;
+
+  let optsHTML = q.opts.map((opt, i) => {
+    let cls = 'opt';
+    if (locked) {
+      cls += ' locked';
+      if (i === q.ans) cls += ' correct';
+      else if (i === userAns) cls += ' wrong';
+    } else if (i === userAns) {
+      cls += ' selected';
+    }
+    return `<div class="${cls}" onclick="answer(${q.id},${i})">
+      <div class="opt-letter">${LETTERS[i]}</div>
+      <div class="opt-text">${opt}</div>
+    </div>`;
+  }).join('');
+
+  let expHTML = '';
+  if (locked) {
+    const isCorrect = userAns === q.ans;
+    expHTML = `<div class="explanation${isCorrect ? '' : ' wrong-exp'}" style="display:block">
+      ${isCorrect ? '&#9989; ' : '&#10060; '} ${q.exp}
+    </div>`;
+  }
+
+  document.getElementById('q-container').innerHTML = `
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="q-mod-tag" data-mod="${q.module}">${MOD_NAMES[q.module] || 'Module ' + q.module}</span>
+        <span>${q.session}</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="opts">${optsHTML}</div>
+      ${expHTML}
+    </div>`;
+}
+
+function answer(qId, optIdx) {
+  const q = questions.find(x => x.id === qId);
+  if (answers[qId] !== undefined) return;
+  answers[qId] = optIdx;
+  renderQ();
+  // Auto-advance after 1.5s if correct
+  if (optIdx === q.ans && current < questions.length - 1) {
+    setTimeout(() => { current++; renderQ(); }, 1500);
+  }
+}
+
+function nav(dir) {
+  current = Math.max(0, Math.min(questions.length - 1, current + dir));
+  renderQ();
+}
+
+// ---- RESULTS ----
+function showResults() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  const total = questions.length;
+  let correct = 0;
+  const modStats = {};
+
+  questions.forEach(q => {
+    if (!modStats[q.module]) modStats[q.module] = { correct: 0, total: 0 };
+    modStats[q.module].total++;
+    if (answers[q.id] === q.ans) {
+      correct++;
+      modStats[q.module].correct++;
+    }
+  });
+
+  const pct = Math.round((correct / total) * 100);
+
+  // Ring animation
+  const ring = document.getElementById('ring-fg');
+  const circumference = 376.99;
+  const offset = circumference - (pct / 100) * circumference;
+  ring.className = 'ring-fg' + (pct >= 70 ? '' : pct >= 50 ? ' amber' : ' red');
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+
+  document.getElementById('ring-pct').textContent = pct + '%';
+  document.getElementById('ring-sub').textContent = `${correct} / ${total}`;
+
+  const title = pct >= 70 ? 'Great work! Ready for the exam?' : pct >= 50 ? 'Getting there - keep revising!' : 'More revision needed - you got this!';
+  const sub = pct >= 70 ? 'You scored above the CPSA pass threshold.' : 'Focus on the modules below that need work.';
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = sub;
+
+  // Module breakdown
+  const mods = Object.keys(modStats).sort();
+  const html = `<h3>Module Breakdown</h3>` + mods.map(mod => {
+    const s = modStats[mod];
+    const p = Math.round((s.correct / s.total) * 100);
+    const color = MOD_COLORS[mod] || '#8b949e';
+    return `<div class="mod-row">
+      <span class="mod-label">${MOD_NAMES[mod] || mod}</span>
+      <div class="mod-bar-wrap"><div class="mod-bar" style="width:${p}%;background:${color}"></div></div>
+      <span class="mod-score-label">${s.correct}/${s.total} (${p}%)</span>
+    </div>`;
+  }).join('');
+  document.getElementById('mod-breakdown').innerHTML = html;
+}
+
+// ---- REVIEW ----
+function showReview(wrongOnly) {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('review').style.display = 'block';
+  document.getElementById('wrong-only-toggle').checked = wrongOnly;
+  renderReview(wrongOnly);
+}
+
+function toggleWrongOnly(wrongOnly) {
+  renderReview(wrongOnly);
+}
+
+function renderReview(wrongOnly) {
+  const toShow = wrongOnly
+    ? questions.filter(q => answers[q.id] !== q.ans)
+    : questions;
+
+  if (toShow.length === 0) {
+    document.getElementById('review-container').innerHTML = `
+      <div style="text-align:center;padding:3rem;color:var(--muted);">
+        <p style="font-size:1.5rem;">&#127881;</p>
+        <p>No wrong answers to show - well done!</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('review-container').innerHTML = toShow.map((q, idx) => {
+    const userAns = answers[q.id];
+    const isCorrect = userAns === q.ans;
+
+    const optsHTML = q.opts.map((opt, i) => {
+      let cls = 'opt locked';
+      if (i === q.ans) cls += ' correct';
+      else if (i === userAns) cls += ' wrong';
+      return `<div class="${cls}">
+        <div class="opt-letter">${LETTERS[i]}</div>
+        <div class="opt-text">${opt}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="q-card">
+      <div class="q-meta">
+        <span class="q-mod-tag" data-mod="${q.module}">${MOD_NAMES[q.module] || 'Module ' + q.module}</span>
+        <span>${q.session}</span>
+        <span style="margin-left:auto;color:${isCorrect ? 'var(--green)' : 'var(--red)'}">
+          ${isCorrect ? '&#9989; Correct' : '&#10060; Incorrect'}
+        </span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="opts">${optsHTML}</div>
+      <div class="explanation${isCorrect ? '' : ' wrong-exp'}" style="display:block">${q.exp}</div>
+    </div>`;
+  }).join('');
+}
+
+function backToResults() {
+  document.getElementById('review').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+}
+
+function restart() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('review').style.display = 'none';
+  startQuiz();
+}
+</script>
+</body>
+</html>

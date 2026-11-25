@@ -1,0 +1,532 @@
+[
+  {
+    "id": 1,
+    "module": "A",
+    "session": "Session 3 & 4",
+    "q": "What is the primary legal purpose of having a written Scope and Rules of Engagement (ROE) document before a penetration test?",
+    "opts": [
+      "It speeds up the testing process",
+      "It provides the tester with legal protection if challenged",
+      "It ensures the client pays on time",
+      "It tells the tester which tools to use"
+    ],
+    "ans": 1,
+    "exp": "<strong>Legal protection</strong> was the key point from your sessions. The scope and ROE document is what protects you as a pen tester if you are ever questioned about your activity. Without it, what you do is indistinguishable from a criminal attack under the Computer Misuse Act 1990."
+  },
+  {
+    "id": 2,
+    "module": "A",
+    "session": "Session 3",
+    "q": "Which section of the Computer Misuse Act 1990 covers unauthorised access to computer material?",
+    "opts": ["Section 2", "Section 3", "Section 1", "Section 4"],
+    "ans": 2,
+    "exp": "<strong>Section 1</strong> of the Computer Misuse Act 1990 covers unauthorised access to computer material. This was specifically called out in your sessions as the key legislation pen testers must be aware of."
+  },
+  {
+    "id": 3,
+    "module": "A",
+    "session": "Session 4",
+    "q": "In CVSS scoring, how are the three components of the CIA triad (Confidentiality, Integrity, Availability) weighted relative to each other?",
+    "opts": [
+      "Confidentiality is weighted highest",
+      "Availability is weighted highest because downtime costs money",
+      "All three are weighted equally",
+      "Integrity is weighted highest because data must be accurate"
+    ],
+    "ans": 2,
+    "exp": "<strong>All three are equal.</strong> CVSS weights Confidentiality, Integrity, and Availability equally. No single component takes priority over another in the scoring model - this was an important point made in your session on risk scoring."
+  },
+  {
+    "id": 4,
+    "module": "A",
+    "session": "Session 5",
+    "q": "What does the \"D\" stand for in the DREAD risk model?",
+    "opts": ["Detection", "Damage potential", "Disclosure", "Defence"],
+    "ans": 1,
+    "exp": "<strong>Damage potential</strong> - DREAD stands for Damage potential, Reproducibility, Exploitability, Affected users, and Discoverability. It is a qualitative risk model used to rank findings."
+  },
+  {
+    "id": 5,
+    "module": "A",
+    "session": "Session 5",
+    "q": "Which risk model uses the categories: Damage, Reproducibility, Exploitability, Affected users, and Discoverability?",
+    "opts": ["CVSS", "STRIDE", "DREAD", "PASTA"],
+    "ans": 2,
+    "exp": "<strong>DREAD</strong> is the model using those five categories. CVSS is a numerical scoring system (0-10) using the CIA triad impact metrics. Both were covered in your sessions - know the difference."
+  },
+  {
+    "id": 6,
+    "module": "A",
+    "session": "Session 3",
+    "q": "In the context of penetration testing, what does \"scope\" define?",
+    "opts": [
+      "The budget available for the test",
+      "The systems, IP ranges, and targets the tester is authorised to test",
+      "The methodology the tester must follow",
+      "The reporting format required by the client"
+    ],
+    "ans": 1,
+    "exp": "<strong>Scope defines what you are authorised to test</strong> - specific IP ranges, domains, applications, and systems. Testing anything outside the agreed scope is unauthorised access, regardless of intent."
+  },
+  {
+    "id": 7,
+    "module": "B",
+    "session": "Session 1",
+    "q": "What does the Nmap flag <code>-sn</code> do?",
+    "opts": [
+      "Performs a SYN stealth scan",
+      "Performs host discovery only - no port scan",
+      "Scans for service versions",
+      "Disables reverse DNS resolution"
+    ],
+    "ans": 1,
+    "exp": "<strong>-sn = host discovery only (ping scan).</strong> It tells Nmap to find which hosts are up without scanning any ports. This was explicitly taught in Session 1 as a common misconception - <code>-sn</code> does NOT mean SYN scan."
+  },
+  {
+    "id": 8,
+    "module": "B",
+    "session": "Session 1",
+    "q": "Which Nmap flag sends an ICMP Echo Request specifically for host discovery?",
+    "opts": ["-sS", "-PE", "-sn", "-sV"],
+    "ans": 1,
+    "exp": "<strong>-PE</strong> sends an ICMP Type 8 Echo Request (ping) for host discovery. It is often combined with <code>-sn</code>: <code>nmap -sn -PE [target]</code>."
+  },
+  {
+    "id": 9,
+    "module": "B",
+    "session": "Session 1",
+    "q": "What ICMP message type is an Echo Request (the kind used by the ping command)?",
+    "opts": ["Type 0", "Type 3", "Type 8", "Type 11"],
+    "ans": 2,
+    "exp": "<strong>ICMP Type 8</strong> is the Echo Request. Type 0 is the Echo Reply. This was explicitly taught in your sessions - Nmap sends Type 8 when using the <code>-PE</code> flag."
+  },
+  {
+    "id": 10,
+    "module": "B",
+    "session": "Session 1",
+    "q": "Which Nmap flag performs a SYN (stealth) scan?",
+    "opts": ["-sn", "-sV", "-sS", "-PE"],
+    "ans": 2,
+    "exp": "<strong>-sS</strong> is the SYN scan (also called a stealth scan or half-open scan). It sends a SYN packet and watches for a SYN-ACK response without completing the TCP handshake, making it less likely to appear in some logs."
+  },
+  {
+    "id": 11,
+    "module": "B",
+    "session": "Session 1",
+    "q": "Which Nmap flag is used to detect service versions running on open ports?",
+    "opts": ["-sC", "-sV", "-sS", "-O"],
+    "ans": 1,
+    "exp": "<strong>-sV</strong> probes open ports to determine what service and version is running. For example, it might reveal \"OpenSSH 8.2p1\" on port 22 rather than just showing the port as open."
+  },
+  {
+    "id": 12,
+    "module": "B",
+    "session": "Session 1",
+    "q": "Which Nmap flag runs the default set of NSE (Nmap Scripting Engine) scripts?",
+    "opts": ["-sV", "-sC", "-sS", "-A"],
+    "ans": 1,
+    "exp": "<strong>-sC</strong> runs the default NSE scripts against discovered services. These scripts perform additional enumeration such as checking for anonymous FTP, pulling SSL certificate details, and banner grabbing."
+  },
+  {
+    "id": 13,
+    "module": "B",
+    "session": "Session 3",
+    "q": "Why does Nmap sometimes probe ports 80 and 443 during host discovery, even when you have not specified a web scan?",
+    "opts": [
+      "It is a bug in older versions of Nmap",
+      "To detect firewalls that block ICMP but allow web traffic",
+      "To check if the target is running a web server",
+      "Because HTTP is always the first service to enumerate"
+    ],
+    "ans": 1,
+    "exp": "<strong>Firewall detection.</strong> Some hosts block ICMP echo requests at the firewall, making them appear offline. By also probing port 80 and 443 (which firewalls often allow), Nmap can confirm the host is actually up even if ping is blocked."
+  },
+  {
+    "id": 14,
+    "module": "B",
+    "session": "Session 2",
+    "q": "Which Linux command is considered the modern replacement for <code>ifconfig</code>?",
+    "opts": ["netstat", "ip a", "arp -a", "route"],
+    "ans": 1,
+    "exp": "<strong>ip a</strong> (or <code>ip addr</code>) is the modern standard. <code>ifconfig</code> is from the older net-tools package and is no longer installed by default on many modern Linux distributions. Both commands display network interface information."
+  },
+  {
+    "id": 15,
+    "module": "B",
+    "session": "Session 2",
+    "q": "On a Linux system, the <code>lo</code> interface shown in <code>ip a</code> output refers to what?",
+    "opts": [
+      "The local office network adapter",
+      "The loopback interface (127.0.0.1) - used for self-communication",
+      "A logical overlay network adapter",
+      "The last-opened network connection"
+    ],
+    "ans": 1,
+    "exp": "<strong>Loopback (lo)</strong> is 127.0.0.1 - it is the interface a machine uses to talk to itself. As taught in your sessions: never scan the loopback interface during a pen test - it is not a valid target on a network."
+  },
+  {
+    "id": 16,
+    "module": "B",
+    "session": "Session 2",
+    "q": "Why is running commands as <code>sudo</code> preferred over logging in as the root user during a pen test?",
+    "opts": [
+      "sudo is faster than root",
+      "sudo limits exposure - if a script you run is malicious, it only has your user permissions, not full root access",
+      "Root cannot run Nmap on most systems",
+      "sudo provides better logging for the report"
+    ],
+    "ans": 1,
+    "exp": "<strong>Limiting exposure.</strong> This was a direct teaching point from your sessions: if you are running as root and you accidentally execute a malicious script (from an untrusted source), it has unrestricted access to the entire system. Using sudo limits the blast radius."
+  },
+  {
+    "id": 17,
+    "module": "B",
+    "session": "Session 2",
+    "q": "Which protocol operates at Layer 2 (Data Link) and is used to resolve IP addresses to MAC addresses on the same subnet?",
+    "opts": ["ICMP", "ARP", "DNS", "DHCP"],
+    "ans": 1,
+    "exp": "<strong>ARP (Address Resolution Protocol)</strong> maps IP addresses to MAC addresses. It only works within the same subnet (broadcast domain) - you cannot ARP across a router. This was covered in Session 2 when discussing host discovery techniques."
+  },
+  {
+    "id": 18,
+    "module": "B",
+    "session": "Session 1",
+    "q": "An IP address with a /24 subnet mask gives you how many usable host addresses?",
+    "opts": ["254", "256", "512", "65,534"],
+    "ans": 0,
+    "exp": "<strong>254 usable hosts.</strong> A /24 gives 256 total addresses (2^8), minus 1 for the network address and 1 for the broadcast address = 254 usable hosts. /16 gives 65,534 usable hosts, /8 gives over 16 million."
+  },
+  {
+    "id": 19,
+    "module": "B",
+    "session": "Session 4",
+    "q": "What is the default port for FTP (File Transfer Protocol)?",
+    "opts": ["22", "21", "23", "69"],
+    "ans": 1,
+    "exp": "<strong>Port 21</strong> is used for FTP control connections. Port 20 is used for FTP data transfers in active mode. FTP is unencrypted - credentials are sent in plaintext, making it a significant finding if anonymous access is enabled."
+  },
+  {
+    "id": 20,
+    "module": "B",
+    "session": "Session 4",
+    "q": "SSH operates on which default port?",
+    "opts": ["21", "23", "22", "3389"],
+    "ans": 2,
+    "exp": "<strong>Port 22</strong> is the default for SSH (Secure Shell). SSH provides an encrypted alternative to Telnet (port 23). During a scan, finding SSH open is common - the key finding is usually weak credentials or outdated SSH versions."
+  },
+  {
+    "id": 21,
+    "module": "B",
+    "session": "Session 4",
+    "q": "SNMP typically uses which port and transport protocol?",
+    "opts": ["161/TCP", "162/UDP", "161/UDP", "443/TCP"],
+    "ans": 2,
+    "exp": "<strong>Port 161/UDP</strong> is used for SNMP queries (the agent listens here). Port 162/UDP is used for SNMP traps (unsolicited notifications sent to a manager). SNMP runs over UDP, not TCP."
+  },
+  {
+    "id": 22,
+    "module": "B",
+    "session": "Session 4",
+    "q": "In SNMP version 1, what is the default read-only community string that is widely known and often left unchanged?",
+    "opts": ["admin", "private", "public", "community"],
+    "ans": 2,
+    "exp": "<strong>public</strong> is the default read-only community string in SNMPv1. The write community string is typically \"private\". Finding a device with the default community string unchanged is a notable vulnerability - it allows an attacker to enumerate the entire device configuration."
+  },
+  {
+    "id": 23,
+    "module": "B",
+    "session": "Session 4",
+    "q": "Which port does SMB (Server Message Block) use in modern Windows environments?",
+    "opts": ["139", "445", "135", "3389"],
+    "ans": 1,
+    "exp": "<strong>Port 445</strong> is the modern port for SMB (direct TCP without NetBIOS). Port 139 is the older NetBIOS-over-TCP port. During scanning, finding port 445 open is significant as SMB has historically been a major attack vector (EternalBlue, WannaCry)."
+  },
+  {
+    "id": 24,
+    "module": "B",
+    "session": "Session 4",
+    "q": "Which notorious ransomware attack in 2017 exploited a vulnerability in SMB version 1?",
+    "opts": ["Petya", "Stuxnet", "WannaCry", "Mirai"],
+    "ans": 2,
+    "exp": "<strong>WannaCry</strong> (May 2017) used the EternalBlue exploit targeting SMBv1 to spread across networks. This is why SMBv1 should always be disabled - finding it enabled is a critical finding in a pen test report."
+  },
+  {
+    "id": 25,
+    "module": "B",
+    "session": "Session 4",
+    "q": "What is banner grabbing used for in a penetration test?",
+    "opts": [
+      "Capturing network traffic for later analysis",
+      "Identifying the service and version running on an open port",
+      "Detecting the operating system of the target",
+      "Pulling SSL certificates from HTTPS services"
+    ],
+    "ans": 1,
+    "exp": "<strong>Identifying service and version.</strong> Banner grabbing connects to an open port and reads the service banner it returns. Tools like <code>netcat</code> and <code>telnet</code> can do this manually. For example: <code>nc 192.168.1.1 22</code> might return \"OpenSSH_8.2p1 Ubuntu\" revealing the exact version."
+  },
+  {
+    "id": 26,
+    "module": "B",
+    "session": "Session 2",
+    "q": "Which command-line shortcut is used to stop a running command in Linux?",
+    "opts": ["Ctrl+Z", "Ctrl+C", "Ctrl+X", "Ctrl+Q"],
+    "ans": 1,
+    "exp": "<strong>Ctrl+C</strong> sends a SIGINT signal to terminate the foreground process. Ctrl+Z suspends (pauses) it to the background. This was taught in your sessions as a basic but essential Linux skill."
+  },
+  {
+    "id": 27,
+    "module": "B",
+    "session": "Session 4",
+    "q": "Which of the following port and service combinations is INCORRECT?",
+    "opts": [
+      "Port 80 - HTTP",
+      "Port 443 - HTTPS",
+      "Port 53 - DNS",
+      "Port 445 - FTP"
+    ],
+    "ans": 3,
+    "exp": "<strong>Port 445 is SMB, not FTP.</strong> FTP uses port 21 (control) and 20 (data). The correct mapping is: 21=FTP, 22=SSH, 53=DNS, 80=HTTP, 161=SNMP, 443=HTTPS, 445=SMB."
+  },
+  {
+    "id": 28,
+    "module": "C",
+    "session": "Session 2 & 6",
+    "q": "DNS was described in your sessions using a well-known analogy. What is it?",
+    "opts": [
+      "The map of the internet",
+      "The phonebook of the internet",
+      "The backbone of the internet",
+      "The router of the internet"
+    ],
+    "ans": 1,
+    "exp": "<strong>The phonebook of the internet.</strong> Just as a phonebook maps names to phone numbers, DNS maps human-readable domain names (like google.com) to IP addresses. This analogy was used directly in your sessions."
+  },
+  {
+    "id": 29,
+    "module": "C",
+    "session": "Session 2 & 6",
+    "q": "DNS primarily operates on which port and protocol?",
+    "opts": ["53/TCP", "53/UDP", "80/TCP", "161/UDP"],
+    "ans": 1,
+    "exp": "<strong>Port 53/UDP</strong> is used for standard DNS queries. DNS also uses TCP/53 for large responses (over 512 bytes) and for zone transfers (AXFR). Most day-to-day DNS traffic is UDP."
+  },
+  {
+    "id": 30,
+    "module": "C",
+    "session": "Session 6",
+    "q": "What is a DNS Zone Transfer (AXFR) and why is it significant in a penetration test?",
+    "opts": [
+      "Moving a DNS server from one host to another",
+      "A technique that replicates all DNS records from a primary to secondary server - if misconfigured, any host can request all records, exposing the full domain structure",
+      "Encrypting DNS traffic between servers",
+      "Changing the IP address of a domain"
+    ],
+    "ans": 1,
+    "exp": "<strong>AXFR misconfigurations are a recon goldmine.</strong> Zone transfers are meant to allow secondary DNS servers to replicate from primaries. If the DNS server is misconfigured to allow transfers from any source, an attacker can retrieve every subdomain, host, and IP address in the domain in one request."
+  },
+  {
+    "id": 31,
+    "module": "C",
+    "session": "Session 5",
+    "q": "What is Shodan primarily used for in the context of OSINT and reconnaissance?",
+    "opts": [
+      "Searching the dark web for stolen credentials",
+      "Scanning social media for employee information",
+      "Discovering internet-connected devices, services, and banners without actively scanning the target",
+      "Performing automated SQL injection attacks"
+    ],
+    "ans": 2,
+    "exp": "<strong>Shodan</strong> is a search engine for internet-facing devices. It crawls the internet and indexes banners and service information from exposed systems. As an OSINT tool, it lets you discover what a target has exposed to the internet without sending a single packet to them directly."
+  },
+  {
+    "id": 32,
+    "module": "C",
+    "session": "Session 6",
+    "q": "During your session on GitHub reconnaissance, what type of finding was highlighted as a major risk when developers push code to public repositories?",
+    "opts": [
+      "Outdated README files",
+      "Hardcoded credentials and API keys accidentally committed to code",
+      "Open source licencing violations",
+      "Duplicate function names in code"
+    ],
+    "ans": 1,
+    "exp": "<strong>Exposed credentials in public repositories</strong> is a critical finding. Developers sometimes accidentally commit API keys, passwords, or private tokens to GitHub. Tools like truffleHog or GitLeaks can automate finding these. This was covered in Session 6 as part of passive reconnaissance."
+  },
+  {
+    "id": 33,
+    "module": "C",
+    "session": "Session 5",
+    "q": "What distinguishes passive reconnaissance from active reconnaissance?",
+    "opts": [
+      "Passive recon requires expensive tools; active recon uses free tools",
+      "Passive recon gathers information without sending packets to the target; active recon involves direct interaction",
+      "Passive recon is illegal; active recon is covered by the ROE",
+      "There is no meaningful distinction between the two"
+    ],
+    "ans": 1,
+    "exp": "<strong>No packets to the target.</strong> Passive recon (OSINT) uses publicly available sources - search engines, Shodan, social media, LinkedIn, DNS lookups on third-party servers. Active recon involves directly probing the target (Nmap scanning, banner grabbing) and is only done within the agreed scope."
+  },
+  {
+    "id": 34,
+    "module": "C",
+    "session": "Session 5",
+    "q": "Which of the following is an example of an IoT device that might be discovered during OSINT reconnaissance on Shodan?",
+    "opts": [
+      "A developer's GitHub profile",
+      "An internet-connected industrial control system or IP camera with default credentials",
+      "A LinkedIn employee directory",
+      "A company's public SSL certificate"
+    ],
+    "ans": 1,
+    "exp": "<strong>IoT devices with default credentials</strong> are a major finding category on Shodan. Industrial control systems (ICS/SCADA), IP cameras, routers, and smart building systems are frequently found exposed on the internet with factory-default usernames and passwords."
+  },
+  {
+    "id": 35,
+    "module": "C",
+    "session": "Session 2",
+    "q": "Which DNS record type maps a hostname to an IPv4 address?",
+    "opts": ["MX", "AAAA", "A", "CNAME"],
+    "ans": 2,
+    "exp": "<strong>A record</strong> maps a hostname to an IPv4 address. AAAA maps to IPv6. CNAME is an alias pointing to another hostname. MX specifies mail exchange servers for a domain."
+  },
+  {
+    "id": 36,
+    "module": "E",
+    "session": "Session 4",
+    "q": "What was the original purpose of SMB (Server Message Block) when it was first conceived in the 1980s?",
+    "opts": [
+      "Web content delivery",
+      "Email transmission between servers",
+      "File and printer sharing on local networks",
+      "Remote desktop access to Windows servers"
+    ],
+    "ans": 2,
+    "exp": "<strong>File and printer sharing.</strong> SMB was conceived in the 1980s specifically to allow Windows machines to share files, printers, and other resources on a local network. This was covered in Session 4 when discussing SMB history and version progression (v1, v2, v3)."
+  },
+  {
+    "id": 37,
+    "module": "E",
+    "session": "Session 5",
+    "q": "What is password spraying?",
+    "opts": [
+      "Trying every possible password against a single account",
+      "Trying a few common passwords against many accounts to avoid account lockout",
+      "Using rainbow tables to crack hashed passwords",
+      "Capturing and replaying password hashes on the network"
+    ],
+    "ans": 1,
+    "exp": "<strong>Few passwords, many accounts.</strong> Password spraying avoids lockout policies by trying one or two common passwords (like \"Password1!\") across all accounts in the organisation, rather than hammering a single account. This was covered in Session 5 as a credential attack technique."
+  },
+  {
+    "id": 38,
+    "module": "E",
+    "session": "Session 6",
+    "q": "What is Active Directory (AD)?",
+    "opts": [
+      "A firewall product made by Microsoft",
+      "Microsoft's directory service that centralises authentication and authorisation for Windows domain environments",
+      "A database for storing application logs",
+      "A cloud-based identity service from Microsoft"
+    ],
+    "ans": 1,
+    "exp": "<strong>Active Directory</strong> is Microsoft's directory service used to manage users, computers, groups, and policies in Windows domain environments. It is a primary target in internal penetration tests as compromising AD (especially domain admin) means full control of the Windows estate."
+  },
+  {
+    "id": 39,
+    "module": "E",
+    "session": "Session 6",
+    "q": "BloodHound is a tool used in Active Directory enumeration. What is its primary function?",
+    "opts": [
+      "Cracking Windows password hashes",
+      "Mapping attack paths and privilege escalation routes through AD by analysing relationships between objects",
+      "Scanning for open ports on Windows servers",
+      "Capturing Kerberos tickets from the network"
+    ],
+    "ans": 1,
+    "exp": "<strong>Attack path mapping.</strong> BloodHound collects AD data (using SharpHound) and visualises it as a graph, showing relationships between users, groups, and computers. Security teams and attackers use it to identify the shortest path to Domain Admin."
+  },
+  {
+    "id": 40,
+    "module": "E",
+    "session": "Session 5",
+    "q": "What does privilege escalation mean in the context of a penetration test?",
+    "opts": [
+      "Getting the client to increase the testing budget",
+      "Gaining higher levels of access than initially obtained - for example, moving from a standard user to administrator",
+      "Increasing the number of ports scanned",
+      "Escalating a vulnerability to the CVSS critical category"
+    ],
+    "ans": 1,
+    "exp": "<strong>Gaining higher access.</strong> Privilege escalation is the process of exploiting a vulnerability or misconfiguration to elevate your access level. Vertical escalation goes from low to high privilege (user to admin). Horizontal is accessing another account at the same level."
+  },
+  {
+    "id": 41,
+    "module": "E",
+    "session": "Session 4",
+    "q": "An SMB null session allows an attacker to do what?",
+    "opts": [
+      "Send zero-byte packets to crash a server",
+      "Connect to a Windows share without providing any credentials and enumerate users, shares, and policies",
+      "Set all SMB timeouts to null/zero",
+      "Create a hidden administrator account"
+    ],
+    "ans": 1,
+    "exp": "<strong>Unauthenticated enumeration.</strong> A null session is an anonymous connection to an IPC$ share. In older Windows systems (pre-Vista/2003), this could expose users, groups, shares, password policies, and more. Finding null sessions enabled is a significant vulnerability."
+  },
+  {
+    "id": 42,
+    "module": "B",
+    "session": "Session 1",
+    "q": "You run <code>nmap -sn -PE 192.168.1.0/24</code>. What does this command do?",
+    "opts": [
+      "Performs a SYN scan and a ping on the entire /24 subnet",
+      "Discovers which hosts are up in the 192.168.1.0/24 range using ICMP Echo Requests, without scanning any ports",
+      "Scans all ports on 192.168.1.0 using ICMP",
+      "Runs the default NSE scripts on all hosts in the range"
+    ],
+    "ans": 1,
+    "exp": "<strong>Host discovery only.</strong> <code>-sn</code> = no port scan, <code>-PE</code> = send ICMP Echo Request (Type 8). Combined, this tells Nmap to ping every address in the /24 range and report which hosts respond, without touching any ports."
+  },
+  {
+    "id": 43,
+    "module": "C",
+    "session": "Session 5 & 6",
+    "q": "Which of the following would be considered passive reconnaissance? (Select the best answer)",
+    "opts": [
+      "Running Nmap against the target network",
+      "Sending a phishing email to employees",
+      "Searching LinkedIn for employee names and job roles without contacting the company",
+      "Connecting to the target's web server to test for SQL injection"
+    ],
+    "ans": 2,
+    "exp": "<strong>LinkedIn research is passive OSINT.</strong> You are gathering publicly available information without interacting with the target's infrastructure at all. Nmap scans, phishing, and SQL injection all involve direct interaction and are forms of active testing."
+  },
+  {
+    "id": 44,
+    "module": "A",
+    "session": "Session 3",
+    "q": "A client says \"just test everything - go wild.\" Why is this NOT sufficient as a scope document?",
+    "opts": [
+      "It is fine - verbal authorisation counts as legal permission",
+      "Without documented IP ranges and written sign-off, there is no legal protection if you accidentally test systems outside the client's control, such as cloud-hosted third-party services",
+      "The client needs to provide a scope document only if they want a written report",
+      "Verbal authorisation is fine as long as you stay within company-owned assets"
+    ],
+    "ans": 1,
+    "exp": "<strong>Written, specific scope is essential.</strong> \"Test everything\" does not define what systems the client actually owns or controls. Organisations often use third-party cloud services, CDNs, or SaaS platforms. If you test those without written authorisation from their owners, verbal permission from the client does NOT protect you legally."
+  },
+  {
+    "id": 45,
+    "module": "B",
+    "session": "Session 4",
+    "q": "During a scan, you find port 161 open on a network device. What service is likely running and what is the first thing you should check?",
+    "opts": [
+      "SMB - check for null sessions",
+      "SNMP - check whether the default community strings \"public\" and \"private\" are still set",
+      "HTTP - check for default web interface credentials",
+      "DNS - check for zone transfer misconfiguration"
+    ],
+    "ans": 1,
+    "exp": "<strong>Port 161 = SNMP.</strong> The first check is always whether the default community strings are in use. \"public\" (read-only) and \"private\" (read-write) are the SNMPv1 defaults. If left unchanged, an attacker can read (and potentially write) the full device configuration including routing tables, interface details, and running processes."
+  }
+]
