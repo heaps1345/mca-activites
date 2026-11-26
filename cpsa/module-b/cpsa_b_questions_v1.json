@@ -1,0 +1,261 @@
+[
+  {
+    "section": "B1 - IP Protocols",
+    "q": "IPv4 addresses are how many bits long?",
+    "options": ["16 bits","32 bits","64 bits","128 bits"],
+    "correct": 1,
+    "explanation": "IPv4 is 32 bits, written as four 8-bit octets in dotted-decimal notation (e.g. 192.168.1.1). IPv6 is 128 bits. This is a core CPSA exam fact."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "Which protocol is connectionless and does NOT perform a handshake before sending data?",
+    "options": ["TCP","ICMP","UDP","IPv6"],
+    "correct": 2,
+    "explanation": "UDP (User Datagram Protocol) is connectionless - no handshake, no acknowledgements, no guaranteed delivery. It trades reliability for speed. TCP is connection-oriented and uses the three-way handshake."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "What is the default TTL value for a Linux/Unix host?",
+    "options": ["32","64","128","255"],
+    "correct": 1,
+    "explanation": "Linux/Unix defaults to TTL 64. Windows uses 128, Cisco devices use 255. These values allow OS fingerprinting from a ping response - you work backwards from the received TTL to determine the most likely starting value."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "What is the default TTL value for a Windows host?",
+    "options": ["64","128","255","32"],
+    "correct": 1,
+    "explanation": "Windows defaults to TTL 128. Linux is 64, Cisco is 255. If you receive a ping reply with TTL 121, it started at 128 and has travelled 7 hops - most likely a Windows host."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "You ping a host and receive a reply with TTL=119. What OS is the target most likely running?",
+    "options": ["Linux - started at 64, 55 hops away","Windows - started at 128, 9 hops away","Cisco - started at 255, 136 hops away","Cannot determine from TTL alone"],
+    "correct": 1,
+    "explanation": "Work backwards from standard TTL starting values. 128-119=9 hops (Windows). 64-119 is impossible (negative). 255-119=136 hops is unrealistic. Windows at 9 hops is by far the most plausible answer."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "IPv6 addresses are how many bits long, and how are they typically written?",
+    "options": ["64 bits, written as four decimal octets","128 bits, written as eight groups of four hexadecimal digits","256 bits, written in binary","32 bits, written the same as IPv4"],
+    "correct": 1,
+    "explanation": "IPv6 is 128 bits long, written as eight groups of four hexadecimal digits separated by colons (e.g. 2001:0db8:85a3:0000:0000:8a2e:0370:7334). Consecutive groups of zeros can be compressed with ::."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "What ICMP type number is an Echo Request - the packet sent when you run ping?",
+    "options": ["Type 0","Type 3","Type 8","Type 11"],
+    "correct": 2,
+    "explanation": "ICMP Type 8 = Echo Request (what ping sends out). Type 0 = Echo Reply (what comes back). Type 3 = Destination Unreachable. Type 11 = Time Exceeded. Remember: 8 goes out, 0 comes back."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "Which ICMP type does traceroute rely on to identify each hop along the route?",
+    "options": ["Type 0 - Echo Reply","Type 3 - Destination Unreachable","Type 8 - Echo Request","Type 11 - Time Exceeded"],
+    "correct": 3,
+    "explanation": "Traceroute sends packets with incrementing TTL values starting at 1. Each router that receives a packet with TTL=1 decrements it to 0, drops the packet, and sends back ICMP Type 11 Time Exceeded. Traceroute reads the source IP of each Type 11 to map the route."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "A host you are scanning returns an ICMP Type 3 message. What does this tell you?",
+    "options": ["The host is alive and responding to pings","The host's route has timed out","The destination or port is unreachable","The host is a Cisco router"],
+    "correct": 2,
+    "explanation": "ICMP Type 3 is Destination Unreachable. This can mean the host itself is unreachable, a specific port is closed (Type 3 Code 3), or a firewall is blocking the traffic. Receiving Type 3 means something is responding - which is itself useful information during recon."
+  },
+  {
+    "section": "B2 - TCP Handshake",
+    "q": "What is the correct sequence of the TCP three-way handshake?",
+    "options": ["SYN > ACK > SYN-ACK","SYN > SYN-ACK > ACK","ACK > SYN > SYN-ACK","SYN-ACK > SYN > ACK"],
+    "correct": 1,
+    "explanation": "The client sends SYN, the server responds with SYN-ACK (synchronise and acknowledge), and the client completes the handshake with ACK. Only after this exchange can data flow. This is fundamental to understanding how TCP scans work."
+  },
+  {
+    "section": "B2 - TCP Handshake",
+    "q": "During a TCP SYN scan (nmap -sS), what does the scanner send to test if a port is open?",
+    "options": ["A full TCP connect followed by immediate RST","A SYN packet only - never completes the handshake","A UDP probe packet","An ICMP Echo Request"],
+    "correct": 1,
+    "explanation": "A SYN scan (-sS) sends only the initial SYN packet. If the port is open, the target replies SYN-ACK. The scanner then sends RST to tear down without completing the handshake. This is stealthier as it never establishes a full connection."
+  },
+  {
+    "section": "B2 - TCP Handshake",
+    "q": "What response does a target send to a SYN probe when a port is CLOSED?",
+    "options": ["SYN-ACK","RST-ACK","No response","ICMP Type 3"],
+    "correct": 1,
+    "explanation": "A closed port responds to a SYN with RST-ACK, actively rejecting the connection. An open port responds SYN-ACK. A filtered port (firewall blocking) typically gives no response or an ICMP unreachable."
+  },
+  {
+    "section": "B2 - TCP Flags",
+    "q": "Which nmap scan type requires root/administrator privileges to run because it crafts raw packets?",
+    "options": ["-sT (TCP connect scan)","-sS (SYN scan)","-sV (version scan)","-sC (script scan)"],
+    "correct": 1,
+    "explanation": "The SYN scan (-sS) crafts raw TCP packets without going through the OS network stack, which requires root/administrator privileges. The TCP connect scan (-sT) uses normal OS socket calls and can run as any user, but is more detectable."
+  },
+  {
+    "section": "B2 - TCP Flags",
+    "q": "An nmap -sA scan sends packets with only the ACK flag set. What is the primary purpose of an ACK scan?",
+    "options": ["To find open ports on a target","To enumerate services running on open ports","To map firewall rules by identifying filtered vs unfiltered ports","To perform OS fingerprinting"],
+    "correct": 2,
+    "explanation": "ACK scans (-sA) are used to map firewall rulesets, not to find open ports. If a port returns RST it is unfiltered. No response or ICMP unreachable means filtered. This reveals the firewall's behaviour."
+  },
+  {
+    "section": "B2 - TCP Flags",
+    "q": "The nmap -sF, -sN, and -sX scans are designed to evade certain firewalls. What do these scans have in common?",
+    "options": ["They all complete the full TCP three-way handshake","They all use only the SYN flag","They all send packets with no SYN flag, exploiting RFC behaviour to identify closed ports","They all require a valid ICMP response to work"],
+    "correct": 2,
+    "explanation": "FIN (-sF), NULL (-sN), and Xmas (-sX) scans send packets without the SYN flag. Per RFC 793, a closed port should respond with RST. An open port drops the packet silently. These can bypass simple packet filters but won't work against stateful firewalls."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "On a Kali Linux system, which command shows your IP address, subnet mask, and MAC address for all interfaces?",
+    "options": ["ifconfig -a","ip a","netstat -i","ss -tlnp"],
+    "correct": 1,
+    "explanation": "`ip a` (ip address show) is the modern replacement for ifconfig. It shows all interfaces, their IPv4/IPv6 addresses, and MAC addresses (shown as 'link/ether'). ifconfig is deprecated on current Linux distributions."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "Which file on a Linux system contains the IP address of the configured DNS server?",
+    "options": ["/etc/hosts","/etc/network/interfaces","/etc/resolv.conf","/etc/dns.conf"],
+    "correct": 2,
+    "explanation": "/etc/resolv.conf contains the 'nameserver' entries pointing to DNS servers. `cat /etc/resolv.conf` shows which DNS server the system uses. This is a quick way to identify DNS infrastructure during internal recon."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "What command on Kali shows all currently listening TCP services, their port numbers, and the process ID responsible?",
+    "options": ["nmap -sS localhost","ss -tlnp","ip r","netstat -a"],
+    "correct": 1,
+    "explanation": "`ss -tlnp` = socket statistics, TCP only (-t), listening sockets only (-l), numeric port numbers (-n), show process info (-p). Fastest way to see what is listening locally without nmap."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "You run `ip r` on a Kali host. What information does this command provide?",
+    "options": ["A list of all open ports on the system","The routing table, including the default gateway","The DNS servers configured on the system","A list of all ARP cache entries"],
+    "correct": 1,
+    "explanation": "`ip r` displays the routing table. The default route (0.0.0.0/0) line shows the default gateway. This tells you the network architecture and gateway IP, both useful for recon."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "During Lab B1-A, you use the `dig` command to query DNS records. Which record type would you query to find the mail server for a domain?",
+    "options": ["A record","AAAA record","MX record","NS record"],
+    "correct": 2,
+    "explanation": "MX (Mail Exchange) records point to the mail servers responsible for a domain. `dig MX domain.com` returns these. NS records identify authoritative name servers. MX records are useful during recon to identify mail infrastructure."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "What nmap flag performs a ping sweep to discover live hosts without port scanning?",
+    "options": ["-sS","-sn","-Pn","-PE"],
+    "correct": 1,
+    "explanation": "nmap -sn performs host discovery only - no port scan. It sends ICMP echo requests, TCP SYN to port 443, TCP ACK to port 80, and ICMP timestamp requests. Use it to quickly find live hosts on a subnet before scanning them individually."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "What does the nmap flag -Pn do?",
+    "options": ["Performs a ping sweep only","Skips host discovery and treats all hosts as online","Sends only ICMP pings","Scans only the top 100 ports"],
+    "correct": 1,
+    "explanation": "-Pn tells nmap to skip host discovery and assume every target is online. Use this when hosts are blocking ICMP and not responding to pings but you know they exist. Without it, nmap may skip hosts that don't respond to discovery probes."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "You run `nmap -sn 192.168.1.0/24`. What does the /24 mean and how many hosts will nmap check?",
+    "options": ["24 hosts in the range 192.168.1.1-24","256 addresses in the range 192.168.1.0-255","A range of 24 subnets","Only the first 24 ports on each host"],
+    "correct": 1,
+    "explanation": "/24 is CIDR notation meaning 24 bits for the network, leaving 8 bits for hosts. That gives 256 addresses (192.168.1.0 to 192.168.1.255), with 254 usable host addresses. nmap will probe all 256 for this sweep."
+  },
+  {
+    "section": "B4 - Port Scanning",
+    "q": "Which nmap flag performs a SYN scan (half-open scan)?",
+    "options": ["-sT","-sS","-sU","-sV"],
+    "correct": 1,
+    "explanation": "-sS is the SYN scan, also called a half-open scan. It sends SYN, waits for SYN-ACK (open) or RST (closed), then sends RST without completing the handshake. Requires root privileges. Faster and stealthier than a full TCP connect scan."
+  },
+  {
+    "section": "B4 - Port Scanning",
+    "q": "What are the three port states nmap reports, and what causes each?",
+    "options": ["Open/closed/blocked - caused by firewall rules","Open/closed/filtered - open means SYN-ACK received, closed means RST received, filtered means no response","Active/inactive/unknown - based on service response","Listening/connected/refused - based on TCP state"],
+    "correct": 1,
+    "explanation": "Open: target sends SYN-ACK - a service is listening. Closed: target sends RST - port exists but nothing listening. Filtered: no response or ICMP unreachable - a firewall is dropping packets. Knowing these three states and what causes them is essential CPSA knowledge."
+  },
+  {
+    "section": "B4 - Port Scanning",
+    "q": "What nmap flag saves output in all three formats simultaneously (normal, XML, and grepable)?",
+    "options": ["-oN","-oX","-oG","-oA"],
+    "correct": 3,
+    "explanation": "-oA saves output in all three formats at once: .nmap (normal), .xml (XML), and .gnmap (grepable). Always use -oA with a base filename on real engagements so you have a record of your scan results. e.g. `nmap -oA scan_results 192.168.1.1`"
+  },
+  {
+    "section": "B4 - Port Scanning",
+    "q": "What does nmap -p- do differently from a default nmap scan?",
+    "options": ["Scans only privileged ports below 1024","Scans all 65535 TCP ports","Scans only UDP ports","Scans the top 1000 ports"],
+    "correct": 1,
+    "explanation": "nmap -p- scans all 65535 TCP ports. By default, nmap only scans the top 1000 most common ports. Services running on non-standard ports (e.g. SSH on 2222, HTTP on 8080) will be missed without -p-. Always run a full port scan on critical targets."
+  },
+  {
+    "section": "B8 - OS Fingerprinting",
+    "q": "Which nmap flag attempts active OS fingerprinting?",
+    "options": ["-sV","-O","-A","-sC"],
+    "correct": 1,
+    "explanation": "nmap -O performs active OS fingerprinting by sending a series of TCP/UDP/ICMP probes and comparing responses against its OS fingerprint database. Requires root privileges and at least one open and one closed port to work accurately."
+  },
+  {
+    "section": "B8 - OS Fingerprinting",
+    "q": "You receive a ping reply with TTL=126. Which OS is the target most likely running and why?",
+    "options": ["Linux - TTL 64, 62 hops away","Windows - TTL 128, 2 hops away","Cisco - TTL 255, 129 hops away","Cannot tell without running nmap -O"],
+    "correct": 1,
+    "explanation": "128-126=2 hops. Windows starts at TTL 128, so a reply of 126 means the host is 2 hops away. Linux at 64 would give a negative result. This is passive OS fingerprinting from a simple ping - no nmap needed."
+  },
+  {
+    "section": "B8 - OS Fingerprinting",
+    "q": "What nmap NSE script can confirm whether a Windows host is a Domain Controller by querying SMB?",
+    "options": ["smb-enum-users","smb-os-discovery","smb-vuln-ms17-010","smb-brute"],
+    "correct": 1,
+    "explanation": "nmap --script smb-os-discovery queries the SMB protocol to retrieve OS version, computer name, domain name, and whether the host is a Domain Controller. It is more reliable than -O for Windows targets and works without root on a TCP connect basis."
+  },
+  {
+    "section": "B8 - OS Fingerprinting",
+    "q": "What default TTL value indicates a Cisco network device?",
+    "options": ["32","64","128","255"],
+    "correct": 3,
+    "explanation": "Cisco devices (routers, switches running IOS) default to TTL 255. Linux is 64, Windows is 128. A ping reply with TTL close to 255 (e.g. 252-255) strongly suggests a Cisco device. These defaults are configured in the OS and can be changed, but rarely are."
+  },
+  {
+    "section": "B9 - Banner Grabbing",
+    "q": "Which nmap flag enables service version detection, also known as banner grabbing?",
+    "options": ["-O","-sV","-sC","-A"],
+    "correct": 1,
+    "explanation": "-sV probes open ports to determine what service and version is running. nmap sends service-specific probes and compares responses against its version database. The output shows the service name, version number, and sometimes extra info like SSH hostkey or HTTP title."
+  },
+  {
+    "section": "B9 - Banner Grabbing",
+    "q": "You connect to port 22 with netcat and receive the banner: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1. What information does this give you?",
+    "options": ["Only that SSH is running","The SSH version, OpenSSH version, and that the target is running Ubuntu Linux","That the port is filtered","Only the protocol version"],
+    "correct": 1,
+    "explanation": "SSH banners are extremely revealing. SSH-2.0 = protocol version. OpenSSH_8.9p1 = software and version. Ubuntu-3ubuntu0.1 = the specific Ubuntu package build, which maps to a specific Ubuntu release. This is OS fingerprinting via banner grab without nmap -O."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "What does enum4linux do and what protocol does it target?",
+    "options": ["Enumerates HTTP web services","Enumerates SMB/Windows shares, users, and policies via null sessions","Enumerates DNS zone transfers","Enumerates SNMP community strings"],
+    "correct": 1,
+    "explanation": "enum4linux is a wrapper around smbclient, rpcclient, and nmblookup. It targets SMB (port 445) and attempts null session enumeration to extract: shares, users, groups, password policy, and OS information from Windows and Samba hosts."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "What is a null session in the context of SMB enumeration?",
+    "options": ["A session with no data transferred","An anonymous unauthenticated connection to SMB that may allow enumeration without credentials","A session that has been terminated","A session using the guest account with a password"],
+    "correct": 1,
+    "explanation": "A null session is an anonymous connection to SMB where you authenticate with an empty username and empty password. Older Windows systems and misconfigured Samba allow this, exposing user lists, share names, and password policies. enum4linux -a attempts a null session automatically."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "Which command lists the SMB shares available on a target without providing credentials?",
+    "options": ["enum4linux -a <IP>","smbclient -L //<IP> -N","showmount -e <IP>","rpcclient -U '' <IP>"],
+    "correct": 1,
+    "explanation": "smbclient -L //<IP> -N lists available shares. The -N flag means no password (null session). If the server allows anonymous listing, you will see all shares including hidden admin shares. This is the manual equivalent of what enum4linux does automatically."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "You run `showmount -e <IP>` and get a result. What service are you enumerating and what does the output tell you?",
+    "options": ["SMB - shows available Windows shares","NFS - shows exported filesystems that can be mounted","FTP - shows available directories","LDAP - shows directory structure"],
+    "correct": 1,
+    "explanation": "showmount -e queries the NFS (Network File System) portmapper to list exported directories. If a filesystem is exported world-readable, you can mount it with `sudo mount -t nfs <IP>:/export /tmp/mount` and access files without credentials. A critical finding if discovered."
+  }
+]

@@ -33,10 +33,7 @@
     padding: 2rem;
   }
 
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+  .container { max-width: 800px; margin: 0 auto; }
 
   .header {
     text-align: center;
@@ -53,10 +50,7 @@
     letter-spacing: -0.02em;
   }
 
-  .header p {
-    color: var(--text-dim);
-    font-size: 0.9rem;
-  }
+  .header p { color: var(--text-dim); font-size: 0.9rem; }
 
   .progress-bar {
     width: 100%;
@@ -118,34 +112,12 @@
     gap: 0.75rem;
   }
 
-  .option:hover:not(.disabled) {
-    background: var(--surface-hover);
-    border-color: var(--accent);
-  }
-
-  .option.selected {
-    border-color: var(--accent);
-    background: var(--accent-dim);
-  }
-
-  .option.correct {
-    border-color: var(--correct);
-    background: rgba(0, 212, 170, 0.1);
-  }
-
-  .option.incorrect {
-    border-color: var(--incorrect);
-    background: rgba(255, 71, 87, 0.1);
-  }
-
-  .option.disabled {
-    cursor: default;
-    opacity: 0.6;
-  }
-
-  .option.disabled.correct {
-    opacity: 1;
-  }
+  .option:hover:not(.disabled) { background: var(--surface-hover); border-color: var(--accent); }
+  .option.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .option.correct { border-color: var(--correct); background: rgba(0, 212, 170, 0.1); }
+  .option.incorrect { border-color: var(--incorrect); background: rgba(255, 71, 87, 0.1); }
+  .option.disabled { cursor: default; opacity: 0.6; }
+  .option.disabled.correct { opacity: 1; }
 
   .option-letter {
     font-family: 'JetBrains Mono', monospace;
@@ -162,15 +134,8 @@
     margin-top: 1px;
   }
 
-  .option.correct .option-letter {
-    background: var(--correct);
-    color: var(--bg);
-  }
-
-  .option.incorrect .option-letter {
-    background: var(--incorrect);
-    color: var(--bg);
-  }
+  .option.correct .option-letter { background: var(--correct); color: var(--bg); }
+  .option.incorrect .option-letter { background: var(--incorrect); color: var(--bg); }
 
   .explanation {
     background: var(--surface);
@@ -197,38 +162,15 @@
     transition: all 0.2s ease;
   }
 
-  .btn-primary {
-    background: var(--accent);
-    color: var(--bg);
-  }
-
+  .btn-primary { background: var(--accent); color: var(--bg); }
   .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
 
-  .btn-primary:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
+  .actions { display: flex; gap: 1rem; justify-content: flex-end; }
 
-  .btn-secondary {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface-hover);
-  }
-
-  .actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-  }
-
-  .results {
-    text-align: center;
-    padding: 3rem 1rem;
-  }
+  .results { text-align: center; padding: 3rem 1rem; }
 
   .results h2 {
     font-family: 'JetBrains Mono', monospace;
@@ -246,12 +188,7 @@
 
   .score-display.low { color: var(--danger); }
   .score-display.mid { color: var(--warning); }
-
-  .results p {
-    color: var(--text-dim);
-    margin-bottom: 2rem;
-    font-size: 1rem;
-  }
+  .results p { color: var(--text-dim); margin-bottom: 2rem; font-size: 1rem; }
 
   .section-breakdown {
     display: grid;
@@ -281,10 +218,7 @@
     font-weight: 700;
   }
 
-  .start-screen {
-    text-align: center;
-    padding: 3rem 1rem;
-  }
+  .start-screen { text-align: center; padding: 3rem 1rem; }
 
   .start-screen h2 {
     font-family: 'JetBrains Mono', monospace;
@@ -292,14 +226,7 @@
     margin-bottom: 1rem;
   }
 
-  .start-screen p {
-    color: var(--text-dim);
-    margin-bottom: 0.5rem;
-  }
-
-  .start-screen .btn {
-    margin-top: 2rem;
-  }
+  .start-screen p { color: var(--text-dim); margin-bottom: 0.5rem; }
 
   .mode-select {
     display: flex;
@@ -320,19 +247,22 @@
     min-width: 180px;
   }
 
-  .mode-btn:hover {
-    border-color: var(--accent);
-    background: var(--accent-dim);
-  }
+  .mode-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+  .mode-btn .title { font-weight: 600; margin-bottom: 0.25rem; }
+  .mode-btn .desc { font-size: 0.8rem; color: var(--text-dim); }
 
-  .mode-btn .title {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-
-  .mode-btn .desc {
-    font-size: 0.8rem;
+  .loading {
+    text-align: center;
+    padding: 4rem 1rem;
     color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .error {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--danger);
+    font-family: 'JetBrains Mono', monospace;
   }
 </style>
 </head>
@@ -342,155 +272,14 @@
     <h1>CPSA // Module B</h1>
     <p>Core Technical Skills - Recap Quiz</p>
   </div>
-  <div id="app"></div>
+  <div id="app"><div class="loading">Loading questions...</div></div>
 </div>
 
 <script>
-const questions = [
-  {
-    section: "B1 - IP Protocols",
-    q: "IPv4 addresses are how many bits long?",
-    options: ["16 bits","32 bits","64 bits","128 bits"],
-    correct: 1,
-    explanation: "IPv4 is 32 bits, written as four 8-bit octets in dotted-decimal notation (e.g. 192.168.1.1). IPv6 is 128 bits. This is a core CPSA exam fact."
-  },
-  {
-    section: "B1 - IP Protocols",
-    q: "Which protocol is connectionless and does NOT perform a handshake before sending data?",
-    options: ["TCP","ICMP","UDP","IPv6"],
-    correct: 2,
-    explanation: "UDP (User Datagram Protocol) is connectionless - no handshake, no acknowledgements, no guaranteed delivery. It trades reliability for speed. TCP is connection-oriented and uses the three-way handshake."
-  },
-  {
-    section: "B1 - IP Protocols",
-    q: "What is the default TTL value for a Linux/Unix host?",
-    options: ["32","64","128","255"],
-    correct: 1,
-    explanation: "Linux/Unix defaults to TTL 64. Windows uses 128, Cisco devices use 255. These values allow OS fingerprinting from a ping response - you work backwards from the received TTL to determine the most likely starting value."
-  },
-  {
-    section: "B1 - IP Protocols",
-    q: "What is the default TTL value for a Windows host?",
-    options: ["64","128","255","32"],
-    correct: 1,
-    explanation: "Windows defaults to TTL 128. Linux is 64, Cisco is 255. If you receive a ping reply with TTL 121, it started at 128 and has travelled 7 hops - most likely a Windows host."
-  },
-  {
-    section: "B1 - IP Protocols",
-    q: "You ping a host and receive a reply with TTL=119. What OS is the target most likely running?",
-    options: ["Linux - started at 64, 55 hops away","Windows - started at 128, 9 hops away","Cisco - started at 255, 136 hops away","Cannot determine from TTL alone"],
-    correct: 1,
-    explanation: "Work backwards from standard TTL starting values. 128-119=9 hops (Windows). 64-119 is impossible (negative). 255-119=136 hops is unrealistic. Windows at 9 hops is by far the most plausible answer."
-  },
-  {
-    section: "B1 - ICMP",
-    q: "What ICMP type number is an Echo Request - the packet sent when you run ping?",
-    options: ["Type 0","Type 3","Type 8","Type 11"],
-    correct: 2,
-    explanation: "ICMP Type 8 = Echo Request (what ping sends out). Type 0 = Echo Reply (what comes back). Type 3 = Destination Unreachable. Type 11 = Time Exceeded. Remember: 8 goes out, 0 comes back."
-  },
-  {
-    section: "B1 - ICMP",
-    q: "Which ICMP type does traceroute rely on to identify each hop along the route?",
-    options: ["Type 0 - Echo Reply","Type 3 - Destination Unreachable","Type 8 - Echo Request","Type 11 - Time Exceeded"],
-    correct: 3,
-    explanation: "Traceroute sends packets with incrementing TTL values starting at 1. Each router that receives a packet with TTL=1 decrements it to 0, drops the packet, and sends back an ICMP Type 11 Time Exceeded message. Traceroute reads the source IP of each Type 11 to map the route."
-  },
-  {
-    section: "B1 - ICMP",
-    q: "A host you are scanning returns an ICMP Type 3 message. What does this tell you?",
-    options: ["The host is alive and responding to pings","The host's route has timed out","The destination or port is unreachable","The host is a Cisco router"],
-    correct: 2,
-    explanation: "ICMP Type 3 is Destination Unreachable. This can mean the host itself is unreachable, a specific port is closed (Type 3 Code 3), or a firewall is blocking the traffic. Receiving Type 3 means something is responding - which is itself useful information during recon."
-  },
-  {
-    section: "B2 - TCP Handshake",
-    q: "What is the correct sequence of the TCP three-way handshake?",
-    options: ["SYN > ACK > SYN-ACK","SYN > SYN-ACK > ACK","ACK > SYN > SYN-ACK","SYN-ACK > SYN > ACK"],
-    correct: 1,
-    explanation: "The client sends SYN, the server responds with SYN-ACK (synchronise and acknowledge), and the client completes the handshake with ACK. Only after this exchange can data flow. This is fundamental to understanding how TCP scans work."
-  },
-  {
-    section: "B2 - TCP Handshake",
-    q: "During a TCP SYN scan (nmap -sS), what does the scanner send to test if a port is open?",
-    options: ["A full TCP connect followed by immediate RST","A SYN packet only - never completes the handshake","A UDP probe packet","An ICMP Echo Request"],
-    correct: 1,
-    explanation: "A SYN scan (-sS) sends only the initial SYN packet. If the port is open, the target replies SYN-ACK, confirming it is listening. The scanner then sends RST to tear down the connection without completing the handshake. This is 'stealthier' as it never establishes a full connection."
-  },
-  {
-    section: "B2 - TCP Handshake",
-    q: "What response does a target send to a SYN probe when a port is CLOSED?",
-    options: ["SYN-ACK","RST-ACK","No response","ICMP Type 3"],
-    correct: 1,
-    explanation: "A closed port responds to a SYN with RST-ACK (reset + acknowledge), actively rejecting the connection attempt. An open port responds SYN-ACK. A filtered port (firewall blocking) typically gives no response or an ICMP unreachable."
-  },
-  {
-    section: "B2 - TCP Flags",
-    q: "Which nmap scan type requires root/administrator privileges to run because it crafts raw packets?",
-    options: ["-sT (TCP connect scan)","-sS (SYN scan)","-sV (version scan)","-sC (script scan)"],
-    correct: 1,
-    explanation: "The SYN scan (-sS) crafts raw TCP packets without going through the OS network stack, which requires root/administrator privileges. The TCP connect scan (-sT) uses normal OS socket calls and can be run by any user, but is more detectable as it completes the full handshake."
-  },
-  {
-    section: "B2 - TCP Flags",
-    q: "An nmap -sA scan sends packets with only the ACK flag set. What is the primary purpose of an ACK scan?",
-    options: ["To find open ports on a target","To enumerate services running on open ports","To map firewall rules by identifying filtered vs unfiltered ports","To perform OS fingerprinting"],
-    correct: 2,
-    explanation: "ACK scans (-sA) are used to map firewall rulesets, not to find open ports. Because ACK packets are part of established connections, stateless firewalls may pass them. If a port returns RST, it is unfiltered. No response or ICMP unreachable means filtered. This reveals the firewall's behaviour."
-  },
-  {
-    section: "B2 - TCP Flags",
-    q: "The nmap -sF, -sN, and -sX scans are designed to evade certain firewalls. What do these scans have in common?",
-    options: ["They all complete the full TCP three-way handshake","They all use only the SYN flag","They all send packets with no SYN flag, exploiting RFC behaviour to identify closed ports","They all require a valid ICMP response to work"],
-    correct: 2,
-    explanation: "FIN (-sF), NULL (-sN), and Xmas (-sX) scans send packets without the SYN flag. Per RFC 793, a closed port should respond with RST. An open port should drop the packet with no response. These scans can bypass simple packet filters that only block SYN packets, but won't work against stateful firewalls."
-  },
-  {
-    section: "B1 - Networking",
-    q: "On a Kali Linux system, which command shows your IP address, subnet mask, and MAC address for all interfaces?",
-    options: ["ifconfig -a","ip a","netstat -i","ss -tlnp"],
-    correct: 1,
-    explanation: "`ip a` (ip address show) is the modern replacement for ifconfig on current Linux distributions including Kali. It shows all network interfaces, their IP addresses (IPv4 and IPv6), and MAC addresses (shown as 'link/ether'). ifconfig is deprecated."
-  },
-  {
-    section: "B1 - Networking",
-    q: "Which file on a Linux system contains the IP address of the configured DNS server?",
-    options: ["/etc/hosts","/etc/network/interfaces","/etc/resolv.conf","/etc/dns.conf"],
-    correct: 2,
-    explanation: "/etc/resolv.conf contains the 'nameserver' entries pointing to DNS servers. `cat /etc/resolv.conf` shows which DNS server the system will use for name resolution. This is a quick way to identify the DNS infrastructure during internal recon."
-  },
-  {
-    section: "B1 - Networking",
-    q: "What command on Kali shows all currently listening TCP services, their port numbers, and the process ID (PID) responsible?",
-    options: ["nmap -sS localhost","ss -tlnp","ip r","netstat -a"],
-    correct: 1,
-    explanation: "`ss -tlnp` = socket statistics, TCP only (-t), listening sockets only (-l), numeric port numbers (-n), show process info (-p). This is the fastest way to see what is running and listening locally without needing nmap. Know what each flag does - the exam may ask."
-  },
-  {
-    section: "B1 - Networking",
-    q: "You run `ip r` on a Kali host. What information does this command provide?",
-    options: ["A list of all open ports on the system","The routing table, including the default gateway","The DNS servers configured on the system","A list of all ARP cache entries"],
-    correct: 1,
-    explanation: "`ip r` (ip route) displays the routing table. The default route (0.0.0.0/0) line shows the default gateway - the router packets are sent to when no more specific route exists. This tells you the network architecture and gateway IP, both useful for recon."
-  },
-  {
-    section: "B1 - Networking",
-    q: "During Lab B1-A, you use the `dig` command to query DNS records. Which record type would you query to find the mail server for a domain?",
-    options: ["A record","AAAA record","MX record","NS record"],
-    correct: 2,
-    explanation: "MX (Mail Exchange) records point to the mail servers responsible for a domain. `dig MX domain.com` returns these. NS records identify authoritative name servers. A records map hostnames to IPv4 addresses. AAAA records map to IPv6. MX records are useful during recon to identify mail infrastructure."
-  },
-  {
-    section: "B1 - IP Protocols",
-    q: "IPv6 addresses are how many bits long, and how are they typically written?",
-    options: ["64 bits, written as four decimal octets","128 bits, written as eight groups of four hexadecimal digits","256 bits, written in binary","32 bits, written the same as IPv4"],
-    correct: 1,
-    explanation: "IPv6 is 128 bits long, written as eight groups of four hexadecimal digits separated by colons (e.g. 2001:0db8:85a3:0000:0000:8a2e:0370:7334). This provides a vastly larger address space than IPv4's 32-bit addresses. Consecutive groups of zeros can be compressed with ::."
-  }
-];
-
+const QUESTIONS_URL = 'cpsa_b_questions_v1.json';
 const STORAGE_KEY = 'cpsa_b_recap_quiz_v1';
 
+let questions = [];
 let currentQuestion = 0;
 let answers = [];
 let selectedOption = null;
@@ -498,14 +287,57 @@ let answered = false;
 let mode = 'all';
 let filteredQuestions = [];
 
+async function loadQuestions() {
+  try {
+    const res = await fetch(QUESTIONS_URL + '?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    questions = await res.json();
+    init();
+  } catch (e) {
+    document.getElementById('app').innerHTML = `
+      <div class="error">
+        <p>Failed to load questions.</p>
+        <p style="font-size:0.8rem; margin-top:0.5rem;">${e.message}</p>
+        <button class="btn btn-secondary" style="margin-top:1.5rem;" onclick="loadQuestions()">Retry</button>
+      </div>`;
+  }
+}
+
+function init() {
+  if (loadState()) {
+    if (currentQuestion >= filteredQuestions.length) {
+      clearState();
+      renderStart();
+    } else if (answered) {
+      renderQuestion();
+      const q = filteredQuestions[currentQuestion];
+      document.querySelectorAll('.option').forEach((el, i) => {
+        el.classList.add('disabled');
+        if (i === q.correct) el.classList.add('correct');
+        if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
+      });
+      document.getElementById('explanation').classList.add('show');
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = false;
+      btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
+    } else {
+      renderQuestion();
+      if (selectedOption !== null) {
+        document.querySelectorAll('.option').forEach((el, i) => {
+          el.classList.toggle('selected', i === selectedOption);
+        });
+        document.getElementById('submit-btn').disabled = false;
+      }
+    }
+  } else {
+    renderStart();
+  }
+}
+
 function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      mode,
-      currentQuestion,
-      answers,
-      answered,
-      selectedOption,
+      mode, currentQuestion, answers, answered, selectedOption,
       filteredQuestions: filteredQuestions.map(q => questions.indexOf(q))
     }));
   } catch(e) {}
@@ -700,39 +532,7 @@ function renderResults() {
   `;
 }
 
-// Resume in-progress quiz on page load
-if (loadState()) {
-  if (currentQuestion >= filteredQuestions.length) {
-    clearState();
-    renderStart();
-  } else if (answered) {
-    // Was mid-question with answer revealed - re-render the answered state
-    renderQuestion();
-    // Re-apply the answered visual state
-    const q = filteredQuestions[currentQuestion];
-    const letters = ['A', 'B', 'C', 'D'];
-    document.querySelectorAll('.option').forEach((el, i) => {
-      el.classList.add('disabled');
-      if (i === q.correct) el.classList.add('correct');
-      if (i === selectedOption && selectedOption !== q.correct) el.classList.add('incorrect');
-    });
-    document.getElementById('explanation').classList.add('show');
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = false;
-    btn.textContent = currentQuestion < filteredQuestions.length - 1 ? 'Next Question' : 'See Results';
-  } else {
-    renderQuestion();
-    // Re-apply selected-but-not-yet-submitted state
-    if (selectedOption !== null) {
-      document.querySelectorAll('.option').forEach((el, i) => {
-        el.classList.toggle('selected', i === selectedOption);
-      });
-      document.getElementById('submit-btn').disabled = false;
-    }
-  }
-} else {
-  renderStart();
-}
+loadQuestions();
 </script>
 </body>
 </html>
