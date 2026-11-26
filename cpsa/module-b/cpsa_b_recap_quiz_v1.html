@@ -392,6 +392,17 @@ function getSections() {
   return [...new Set(questions.map(q => q.section))].sort();
 }
 
+function startExam() {
+  mode = 'exam';
+  filteredQuestions = shuffle(questions.filter(q => q.section !== 'B1 - Port Numbers'));
+  currentQuestion = 0;
+  answers = [];
+  selectedOption = null;
+  answered = false;
+  clearState();
+  renderQuestion();
+}
+
 function startQuiz(section) {
   mode = section;
   if (section === 'all') {
@@ -419,6 +430,10 @@ function renderStart() {
         <div class="mode-btn" onclick="startQuiz('all')">
           <div class="title">All Topics</div>
           <div class="desc">${questions.length} questions, randomised</div>
+        </div>
+        <div class="mode-btn" onclick="startExam()" style="border-color: var(--warning);">
+          <div class="title" style="color: var(--warning);">&#127891; Exam Mode</div>
+          <div class="desc">${questions.filter(q => q.section !== 'B1 - Port Numbers').length} questions - no ports</div>
         </div>
       </div>
       <div class="mode-select" style="margin-top: 0.75rem;">
@@ -476,7 +491,8 @@ function goBack() {
 
 function resetQuiz() {
   clearState();
-  startQuiz(mode);
+  if (mode === 'exam') startExam();
+  else startQuiz(mode);
 }
 
 function selectOption(idx) {
