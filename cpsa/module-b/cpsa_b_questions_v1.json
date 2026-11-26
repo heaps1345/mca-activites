@@ -1054,5 +1054,605 @@
     ],
     "correct": 1,
     "explanation": "-Pn tells nmap to skip host discovery and treat all specified targets as up. Use this when a target blocks ICMP ping (and would appear as down to a normal scan) but you know the host is alive. Without -Pn, nmap may skip a host entirely if the ping probe gets no response."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does FTP (File Transfer Protocol) use for control/commands?",
+    "options": [
+      "Port 20",
+      "Port 21",
+      "Port 22",
+      "Port 23"
+    ],
+    "correct": 1,
+    "explanation": "FTP uses port 21 for control (commands) and port 20 for active data transfer. FTP sends credentials in plaintext, making it a high-risk service to find on a network."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SSH (Secure Shell) use by default?",
+    "options": [
+      "Port 21",
+      "Port 22",
+      "Port 23",
+      "Port 25"
+    ],
+    "correct": 1,
+    "explanation": "SSH uses TCP port 22. It provides encrypted remote shell access, replacing insecure Telnet. Finding SSH open on a non-standard port is a common hardening technique but still worth noting."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Telnet use?",
+    "options": [
+      "Port 21",
+      "Port 22",
+      "Port 23",
+      "Port 25"
+    ],
+    "correct": 2,
+    "explanation": "Telnet uses TCP port 23. It transmits all data including usernames and passwords in plaintext. Finding Telnet open is always a High or Critical finding - it should be replaced with SSH."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SMTP (Simple Mail Transfer Protocol) use?",
+    "options": [
+      "Port 25",
+      "Port 53",
+      "Port 110",
+      "Port 143"
+    ],
+    "correct": 0,
+    "explanation": "SMTP uses TCP port 25 for sending email between mail servers. Port 587 is used for authenticated SMTP submission from mail clients. Finding port 25 open can indicate a mail relay that may be exploitable for spam or phishing."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does DNS (Domain Name System) use?",
+    "options": [
+      "Port 25",
+      "Port 53",
+      "Port 80",
+      "Port 123"
+    ],
+    "correct": 1,
+    "explanation": "DNS uses both TCP and UDP port 53. UDP is used for standard queries; TCP is used for zone transfers and large responses. Finding TCP/53 open can allow zone transfer enumeration (dig axfr) which may expose all internal hostnames."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does HTTP use?",
+    "options": [
+      "Port 80",
+      "Port 443",
+      "Port 8080",
+      "Port 8443"
+    ],
+    "correct": 0,
+    "explanation": "HTTP uses TCP port 80. It is unencrypted and transmits data in plaintext. HTTPS (port 443) is the encrypted version. Port 8080 is a common alternative HTTP port used by web proxies and development servers."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does HTTPS (HTTP Secure) use?",
+    "options": [
+      "Port 80",
+      "Port 443",
+      "Port 8080",
+      "Port 8443"
+    ],
+    "correct": 1,
+    "explanation": "HTTPS uses TCP port 443. It wraps HTTP in TLS/SSL encryption. Port 8443 is a common alternative HTTPS port. During a pen test, HTTPS services should still be tested for web vulnerabilities - encryption does not prevent application-layer attacks."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does POP3 (Post Office Protocol 3) use?",
+    "options": [
+      "Port 25",
+      "Port 110",
+      "Port 143",
+      "Port 993"
+    ],
+    "correct": 1,
+    "explanation": "POP3 uses TCP port 110 (unencrypted) or port 995 (POP3S - encrypted). POP3 is used by email clients to download messages from a mail server. The encrypted version on 995 should be preferred."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does IMAP (Internet Message Access Protocol) use?",
+    "options": [
+      "Port 110",
+      "Port 143",
+      "Port 587",
+      "Port 993"
+    ],
+    "correct": 1,
+    "explanation": "IMAP uses TCP port 143 (unencrypted) or port 993 (IMAPS - encrypted). Unlike POP3, IMAP keeps messages on the server and allows access from multiple devices. IMAPS on port 993 is the secure version."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does NetBIOS Name Service use?",
+    "options": [
+      "Port 137",
+      "Port 139",
+      "Port 445",
+      "Port 389"
+    ],
+    "correct": 0,
+    "explanation": "NetBIOS Name Service uses UDP port 137. NetBIOS also uses port 138 (datagram) and port 139 (session). These ports are associated with Windows file sharing and can be used to enumerate Windows host information."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does NetBIOS Session Service use, commonly targeted for SMB enumeration?",
+    "options": [
+      "Port 137",
+      "Port 139",
+      "Port 389",
+      "Port 445"
+    ],
+    "correct": 1,
+    "explanation": "NetBIOS Session Service uses TCP port 139. This is used for older SMB over NetBIOS. Tools like enum4linux and smbclient can connect via port 139. Modern Windows uses port 445 (SMB directly over TCP) instead."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SNMP (Simple Network Management Protocol) use for queries?",
+    "options": [
+      "TCP port 161",
+      "UDP port 161",
+      "TCP port 162",
+      "UDP port 162"
+    ],
+    "correct": 1,
+    "explanation": "SNMP queries use UDP port 161. SNMP traps (alerts sent from devices) use UDP port 162. SNMP with default community string 'public' allows unauthenticated read access to network device configuration - always check for this."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does LDAP (Lightweight Directory Access Protocol) use?",
+    "options": [
+      "Port 389",
+      "Port 445",
+      "Port 636",
+      "Port 3268"
+    ],
+    "correct": 0,
+    "explanation": "LDAP uses TCP/UDP port 389. LDAPS (LDAP over SSL) uses port 636. Port 3268 is Global Catalog LDAP used in Active Directory. Finding port 389 open strongly suggests you are targeting a domain controller."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SMB (Server Message Block) use over TCP directly (not NetBIOS)?",
+    "options": [
+      "Port 139",
+      "Port 389",
+      "Port 445",
+      "Port 1433"
+    ],
+    "correct": 2,
+    "explanation": "SMB uses TCP port 445 when running directly over TCP (without NetBIOS). This is the modern way Windows shares files and printers. Port 445 is a critical target - SMB vulnerabilities include EternalBlue (MS17-010/WannaCry). Tools: smbclient, enum4linux, nmap SMB scripts."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Microsoft SQL Server use by default?",
+    "options": [
+      "Port 1433",
+      "Port 3306",
+      "Port 5432",
+      "Port 1521"
+    ],
+    "correct": 0,
+    "explanation": "Microsoft SQL Server uses TCP port 1433 by default. Finding this open may allow brute force of SQL credentials or exploitation of SQL injection. MySQL uses 3306, PostgreSQL uses 5432, and Oracle uses 1521."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does MySQL use by default?",
+    "options": [
+      "Port 1433",
+      "Port 3306",
+      "Port 5432",
+      "Port 27017"
+    ],
+    "correct": 1,
+    "explanation": "MySQL uses TCP port 3306. Finding MySQL directly exposed on a network (not just localhost) is a finding - databases should not be directly accessible from the internet or from general internal network segments."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does RDP (Remote Desktop Protocol) use?",
+    "options": [
+      "Port 22",
+      "Port 3306",
+      "Port 3389",
+      "Port 5900"
+    ],
+    "correct": 2,
+    "explanation": "RDP uses TCP port 3389. It provides graphical remote access to Windows systems. RDP exposed to the internet is a critical finding - it has been targeted by numerous exploits (BlueKeep/CVE-2019-0708) and brute force attacks."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does PostgreSQL use by default?",
+    "options": [
+      "Port 1433",
+      "Port 3306",
+      "Port 5432",
+      "Port 5984"
+    ],
+    "correct": 2,
+    "explanation": "PostgreSQL uses TCP port 5432. Like all database services, finding PostgreSQL accessible from the network rather than just localhost is a finding worth investigating. Default credentials and misconfigurations are common."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does VNC (Virtual Network Computing) use by default?",
+    "options": [
+      "Port 3389",
+      "Port 5900",
+      "Port 5985",
+      "Port 8080"
+    ],
+    "correct": 1,
+    "explanation": "VNC uses TCP port 5900 by default (5901, 5902 etc. for additional displays). VNC provides graphical remote access and is often found with weak or no authentication. It is a high-value target when found open."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does WinRM (Windows Remote Management) HTTP use?",
+    "options": [
+      "Port 3389",
+      "Port 5985",
+      "Port 5986",
+      "Port 8080"
+    ],
+    "correct": 1,
+    "explanation": "WinRM HTTP uses TCP port 5985. WinRM HTTPS uses port 5986. WinRM is used for PowerShell remoting and remote management of Windows servers. Finding 5985 open may allow remote code execution if credentials are obtained."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does MongoDB use by default?",
+    "options": [
+      "Port 3306",
+      "Port 5432",
+      "Port 6379",
+      "Port 27017"
+    ],
+    "correct": 3,
+    "explanation": "MongoDB uses TCP port 27017. MongoDB has historically been found exposed to the internet with no authentication, allowing unauthenticated access to entire databases. Always check if authentication is enforced when MongoDB is found open."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Redis use by default?",
+    "options": [
+      "Port 5432",
+      "Port 6379",
+      "Port 11211",
+      "Port 27017"
+    ],
+    "correct": 1,
+    "explanation": "Redis uses TCP port 6379. Redis is an in-memory data store frequently misconfigured with no authentication. Unauthenticated Redis access can be used to read sensitive data, write files to disk, or achieve remote code execution via config manipulation."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Memcached use by default?",
+    "options": [
+      "Port 6379",
+      "Port 11211",
+      "Port 27017",
+      "Port 50000"
+    ],
+    "correct": 1,
+    "explanation": "Memcached uses TCP/UDP port 11211. Like Redis, Memcached has no built-in authentication and is frequently found misconfigured. It is also commonly abused for UDP amplification DDoS attacks when exposed to the internet."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does TFTP (Trivial File Transfer Protocol) use?",
+    "options": [
+      "TCP port 20",
+      "UDP port 69",
+      "UDP port 161",
+      "TCP port 115"
+    ],
+    "correct": 1,
+    "explanation": "TFTP uses UDP port 69. It is a simplified, unauthenticated file transfer protocol with no encryption. TFTP is used by network devices for firmware updates and by PXE boot environments. Finding it open may allow reading or writing files without authentication."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does NTP (Network Time Protocol) use?",
+    "options": [
+      "UDP port 69",
+      "UDP port 123",
+      "UDP port 161",
+      "UDP port 514"
+    ],
+    "correct": 1,
+    "explanation": "NTP uses UDP port 123. NTP is used to synchronise system clocks. It can be abused for UDP amplification DDoS attacks (monlist command). NTP is also important in Active Directory environments - Kerberos authentication fails if clocks are more than 5 minutes apart."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Syslog use by default?",
+    "options": [
+      "UDP port 123",
+      "UDP port 161",
+      "UDP port 514",
+      "TCP port 601"
+    ],
+    "correct": 2,
+    "explanation": "Syslog uses UDP port 514 by default. Syslog collects log messages from network devices and servers. Finding syslog open can indicate centralised logging infrastructure. Syslog over TCP uses port 601 for reliable delivery."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does FTPS (FTP over SSL) use for control?",
+    "options": [
+      "Port 21",
+      "Port 22",
+      "Port 989",
+      "Port 990"
+    ],
+    "correct": 3,
+    "explanation": "FTPS (Explicit TLS uses port 21; Implicit TLS uses port 990 for control, 989 for data). FTPS is the encrypted version of FTP. It should not be confused with SFTP, which runs over SSH on port 22 and is a completely different protocol."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SMTPS (SMTP over SSL/TLS) use?",
+    "options": [
+      "Port 25",
+      "Port 465",
+      "Port 587",
+      "Port 993"
+    ],
+    "correct": 1,
+    "explanation": "SMTPS uses TCP port 465. Port 587 is SMTP Submission (authenticated relay from mail clients using STARTTLS). Port 25 is server-to-server SMTP. Knowing these distinctions is useful when enumerating mail infrastructure."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Kerberos use?",
+    "options": [
+      "Port 389",
+      "Port 445",
+      "Port 464",
+      "Port 88"
+    ],
+    "correct": 3,
+    "explanation": "Kerberos uses TCP/UDP port 88. It is the authentication protocol used by Active Directory. Finding port 88 open confirms the target is a domain controller. Kerberos is targeted by attacks such as Kerberoasting and AS-REP Roasting."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does LDAPS (LDAP over SSL) use?",
+    "options": [
+      "Port 389",
+      "Port 445",
+      "Port 636",
+      "Port 3268"
+    ],
+    "correct": 2,
+    "explanation": "LDAPS uses TCP port 636. It is the encrypted version of LDAP. Port 3268 is the Global Catalog port (unencrypted) and 3269 is Global Catalog over SSL, both used in multi-domain Active Directory forests."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does NFS (Network File System) use?",
+    "options": [
+      "Port 139",
+      "Port 445",
+      "Port 2049",
+      "Port 4045"
+    ],
+    "correct": 2,
+    "explanation": "NFS uses TCP/UDP port 2049. NFS allows remote file system mounting. Misconfigured NFS exports can allow unauthenticated access to sensitive file systems. Use 'showmount -e target' to list available exports when port 2049 is found open."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does the Oracle database listener use by default?",
+    "options": [
+      "Port 1433",
+      "Port 1521",
+      "Port 3306",
+      "Port 5432"
+    ],
+    "correct": 1,
+    "explanation": "Oracle Database uses TCP port 1521 for its listener service. Oracle databases are common in enterprise environments. The Oracle listener can be queried for information about database instances and may allow brute force of credentials."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What alternative port is commonly used for HTTP web services, proxies, and development servers?",
+    "options": [
+      "Port 443",
+      "Port 800",
+      "Port 8080",
+      "Port 9090"
+    ],
+    "correct": 2,
+    "explanation": "Port 8080 is a common alternative HTTP port used by web proxies (Squid, Burp Suite), application servers (Tomcat), and development servers. It is in nmap's default top-1000 ports. Always check 8080 and 8443 alongside 80 and 443."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does IRC (Internet Relay Chat) use?",
+    "options": [
+      "Port 194",
+      "Port 6667",
+      "Port 6881",
+      "Port 6697"
+    ],
+    "correct": 1,
+    "explanation": "IRC uses TCP port 6667 (unencrypted) or 6697 (IRC over SSL). IRC is historically relevant because many early botnets used IRC channels as C2 (command and control) infrastructure. Seeing IRC traffic from internal hosts can indicate a compromise."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What is the default port for Elasticsearch?",
+    "options": [
+      "Port 5601",
+      "Port 8983",
+      "Port 9200",
+      "Port 9300"
+    ],
+    "correct": 2,
+    "explanation": "Elasticsearch uses TCP port 9200 for its REST API and port 9300 for node-to-node cluster communication. Kibana (the Elasticsearch dashboard) uses port 5601. Elasticsearch has historically been exposed to the internet with no authentication, leaking huge amounts of data."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Docker's remote API use by default (when enabled)?",
+    "options": [
+      "Port 2375",
+      "Port 2376",
+      "Port 4243",
+      "Port 8080"
+    ],
+    "correct": 0,
+    "explanation": "Docker's remote API uses TCP port 2375 (unauthenticated/unencrypted) or port 2376 (TLS-encrypted). An exposed Docker API on port 2375 is a critical finding - it allows an attacker to create privileged containers and escape to the host, achieving full server compromise."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Kubernetes API server use by default?",
+    "options": [
+      "Port 2375",
+      "Port 6443",
+      "Port 8080",
+      "Port 10250"
+    ],
+    "correct": 1,
+    "explanation": "The Kubernetes API server uses TCP port 6443 (HTTPS). The kubelet API uses port 10250. An exposed Kubernetes API with weak authentication is a critical finding - it may allow an attacker to deploy pods, access secrets, or take full control of the cluster."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does the Windows SMB Signing bypass target, and which famous ransomware exploited it?",
+    "options": [
+      "Port 139 - NotPetya",
+      "Port 445 - WannaCry",
+      "Port 3389 - WannaCry",
+      "Port 445 - Mirai"
+    ],
+    "correct": 1,
+    "explanation": "EternalBlue, exploited by WannaCry ransomware in 2017, targeted SMB on TCP port 445 (MS17-010 vulnerability). It affected unpatched Windows systems worldwide. This is why finding port 445 open and unpatched is always a high-priority finding."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does SIP (Session Initiation Protocol) use for VoIP?",
+    "options": [
+      "UDP port 69",
+      "UDP port 161",
+      "UDP port 514",
+      "UDP port 5060"
+    ],
+    "correct": 3,
+    "explanation": "SIP uses UDP/TCP port 5060 (unencrypted) or port 5061 (SIPS - encrypted). SIP is used for VoIP call setup. VoIP infrastructure is often overlooked in pen tests but can be a source of toll fraud, eavesdropping, and denial of service."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does MSSQL Browser service use?",
+    "options": [
+      "TCP port 1433",
+      "UDP port 1434",
+      "TCP port 1434",
+      "UDP port 1433"
+    ],
+    "correct": 1,
+    "explanation": "The Microsoft SQL Server Browser service uses UDP port 1434. It helps clients locate named SQL Server instances. Querying UDP 1434 can reveal SQL Server instance names, versions, and cluster information without authentication."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does X11 (X Window System) use by default for the first display?",
+    "options": [
+      "Port 5900",
+      "Port 5901",
+      "Port 6000",
+      "Port 6001"
+    ],
+    "correct": 2,
+    "explanation": "X11 uses TCP port 6000 for the first display (:0). Each additional display increments by one (6001, 6002, etc.). An open X11 port with no authentication allows an attacker to view and control the graphical desktop of the target machine."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What two ports are associated with Active Directory Global Catalog?",
+    "options": [
+      "Port 389 and 636",
+      "Port 445 and 139",
+      "Port 3268 and 3269",
+      "Port 88 and 464"
+    ],
+    "correct": 2,
+    "explanation": "Active Directory Global Catalog uses port 3268 (LDAP, unencrypted) and port 3269 (LDAPS, encrypted). The Global Catalog holds a partial copy of all objects in an AD forest. Finding these ports alongside 88, 389, and 445 confirms a domain controller."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does AMQP (Advanced Message Queuing Protocol, used by RabbitMQ) use by default?",
+    "options": [
+      "Port 1883",
+      "Port 4369",
+      "Port 5672",
+      "Port 15672"
+    ],
+    "correct": 2,
+    "explanation": "RabbitMQ uses TCP port 5672 for AMQP. The RabbitMQ management web interface uses port 15672. Port 4369 is the Erlang Port Mapper (EPMD) used for RabbitMQ node discovery. Default credentials (guest/guest) are a common finding."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does MQTT (Message Queuing Telemetry Transport, used in IoT) use?",
+    "options": [
+      "Port 1883",
+      "Port 5672",
+      "Port 8883",
+      "Port 9001"
+    ],
+    "correct": 0,
+    "explanation": "MQTT uses TCP port 1883 (unencrypted) or port 8883 (MQTT over TLS). MQTT is widely used in IoT devices. Many IoT MQTT brokers are exposed to the internet with no authentication, allowing an attacker to subscribe to all topics and read sensor data or send commands to devices."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Apache Tomcat's AJP connector use by default?",
+    "options": [
+      "Port 80",
+      "Port 443",
+      "Port 8009",
+      "Port 8080"
+    ],
+    "correct": 2,
+    "explanation": "Apache Tomcat AJP (Apache JServ Protocol) uses TCP port 8009. AJP was the target of the Ghostcat vulnerability (CVE-2020-1938), which allowed unauthenticated file read and in some configurations remote code execution. Port 8009 should always be checked on web servers."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Jenkins CI/CD use by default?",
+    "options": [
+      "Port 8080",
+      "Port 8443",
+      "Port 9090",
+      "Port 50000"
+    ],
+    "correct": 0,
+    "explanation": "Jenkins uses TCP port 8080 by default for its web interface (JNLP agent connections use port 50000). Jenkins is a high-value target - admin access allows arbitrary code execution on build agents. Default installations often have no authentication or weak credentials."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Telnet use, and why is finding it open always a critical or high finding?",
+    "options": [
+      "Port 22 - because SSH is more secure and should be used instead",
+      "Port 23 - because all data including credentials is transmitted in plaintext",
+      "Port 23 - because Telnet uses UDP making it easy to spoof",
+      "Port 25 - because Telnet can be used to send spam emails"
+    ],
+    "correct": 1,
+    "explanation": "Telnet uses port 23 and transmits all data, including usernames and passwords, in plaintext. Any network observer (or attacker with a man-in-the-middle position) can read the credentials. SSH on port 22 provides encrypted equivalent functionality and should always replace Telnet."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does CouchDB use for its REST API?",
+    "options": [
+      "Port 5432",
+      "Port 5984",
+      "Port 6379",
+      "Port 9200"
+    ],
+    "correct": 1,
+    "explanation": "CouchDB uses TCP port 5984 for its HTTP REST API. Like Elasticsearch and MongoDB, CouchDB has a history of being deployed without authentication. An unauthenticated CouchDB instance may expose all databases through a simple HTTP GET request."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "If you see ports 88, 389, 445, 3268, and 3389 all open on a single host, what does this most likely indicate?",
+    "options": [
+      "A Linux web server running multiple services",
+      "A Windows workstation with file sharing enabled",
+      "A Windows domain controller with RDP enabled",
+      "A network printer with admin access enabled"
+    ],
+    "correct": 2,
+    "explanation": "Port 88 (Kerberos), 389 (LDAP), 445 (SMB), and 3268 (Global Catalog) together are the fingerprint of a Windows Active Directory domain controller. Port 3389 (RDP) being open alongside these means remote desktop is also enabled - a domain controller with RDP exposed is a critical finding."
+  },
+  {
+    "section": "B1 - Port Numbers",
+    "q": "What port does Rsync use by default for file synchronisation?",
+    "options": [
+      "Port 873",
+      "Port 989",
+      "Port 2049",
+      "Port 8873"
+    ],
+    "correct": 0,
+    "explanation": "Rsync uses TCP/UDP port 873 by default. Rsync is used for efficient file transfer and synchronisation. If Rsync is exposed without authentication it may allow unauthenticated access to file systems. Rsync over SSH is the secure alternative, using port 22."
   }
 ]
