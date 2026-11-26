@@ -2,260 +2,1057 @@
   {
     "section": "B1 - IP Protocols",
     "q": "IPv4 addresses are how many bits long?",
-    "options": ["16 bits","32 bits","64 bits","128 bits"],
+    "options": [
+      "16 bits",
+      "32 bits",
+      "64 bits",
+      "128 bits"
+    ],
     "correct": 1,
     "explanation": "IPv4 is 32 bits, written as four 8-bit octets in dotted-decimal notation (e.g. 192.168.1.1). IPv6 is 128 bits. This is a core CPSA exam fact."
   },
   {
     "section": "B1 - IP Protocols",
     "q": "Which protocol is connectionless and does NOT perform a handshake before sending data?",
-    "options": ["TCP","ICMP","UDP","IPv6"],
+    "options": [
+      "TCP",
+      "ICMP",
+      "UDP",
+      "IPv6"
+    ],
     "correct": 2,
     "explanation": "UDP (User Datagram Protocol) is connectionless - no handshake, no acknowledgements, no guaranteed delivery. It trades reliability for speed. TCP is connection-oriented and uses the three-way handshake."
   },
   {
     "section": "B1 - IP Protocols",
     "q": "What is the default TTL value for a Linux/Unix host?",
-    "options": ["32","64","128","255"],
+    "options": [
+      "32",
+      "64",
+      "128",
+      "255"
+    ],
     "correct": 1,
     "explanation": "Linux/Unix defaults to TTL 64. Windows uses 128, Cisco devices use 255. These values allow OS fingerprinting from a ping response - you work backwards from the received TTL to determine the most likely starting value."
   },
   {
     "section": "B1 - IP Protocols",
     "q": "What is the default TTL value for a Windows host?",
-    "options": ["64","128","255","32"],
+    "options": [
+      "64",
+      "128",
+      "255",
+      "32"
+    ],
     "correct": 1,
     "explanation": "Windows defaults to TTL 128. Linux is 64, Cisco is 255. If you receive a ping reply with TTL 121, it started at 128 and has travelled 7 hops - most likely a Windows host."
   },
   {
     "section": "B1 - IP Protocols",
     "q": "You ping a host and receive a reply with TTL=119. What OS is the target most likely running?",
-    "options": ["Linux - started at 64, 55 hops away","Windows - started at 128, 9 hops away","Cisco - started at 255, 136 hops away","Cannot determine from TTL alone"],
+    "options": [
+      "Linux - started at 64, 55 hops away",
+      "Windows - started at 128, 9 hops away",
+      "Cisco - started at 255, 136 hops away",
+      "Cannot determine from TTL alone"
+    ],
     "correct": 1,
     "explanation": "Work backwards from standard TTL starting values. 128-119=9 hops (Windows). 64-119 is impossible (negative). 255-119=136 hops is unrealistic. Windows at 9 hops is by far the most plausible answer."
   },
   {
     "section": "B1 - IP Protocols",
     "q": "IPv6 addresses are how many bits long, and how are they typically written?",
-    "options": ["64 bits, written as four decimal octets","128 bits, written as eight groups of four hexadecimal digits","256 bits, written in binary","32 bits, written the same as IPv4"],
+    "options": [
+      "64 bits, written as four decimal octets",
+      "128 bits, written as eight groups of four hexadecimal digits",
+      "256 bits, written in binary",
+      "32 bits, written the same as IPv4"
+    ],
     "correct": 1,
     "explanation": "IPv6 is 128 bits long, written as eight groups of four hexadecimal digits separated by colons (e.g. 2001:0db8:85a3:0000:0000:8a2e:0370:7334). Consecutive groups of zeros can be compressed with ::."
   },
   {
     "section": "B1 - ICMP",
     "q": "What ICMP type number is an Echo Request - the packet sent when you run ping?",
-    "options": ["Type 0","Type 3","Type 8","Type 11"],
+    "options": [
+      "Type 0",
+      "Type 3",
+      "Type 8",
+      "Type 11"
+    ],
     "correct": 2,
     "explanation": "ICMP Type 8 = Echo Request (what ping sends out). Type 0 = Echo Reply (what comes back). Type 3 = Destination Unreachable. Type 11 = Time Exceeded. Remember: 8 goes out, 0 comes back."
   },
   {
     "section": "B1 - ICMP",
     "q": "Which ICMP type does traceroute rely on to identify each hop along the route?",
-    "options": ["Type 0 - Echo Reply","Type 3 - Destination Unreachable","Type 8 - Echo Request","Type 11 - Time Exceeded"],
+    "options": [
+      "Type 0 - Echo Reply",
+      "Type 3 - Destination Unreachable",
+      "Type 8 - Echo Request",
+      "Type 11 - Time Exceeded"
+    ],
     "correct": 3,
     "explanation": "Traceroute sends packets with incrementing TTL values starting at 1. Each router that receives a packet with TTL=1 decrements it to 0, drops the packet, and sends back ICMP Type 11 Time Exceeded. Traceroute reads the source IP of each Type 11 to map the route."
   },
   {
     "section": "B1 - ICMP",
     "q": "A host you are scanning returns an ICMP Type 3 message. What does this tell you?",
-    "options": ["The host is alive and responding to pings","The host's route has timed out","The destination or port is unreachable","The host is a Cisco router"],
+    "options": [
+      "The host is alive and responding to pings",
+      "The host's route has timed out",
+      "The destination or port is unreachable",
+      "The host is a Cisco router"
+    ],
     "correct": 2,
     "explanation": "ICMP Type 3 is Destination Unreachable. This can mean the host itself is unreachable, a specific port is closed (Type 3 Code 3), or a firewall is blocking the traffic. Receiving Type 3 means something is responding - which is itself useful information during recon."
   },
   {
     "section": "B2 - TCP Handshake",
     "q": "What is the correct sequence of the TCP three-way handshake?",
-    "options": ["SYN > ACK > SYN-ACK","SYN > SYN-ACK > ACK","ACK > SYN > SYN-ACK","SYN-ACK > SYN > ACK"],
+    "options": [
+      "SYN > ACK > SYN-ACK",
+      "SYN > SYN-ACK > ACK",
+      "ACK > SYN > SYN-ACK",
+      "SYN-ACK > SYN > ACK"
+    ],
     "correct": 1,
     "explanation": "The client sends SYN, the server responds with SYN-ACK (synchronise and acknowledge), and the client completes the handshake with ACK. Only after this exchange can data flow. This is fundamental to understanding how TCP scans work."
   },
   {
     "section": "B2 - TCP Handshake",
     "q": "During a TCP SYN scan (nmap -sS), what does the scanner send to test if a port is open?",
-    "options": ["A full TCP connect followed by immediate RST","A SYN packet only - never completes the handshake","A UDP probe packet","An ICMP Echo Request"],
+    "options": [
+      "A full TCP connect followed by immediate RST",
+      "A SYN packet only - never completes the handshake",
+      "A UDP probe packet",
+      "An ICMP Echo Request"
+    ],
     "correct": 1,
     "explanation": "A SYN scan (-sS) sends only the initial SYN packet. If the port is open, the target replies SYN-ACK. The scanner then sends RST to tear down without completing the handshake. This is stealthier as it never establishes a full connection."
   },
   {
     "section": "B2 - TCP Handshake",
     "q": "What response does a target send to a SYN probe when a port is CLOSED?",
-    "options": ["SYN-ACK","RST-ACK","No response","ICMP Type 3"],
+    "options": [
+      "SYN-ACK",
+      "RST-ACK",
+      "No response",
+      "ICMP Type 3"
+    ],
     "correct": 1,
     "explanation": "A closed port responds to a SYN with RST-ACK, actively rejecting the connection. An open port responds SYN-ACK. A filtered port (firewall blocking) typically gives no response or an ICMP unreachable."
   },
   {
     "section": "B2 - TCP Flags",
     "q": "Which nmap scan type requires root/administrator privileges to run because it crafts raw packets?",
-    "options": ["-sT (TCP connect scan)","-sS (SYN scan)","-sV (version scan)","-sC (script scan)"],
+    "options": [
+      "-sT (TCP connect scan)",
+      "-sS (SYN scan)",
+      "-sV (version scan)",
+      "-sC (script scan)"
+    ],
     "correct": 1,
     "explanation": "The SYN scan (-sS) crafts raw TCP packets without going through the OS network stack, which requires root/administrator privileges. The TCP connect scan (-sT) uses normal OS socket calls and can run as any user, but is more detectable."
   },
   {
     "section": "B2 - TCP Flags",
     "q": "An nmap -sA scan sends packets with only the ACK flag set. What is the primary purpose of an ACK scan?",
-    "options": ["To find open ports on a target","To enumerate services running on open ports","To map firewall rules by identifying filtered vs unfiltered ports","To perform OS fingerprinting"],
+    "options": [
+      "To find open ports on a target",
+      "To enumerate services running on open ports",
+      "To map firewall rules by identifying filtered vs unfiltered ports",
+      "To perform OS fingerprinting"
+    ],
     "correct": 2,
     "explanation": "ACK scans (-sA) are used to map firewall rulesets, not to find open ports. If a port returns RST it is unfiltered. No response or ICMP unreachable means filtered. This reveals the firewall's behaviour."
   },
   {
     "section": "B2 - TCP Flags",
     "q": "The nmap -sF, -sN, and -sX scans are designed to evade certain firewalls. What do these scans have in common?",
-    "options": ["They all complete the full TCP three-way handshake","They all use only the SYN flag","They all send packets with no SYN flag, exploiting RFC behaviour to identify closed ports","They all require a valid ICMP response to work"],
+    "options": [
+      "They all complete the full TCP three-way handshake",
+      "They all use only the SYN flag",
+      "They all send packets with no SYN flag, exploiting RFC behaviour to identify closed ports",
+      "They all require a valid ICMP response to work"
+    ],
     "correct": 2,
     "explanation": "FIN (-sF), NULL (-sN), and Xmas (-sX) scans send packets without the SYN flag. Per RFC 793, a closed port should respond with RST. An open port drops the packet silently. These can bypass simple packet filters but won't work against stateful firewalls."
   },
   {
     "section": "B1 - Networking",
     "q": "On a Kali Linux system, which command shows your IP address, subnet mask, and MAC address for all interfaces?",
-    "options": ["ifconfig -a","ip a","netstat -i","ss -tlnp"],
+    "options": [
+      "ifconfig -a",
+      "ip a",
+      "netstat -i",
+      "ss -tlnp"
+    ],
     "correct": 1,
     "explanation": "`ip a` (ip address show) is the modern replacement for ifconfig. It shows all interfaces, their IPv4/IPv6 addresses, and MAC addresses (shown as 'link/ether'). ifconfig is deprecated on current Linux distributions."
   },
   {
     "section": "B1 - Networking",
     "q": "Which file on a Linux system contains the IP address of the configured DNS server?",
-    "options": ["/etc/hosts","/etc/network/interfaces","/etc/resolv.conf","/etc/dns.conf"],
+    "options": [
+      "/etc/hosts",
+      "/etc/network/interfaces",
+      "/etc/resolv.conf",
+      "/etc/dns.conf"
+    ],
     "correct": 2,
     "explanation": "/etc/resolv.conf contains the 'nameserver' entries pointing to DNS servers. `cat /etc/resolv.conf` shows which DNS server the system uses. This is a quick way to identify DNS infrastructure during internal recon."
   },
   {
     "section": "B1 - Networking",
     "q": "What command on Kali shows all currently listening TCP services, their port numbers, and the process ID responsible?",
-    "options": ["nmap -sS localhost","ss -tlnp","ip r","netstat -a"],
+    "options": [
+      "nmap -sS localhost",
+      "ss -tlnp",
+      "ip r",
+      "netstat -a"
+    ],
     "correct": 1,
     "explanation": "`ss -tlnp` = socket statistics, TCP only (-t), listening sockets only (-l), numeric port numbers (-n), show process info (-p). Fastest way to see what is listening locally without nmap."
   },
   {
     "section": "B1 - Networking",
     "q": "You run `ip r` on a Kali host. What information does this command provide?",
-    "options": ["A list of all open ports on the system","The routing table, including the default gateway","The DNS servers configured on the system","A list of all ARP cache entries"],
+    "options": [
+      "A list of all open ports on the system",
+      "The routing table, including the default gateway",
+      "The DNS servers configured on the system",
+      "A list of all ARP cache entries"
+    ],
     "correct": 1,
     "explanation": "`ip r` displays the routing table. The default route (0.0.0.0/0) line shows the default gateway. This tells you the network architecture and gateway IP, both useful for recon."
   },
   {
     "section": "B1 - Networking",
     "q": "During Lab B1-A, you use the `dig` command to query DNS records. Which record type would you query to find the mail server for a domain?",
-    "options": ["A record","AAAA record","MX record","NS record"],
+    "options": [
+      "A record",
+      "AAAA record",
+      "MX record",
+      "NS record"
+    ],
     "correct": 2,
     "explanation": "MX (Mail Exchange) records point to the mail servers responsible for a domain. `dig MX domain.com` returns these. NS records identify authoritative name servers. MX records are useful during recon to identify mail infrastructure."
   },
   {
     "section": "B4 - Host Discovery",
     "q": "What nmap flag performs a ping sweep to discover live hosts without port scanning?",
-    "options": ["-sS","-sn","-Pn","-PE"],
+    "options": [
+      "-sS",
+      "-sn",
+      "-Pn",
+      "-PE"
+    ],
     "correct": 1,
     "explanation": "nmap -sn performs host discovery only - no port scan. It sends ICMP echo requests, TCP SYN to port 443, TCP ACK to port 80, and ICMP timestamp requests. Use it to quickly find live hosts on a subnet before scanning them individually."
   },
   {
     "section": "B4 - Host Discovery",
     "q": "What does the nmap flag -Pn do?",
-    "options": ["Performs a ping sweep only","Skips host discovery and treats all hosts as online","Sends only ICMP pings","Scans only the top 100 ports"],
+    "options": [
+      "Performs a ping sweep only",
+      "Skips host discovery and treats all hosts as online",
+      "Sends only ICMP pings",
+      "Scans only the top 100 ports"
+    ],
     "correct": 1,
     "explanation": "-Pn tells nmap to skip host discovery and assume every target is online. Use this when hosts are blocking ICMP and not responding to pings but you know they exist. Without it, nmap may skip hosts that don't respond to discovery probes."
   },
   {
     "section": "B4 - Host Discovery",
     "q": "You run `nmap -sn 192.168.1.0/24`. What does the /24 mean and how many hosts will nmap check?",
-    "options": ["24 hosts in the range 192.168.1.1-24","256 addresses in the range 192.168.1.0-255","A range of 24 subnets","Only the first 24 ports on each host"],
+    "options": [
+      "24 hosts in the range 192.168.1.1-24",
+      "256 addresses in the range 192.168.1.0-255",
+      "A range of 24 subnets",
+      "Only the first 24 ports on each host"
+    ],
     "correct": 1,
     "explanation": "/24 is CIDR notation meaning 24 bits for the network, leaving 8 bits for hosts. That gives 256 addresses (192.168.1.0 to 192.168.1.255), with 254 usable host addresses. nmap will probe all 256 for this sweep."
   },
   {
     "section": "B4 - Port Scanning",
     "q": "Which nmap flag performs a SYN scan (half-open scan)?",
-    "options": ["-sT","-sS","-sU","-sV"],
+    "options": [
+      "-sT",
+      "-sS",
+      "-sU",
+      "-sV"
+    ],
     "correct": 1,
     "explanation": "-sS is the SYN scan, also called a half-open scan. It sends SYN, waits for SYN-ACK (open) or RST (closed), then sends RST without completing the handshake. Requires root privileges. Faster and stealthier than a full TCP connect scan."
   },
   {
     "section": "B4 - Port Scanning",
     "q": "What are the three port states nmap reports, and what causes each?",
-    "options": ["Open/closed/blocked - caused by firewall rules","Open/closed/filtered - open means SYN-ACK received, closed means RST received, filtered means no response","Active/inactive/unknown - based on service response","Listening/connected/refused - based on TCP state"],
+    "options": [
+      "Open/closed/blocked - caused by firewall rules",
+      "Open/closed/filtered - open means SYN-ACK received, closed means RST received, filtered means no response",
+      "Active/inactive/unknown - based on service response",
+      "Listening/connected/refused - based on TCP state"
+    ],
     "correct": 1,
     "explanation": "Open: target sends SYN-ACK - a service is listening. Closed: target sends RST - port exists but nothing listening. Filtered: no response or ICMP unreachable - a firewall is dropping packets. Knowing these three states and what causes them is essential CPSA knowledge."
   },
   {
     "section": "B4 - Port Scanning",
     "q": "What nmap flag saves output in all three formats simultaneously (normal, XML, and grepable)?",
-    "options": ["-oN","-oX","-oG","-oA"],
+    "options": [
+      "-oN",
+      "-oX",
+      "-oG",
+      "-oA"
+    ],
     "correct": 3,
     "explanation": "-oA saves output in all three formats at once: .nmap (normal), .xml (XML), and .gnmap (grepable). Always use -oA with a base filename on real engagements so you have a record of your scan results. e.g. `nmap -oA scan_results 192.168.1.1`"
   },
   {
     "section": "B4 - Port Scanning",
     "q": "What does nmap -p- do differently from a default nmap scan?",
-    "options": ["Scans only privileged ports below 1024","Scans all 65535 TCP ports","Scans only UDP ports","Scans the top 1000 ports"],
+    "options": [
+      "Scans only privileged ports below 1024",
+      "Scans all 65535 TCP ports",
+      "Scans only UDP ports",
+      "Scans the top 1000 ports"
+    ],
     "correct": 1,
     "explanation": "nmap -p- scans all 65535 TCP ports. By default, nmap only scans the top 1000 most common ports. Services running on non-standard ports (e.g. SSH on 2222, HTTP on 8080) will be missed without -p-. Always run a full port scan on critical targets."
   },
   {
     "section": "B8 - OS Fingerprinting",
     "q": "Which nmap flag attempts active OS fingerprinting?",
-    "options": ["-sV","-O","-A","-sC"],
+    "options": [
+      "-sV",
+      "-O",
+      "-A",
+      "-sC"
+    ],
     "correct": 1,
     "explanation": "nmap -O performs active OS fingerprinting by sending a series of TCP/UDP/ICMP probes and comparing responses against its OS fingerprint database. Requires root privileges and at least one open and one closed port to work accurately."
   },
   {
     "section": "B8 - OS Fingerprinting",
     "q": "You receive a ping reply with TTL=126. Which OS is the target most likely running and why?",
-    "options": ["Linux - TTL 64, 62 hops away","Windows - TTL 128, 2 hops away","Cisco - TTL 255, 129 hops away","Cannot tell without running nmap -O"],
+    "options": [
+      "Linux - TTL 64, 62 hops away",
+      "Windows - TTL 128, 2 hops away",
+      "Cisco - TTL 255, 129 hops away",
+      "Cannot tell without running nmap -O"
+    ],
     "correct": 1,
     "explanation": "128-126=2 hops. Windows starts at TTL 128, so a reply of 126 means the host is 2 hops away. Linux at 64 would give a negative result. This is passive OS fingerprinting from a simple ping - no nmap needed."
   },
   {
     "section": "B8 - OS Fingerprinting",
     "q": "What nmap NSE script can confirm whether a Windows host is a Domain Controller by querying SMB?",
-    "options": ["smb-enum-users","smb-os-discovery","smb-vuln-ms17-010","smb-brute"],
+    "options": [
+      "smb-enum-users",
+      "smb-os-discovery",
+      "smb-vuln-ms17-010",
+      "smb-brute"
+    ],
     "correct": 1,
     "explanation": "nmap --script smb-os-discovery queries the SMB protocol to retrieve OS version, computer name, domain name, and whether the host is a Domain Controller. It is more reliable than -O for Windows targets and works without root on a TCP connect basis."
   },
   {
     "section": "B8 - OS Fingerprinting",
     "q": "What default TTL value indicates a Cisco network device?",
-    "options": ["32","64","128","255"],
+    "options": [
+      "32",
+      "64",
+      "128",
+      "255"
+    ],
     "correct": 3,
     "explanation": "Cisco devices (routers, switches running IOS) default to TTL 255. Linux is 64, Windows is 128. A ping reply with TTL close to 255 (e.g. 252-255) strongly suggests a Cisco device. These defaults are configured in the OS and can be changed, but rarely are."
   },
   {
     "section": "B9 - Banner Grabbing",
     "q": "Which nmap flag enables service version detection, also known as banner grabbing?",
-    "options": ["-O","-sV","-sC","-A"],
+    "options": [
+      "-O",
+      "-sV",
+      "-sC",
+      "-A"
+    ],
     "correct": 1,
     "explanation": "-sV probes open ports to determine what service and version is running. nmap sends service-specific probes and compares responses against its version database. The output shows the service name, version number, and sometimes extra info like SSH hostkey or HTTP title."
   },
   {
     "section": "B9 - Banner Grabbing",
     "q": "You connect to port 22 with netcat and receive the banner: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.1. What information does this give you?",
-    "options": ["Only that SSH is running","The SSH version, OpenSSH version, and that the target is running Ubuntu Linux","That the port is filtered","Only the protocol version"],
+    "options": [
+      "Only that SSH is running",
+      "The SSH version, OpenSSH version, and that the target is running Ubuntu Linux",
+      "That the port is filtered",
+      "Only the protocol version"
+    ],
     "correct": 1,
     "explanation": "SSH banners are extremely revealing. SSH-2.0 = protocol version. OpenSSH_8.9p1 = software and version. Ubuntu-3ubuntu0.1 = the specific Ubuntu package build, which maps to a specific Ubuntu release. This is OS fingerprinting via banner grab without nmap -O."
   },
   {
     "section": "B3 - Service Enumeration",
     "q": "What does enum4linux do and what protocol does it target?",
-    "options": ["Enumerates HTTP web services","Enumerates SMB/Windows shares, users, and policies via null sessions","Enumerates DNS zone transfers","Enumerates SNMP community strings"],
+    "options": [
+      "Enumerates HTTP web services",
+      "Enumerates SMB/Windows shares, users, and policies via null sessions",
+      "Enumerates DNS zone transfers",
+      "Enumerates SNMP community strings"
+    ],
     "correct": 1,
     "explanation": "enum4linux is a wrapper around smbclient, rpcclient, and nmblookup. It targets SMB (port 445) and attempts null session enumeration to extract: shares, users, groups, password policy, and OS information from Windows and Samba hosts."
   },
   {
     "section": "B3 - Service Enumeration",
     "q": "What is a null session in the context of SMB enumeration?",
-    "options": ["A session with no data transferred","An anonymous unauthenticated connection to SMB that may allow enumeration without credentials","A session that has been terminated","A session using the guest account with a password"],
+    "options": [
+      "A session with no data transferred",
+      "An anonymous unauthenticated connection to SMB that may allow enumeration without credentials",
+      "A session that has been terminated",
+      "A session using the guest account with a password"
+    ],
     "correct": 1,
     "explanation": "A null session is an anonymous connection to SMB where you authenticate with an empty username and empty password. Older Windows systems and misconfigured Samba allow this, exposing user lists, share names, and password policies. enum4linux -a attempts a null session automatically."
   },
   {
     "section": "B3 - Service Enumeration",
     "q": "Which command lists the SMB shares available on a target without providing credentials?",
-    "options": ["enum4linux -a <IP>","smbclient -L //<IP> -N","showmount -e <IP>","rpcclient -U '' <IP>"],
+    "options": [
+      "enum4linux -a <IP>",
+      "smbclient -L //<IP> -N",
+      "showmount -e <IP>",
+      "rpcclient -U '' <IP>"
+    ],
     "correct": 1,
     "explanation": "smbclient -L //<IP> -N lists available shares. The -N flag means no password (null session). If the server allows anonymous listing, you will see all shares including hidden admin shares. This is the manual equivalent of what enum4linux does automatically."
   },
   {
     "section": "B3 - Service Enumeration",
     "q": "You run `showmount -e <IP>` and get a result. What service are you enumerating and what does the output tell you?",
-    "options": ["SMB - shows available Windows shares","NFS - shows exported filesystems that can be mounted","FTP - shows available directories","LDAP - shows directory structure"],
+    "options": [
+      "SMB - shows available Windows shares",
+      "NFS - shows exported filesystems that can be mounted",
+      "FTP - shows available directories",
+      "LDAP - shows directory structure"
+    ],
     "correct": 1,
     "explanation": "showmount -e queries the NFS (Network File System) portmapper to list exported directories. If a filesystem is exported world-readable, you can mount it with `sudo mount -t nfs <IP>:/export /tmp/mount` and access files without credentials. A critical finding if discovered."
+  },
+  {
+    "section": "MA - Methodology",
+    "q": "What are the correct seven phases of a penetration test in order?",
+    "options": [
+      "Scoping, Reconnaissance, Scanning, Exploitation, Post-Exploitation, Reporting, Debrief",
+      "Reconnaissance, Scanning, Exploitation, Persistence, Lateral Movement, Exfiltration, Reporting",
+      "Planning, Scoping, Testing, Exploitation, Escalation, Cleanup, Reporting",
+      "Scoping, Enumeration, Vulnerability Assessment, Exploitation, Pivoting, Reporting, Remediation"
+    ],
+    "correct": 0,
+    "explanation": "The seven phases are: Scoping (pre-engagement), Reconnaissance and Information Gathering, Scanning and Enumeration, Exploitation, Post-Exploitation (escalation, lateral movement, persistence), Reporting, and Debrief/Closure."
+  },
+  {
+    "section": "MA - Methodology",
+    "q": "What is the main purpose of the post-exploitation phase?",
+    "options": [
+      "To document all vulnerabilities found during the engagement",
+      "To achieve persistence, lateral movement, and privilege escalation on a compromised system",
+      "To run all nmap scans against the target network",
+      "To deliver the executive summary to the client"
+    ],
+    "correct": 1,
+    "explanation": "Post-exploitation covers achieving persistence (ability to come and go), lateral movement (spreading across the network), and privilege escalation. Persistence mechanisms include backdoors, reverse shells, and creating new user accounts."
+  },
+  {
+    "section": "MA - Methodology",
+    "q": "What is a 'wash-up call' in the context of penetration testing?",
+    "options": [
+      "A call to the client before the engagement to agree scope",
+      "An internal debrief between pen testers after the engagement",
+      "A meeting with the client after the report to present findings and answer questions about risk ratings",
+      "A call to CREST to validate findings before submission"
+    ],
+    "correct": 2,
+    "explanation": "A wash-up call is a debrief meeting with the client after the report is delivered. The client can ask why vulnerabilities were rated the way they were, which is often where disputes about CVSS scores arise."
+  },
+  {
+    "section": "MA - Methodology",
+    "q": "What is a persistence mechanism in penetration testing?",
+    "options": [
+      "A firewall rule that keeps ports open for scanning",
+      "A method that allows an attacker to maintain access to a system even after a reboot",
+      "A nmap timing option that keeps scans running continuously",
+      "A technique for keeping a VPN connection stable during a test"
+    ],
+    "correct": 1,
+    "explanation": "Persistence mechanisms allow an attacker to come and go from a compromised system. Examples include backdoors, reverse shells that execute on startup, and created user accounts. The goal is to survive a system reboot."
+  },
+  {
+    "section": "MA - Reporting",
+    "q": "Who is the primary audience for the executive summary section of a pen test report?",
+    "options": [
+      "The development team who will fix the vulnerabilities",
+      "CREST examiners reviewing the engagement",
+      "C-level non-technical staff such as the CTO or project managers",
+      "Other penetration testers conducting a QA review"
+    ],
+    "correct": 2,
+    "explanation": "The executive summary is written for the C-level non-technical audience, such as the CTO or project managers. It should use business language with no jargon, and express risk in terms of financial or reputational impact. Ideally it is one page maximum."
+  },
+  {
+    "section": "MA - Reporting",
+    "q": "What are the three main sections of a penetration test report?",
+    "options": [
+      "Scope, Methodology, Findings",
+      "Executive Summary, Risk Summary Table, Technical Findings",
+      "Introduction, Vulnerability Analysis, Recommendations",
+      "Pre-engagement, Findings, Remediation Plan"
+    ],
+    "correct": 1,
+    "explanation": "A pen test report has three main sections: the Executive Summary (non-technical, C-suite audience), the Risk Summary Table (addendum showing vulnerabilities with CVSS scores), and the Technical Findings (full reproduction steps, evidence, and remediation guidance)."
+  },
+  {
+    "section": "MA - Reporting",
+    "q": "What must technical findings always include to be considered complete?",
+    "options": [
+      "Only the CVSS score and vulnerability name",
+      "Full reproduction steps, evidence/screenshots, and step-by-step remediation guidance",
+      "A one-line description of the vulnerability and a link to the CVE",
+      "The attacker's internal IP address and time of discovery"
+    ],
+    "correct": 1,
+    "explanation": "Technical findings must include full reproduction steps (so someone can replicate what you did), evidence such as screenshots, and step-by-step remediation guidance explaining how to fix the vulnerability. Good remediation steps are what separates an average report from an excellent one."
+  },
+  {
+    "section": "MA - Reporting",
+    "q": "A web application tells users 'that email address is already registered' during sign-up. What is the CVSS score range for this type of vulnerability?",
+    "options": [
+      "9.0-10.0 (Critical)",
+      "7.0-8.9 (High)",
+      "5.0-5.9 (Medium)",
+      "0.1-3.9 (Low)"
+    ],
+    "correct": 2,
+    "explanation": "User enumeration (confirming whether an account exists via error messages) is typically a medium risk vulnerability with a CVSS around 5.3. It is not critical on its own but can be chained with other vulnerabilities to become more serious. The fix is to return a generic response regardless of whether the account exists."
+  },
+  {
+    "section": "MA - Reporting",
+    "q": "How should a vulnerability on end-of-life equipment be reported in a pen test report?",
+    "options": [
+      "Simply state 'this is end-of-life, nothing can be done'",
+      "Mark it as low risk since nothing can be done",
+      "Suggest upgrading the equipment and implementing security controls such as network segmentation or a firewall around the affected device",
+      "Exclude it from the report as it is out of scope"
+    ],
+    "correct": 2,
+    "explanation": "There is always some security mechanism that can be applied. Good remediation advice for end-of-life equipment includes recommending an upgrade path and implementing compensating controls such as placing a firewall or network segment around the device. Simply stating 'nothing can be done' is poor practice."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "A client asks you to change a Critical vulnerability to Medium because their manager will see the report. What is the correct response?",
+    "options": [
+      "Change it if the client agrees to pay extra",
+      "Change it only if another pen tester agrees with the lower rating",
+      "Refuse to change it - explain that the report is an auditable document and escalate to your manager",
+      "Change it but add a footnote explaining the original rating"
+    ],
+    "correct": 2,
+    "explanation": "You must not change risk ratings under client pressure. The pen test report is an auditable document. The correct course of action is to refuse, explain this to the client, and escalate to your line manager. This is an ethical obligation and is likely to appear on the CPSA exam."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "What does Section 1 of the Computer Misuse Act cover?",
+    "options": [
+      "Creating malware with intent to commit a crime",
+      "Affecting critical national infrastructure",
+      "Unauthorised access to computer material",
+      "Recklessly impairing the operation of a computer"
+    ],
+    "correct": 2,
+    "explanation": "Section 1 of the Computer Misuse Act covers unauthorised access to computer material. An example is using someone else's username and password without permission. This is why a signed scope document and rules of engagement are your legal protection as a pen tester."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "Which section of the Computer Misuse Act covers making or distributing malware intended to be used in a crime?",
+    "options": [
+      "Section 1",
+      "Section 2",
+      "Section 3A",
+      "Section 3ZA"
+    ],
+    "correct": 2,
+    "explanation": "Section 3A covers the making or distributing of tools (malware, exploit tools) intended for use in computer crimes. Even possessing such tools with intent is an offence. Creating a banking Trojan or credential harvester would fall under this section."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "What is the maximum sentence for an offence under Section 3ZA of the Computer Misuse Act?",
+    "options": [
+      "2 years",
+      "5 years",
+      "10 years",
+      "Life imprisonment"
+    ],
+    "correct": 3,
+    "explanation": "Section 3ZA covers attacks on Critical National Infrastructure (CNI) such as the NHS, water, electricity, utilities, police systems, and finance. The maximum sentence is life imprisonment. CNI includes power stations, water treatment, railways, and emergency services."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "What is the purpose of a scope document and rules of engagement (RoE)?",
+    "options": [
+      "They are bureaucratic paperwork required by CREST to log the engagement",
+      "They are your legal protection - they define what is authorised and prevent prosecution under the Computer Misuse Act",
+      "They allow the client to cancel the engagement at any time without charge",
+      "They are only required for red team engagements, not standard pen tests"
+    ],
+    "correct": 1,
+    "explanation": "The scope document and rules of engagement are not bureaucracy - they are your legal protection. They define exactly what is authorised, preventing you from being prosecuted under the Computer Misuse Act for activity you are authorised to perform."
+  },
+  {
+    "section": "MA - Ethics and Law",
+    "q": "CVSS scoring is best described as which of the following?",
+    "options": [
+      "An objective technical measurement with a single correct answer",
+      "A subjective scoring system where your score must be backed up by justification",
+      "A score calculated automatically by scanning tools with no human input needed",
+      "A score set by the client based on the financial impact to their business"
+    ],
+    "correct": 1,
+    "explanation": "CVSS scoring is subjective - there is no single technically correct answer. What matters is that you can justify why you picked the score you chose, based on factors like attack vector, impact to confidentiality/integrity/availability, and exploitability. Human intuition wins over AI-generated scores."
+  },
+  {
+    "section": "B1 - IPv6",
+    "q": "How many bits is an IPv6 address?",
+    "options": [
+      "32 bits",
+      "64 bits",
+      "128 bits",
+      "256 bits"
+    ],
+    "correct": 2,
+    "explanation": "IPv6 addresses are 128 bits, compared to IPv4's 32 bits. This provides approximately 340 undecillion unique addresses. IPv6 uses hexadecimal notation separated by colons, unlike IPv4's dotted decimal notation."
+  },
+  {
+    "section": "B1 - IPv6",
+    "q": "What does an IPv6 address beginning with FE80 indicate?",
+    "options": [
+      "It is a globally routable public IPv6 address",
+      "It is a link-local IPv6 address (local network only)",
+      "It is a loopback address used for testing",
+      "It is a multicast address used for broadcasting"
+    ],
+    "correct": 1,
+    "explanation": "An IPv6 address beginning with FE80 is a link-local address, meaning it is only valid on the local network segment and is not routable across the internet. This is equivalent to 169.254.x.x in IPv4."
+  },
+  {
+    "section": "B1 - IPv6",
+    "q": "Why is IPv6 considered a significant blind spot in many organisations from a security perspective?",
+    "options": [
+      "IPv6 is too slow for attackers to use effectively",
+      "IPv6 is encrypted by default making it invisible to firewalls",
+      "Many organisations run IPv6 but have never configured monitoring or firewall rules for the IPv6 address space",
+      "IPv6 addresses change too frequently for attackers to track"
+    ],
+    "correct": 2,
+    "explanation": "Many organisations have IPv6 running on their networks but have no monitoring, logging, or firewall rules configured for it. An attacker can use IPv6 to bypass IPv4 security controls entirely. Always check for IPv6 during reconnaissance using 'ip a' or 'ipconfig'."
+  },
+  {
+    "section": "B1 - IPv6",
+    "q": "What security feature is built into IPv6 that IPv4 originally lacked?",
+    "options": [
+      "NAT (Network Address Translation)",
+      "DHCP support",
+      "IPsec (end-to-end encryption) support baked in by default",
+      "Automatic port filtering"
+    ],
+    "correct": 2,
+    "explanation": "IPv6 has IPsec support built in, providing end-to-end encryption. IPv4 was designed in 1983 without security in mind, so IPsec had to be added as an optional extension. Despite this, IPv6 is still commonly unmonitored in enterprise environments."
+  },
+  {
+    "section": "B1 - Linux Networking",
+    "q": "What is the modern command to view network interface information on Linux, replacing the deprecated ifconfig?",
+    "options": [
+      "netstat -i",
+      "ipconfig /all",
+      "ip a",
+      "ifconfig -a"
+    ],
+    "correct": 2,
+    "explanation": "'ip a' (or 'ip addr') is the modern replacement for ifconfig on Linux. It shows all network interfaces and their IP addresses. During a pen test, running 'ip a' on your Kali machine tells you which network you are on before you start scanning."
+  },
+  {
+    "section": "B1 - Linux Networking",
+    "q": "What is the loopback interface (lo) on Linux, and why do you not scan it during a pen test?",
+    "options": [
+      "It is the wireless adapter - scanning it would reveal the Wi-Fi password",
+      "It is the firewall interface - scanning it bypasses all security controls",
+      "It is the local machine's own internal address (127.0.0.1) - scanning it would just be scanning yourself",
+      "It is a virtual interface used for Docker containers that is out of scope"
+    ],
+    "correct": 2,
+    "explanation": "The loopback interface (lo) with address 127.0.0.1 represents the machine itself. Scanning the loopback would just be scanning your own Kali machine, not the target network. Always identify and ignore the lo interface when determining which network adapter to use for scanning."
+  },
+  {
+    "section": "B1 - Linux Networking",
+    "q": "Which Linux configuration file controls DNS resolver settings, specifying which DNS server the machine uses?",
+    "options": [
+      "/etc/hosts",
+      "/etc/resolv.conf",
+      "/etc/network/interfaces",
+      "/etc/nsswitch.conf"
+    ],
+    "correct": 1,
+    "explanation": "/etc/resolv.conf contains the DNS server configuration for the Linux machine. It specifies the nameserver IP address the system queries for DNS resolution. This is an important file to check on a compromised machine to understand the network's DNS infrastructure."
+  },
+  {
+    "section": "B1 - Linux Networking",
+    "q": "Which Linux file is checked BEFORE DNS when resolving hostnames, and can be used to manually map hostnames to IP addresses?",
+    "options": [
+      "/etc/resolv.conf",
+      "/etc/network/interfaces",
+      "/etc/hostname",
+      "/etc/hosts"
+    ],
+    "correct": 3,
+    "explanation": "/etc/hosts is checked before DNS when resolving a hostname to an IP address. It allows manual hostname-to-IP mappings. During a pen test, an attacker might modify /etc/hosts on a compromised machine to redirect traffic, or check it to find internal hostnames."
+  },
+  {
+    "section": "B2 - Passive Recon",
+    "q": "What is the key difference between passive and active reconnaissance?",
+    "options": [
+      "Passive recon uses nmap; active recon uses manual techniques",
+      "Passive recon involves gathering information without directly interacting with the target system; active recon sends packets directly to the target",
+      "Passive recon is done before the engagement; active recon is done after scope is agreed",
+      "Passive recon is legal; active recon requires written permission"
+    ],
+    "correct": 1,
+    "explanation": "Passive reconnaissance gathers information about a target without sending any packets to or directly interacting with their systems (e.g. OSINT, DNS lookups, Shodan). Active reconnaissance involves sending packets directly to the target (e.g. nmap, ping), which may trigger alerts and requires authorisation."
+  },
+  {
+    "section": "B2 - Passive Recon",
+    "q": "What is ARP (Address Resolution Protocol) used for?",
+    "options": [
+      "Translating domain names to IP addresses",
+      "Encrypting traffic between hosts on a local network",
+      "Resolving IP addresses to MAC addresses on the local network",
+      "Routing packets between different network segments"
+    ],
+    "correct": 2,
+    "explanation": "ARP (Address Resolution Protocol) resolves IP addresses to MAC addresses on the local network segment. It operates at Layer 2. Like ICMP, ARP can be used to discover live hosts on the local network, as a device must respond with its MAC address when its IP is ARP'd."
+  },
+  {
+    "section": "B2 - Passive Recon",
+    "q": "What type of information can be accidentally exposed in a public GitHub repository?",
+    "options": [
+      "Only compiled binaries that contain no sensitive data",
+      "API keys, passwords, private keys, and credentials that developers forgot to remove before committing",
+      "Only public documentation and README files",
+      "Encrypted credentials that require a key to decrypt"
+    ],
+    "correct": 1,
+    "explanation": "GitHub is a critical OSINT source. Developers frequently accidentally commit API keys, database passwords, AWS credentials, SSH private keys, and other secrets to public repositories. This is a real-world finding on pen tests and can lead to full compromise."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "What does the nmap flag -p- do?",
+    "options": [
+      "Scans only the top 100 most common ports",
+      "Performs a ping sweep without port scanning",
+      "Scans all 65,535 TCP ports",
+      "Scans only privileged ports (1-1024)"
+    ],
+    "correct": 2,
+    "explanation": "-p- tells nmap to scan all 65,535 TCP ports, not just the default top 1,000. This is important because services are often run on non-standard ports to avoid detection. Use with -T4 or -T5 to speed up the scan on authorised engagements."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "What does the nmap -oA flag do?",
+    "options": [
+      "Runs the scan as administrator (oA = only admin)",
+      "Outputs results in all three formats: normal (.nmap), XML (.xml), and grepable (.gnmap)",
+      "Outputs only aggressive scan results to avoid flooding logs",
+      "Enables OS detection and aggressive service scanning"
+    ],
+    "correct": 1,
+    "explanation": "-oA saves output in all three formats simultaneously: normal (.nmap), XML (.xml), and grepable (.gnmap). This is best practice on engagements as it gives you multiple formats for analysis and reporting. Always save your scan output."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "What is the nmap -T5 timing template called, and when should you be cautious using it?",
+    "options": [
+      "'Sneaky' - should only be used against IDS systems",
+      "'Insane' - it sends packets extremely fast and can crash unstable systems or trigger alerts",
+      "'Aggressive' - it is the default timing for all nmap scans",
+      "'Paranoid' - it slows down scanning to avoid detection"
+    ],
+    "correct": 1,
+    "explanation": "-T5 is the 'Insane' timing template. It sends packets as fast as possible, which can overwhelm unstable systems or industrial equipment, and is very likely to trigger IDS/IPS alerts. Use -T4 (Aggressive) for most authorised engagements; -T5 only on robust systems where speed is critical."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "Why does a SYN scan (-sS) require root or sudo privileges?",
+    "options": [
+      "It needs to read the nmap configuration files in /etc/nmap which are root-only",
+      "It requires raw socket access to craft custom TCP packets without completing the full handshake",
+      "It needs to disable the system firewall before scanning",
+      "Root is required to scan ports below 1024"
+    ],
+    "correct": 1,
+    "explanation": "A SYN scan requires raw socket access to manually craft TCP SYN packets and handle the SYN-ACK response without completing the handshake. Raw sockets require root/sudo privileges on Linux. A TCP connect scan (-sT) does NOT require root as it uses the OS's normal socket API."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "What is the purpose of an ACK scan (-sA) in nmap?",
+    "options": [
+      "To identify open ports on a target by completing TCP handshakes",
+      "To perform OS fingerprinting based on ACK responses",
+      "To map firewall rules by identifying which ports are filtered versus unfiltered",
+      "To enumerate services running on open ports"
+    ],
+    "correct": 2,
+    "explanation": "An ACK scan sends packets with only the ACK flag set. It is used to map firewall rules because ACK packets appear to be part of an established connection. A stateless firewall may pass ACK packets through, allowing you to determine which ports are filtered by a firewall versus which are simply closed."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "Why is UDP scanning slower and less reliable than TCP scanning?",
+    "options": [
+      "UDP requires three packets per port versus one for TCP",
+      "nmap cannot scan UDP ports on Windows systems",
+      "UDP is connectionless with no handshake - there is no guaranteed response, so nmap must wait for timeouts to identify closed or filtered ports",
+      "UDP ports always require root access making nmap slower to initialise"
+    ],
+    "correct": 2,
+    "explanation": "UDP is connectionless - there is no handshake and no guaranteed response. nmap must often wait for a timeout to determine if a UDP port is closed or filtered (an ICMP unreachable message indicates closed). This waiting makes UDP scans much slower than TCP scans. Use -sU for UDP scanning."
+  },
+  {
+    "section": "B4 - Nmap Advanced",
+    "q": "If you receive a TCP RST packet in response to an nmap SYN probe, what does this indicate about the port?",
+    "options": [
+      "The port is open and accepting connections",
+      "The port is filtered by a firewall",
+      "The port is closed - no service is listening",
+      "The port is running a stealth service"
+    ],
+    "correct": 2,
+    "explanation": "A TCP RST (Reset) response means the port is closed - the OS is responding to tell you no service is listening on that port. An open port responds with SYN-ACK. A filtered port produces no response (or an ICMP unreachable), which indicates a firewall is blocking the probe."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "An IPv4 address consists of how many octets in dotted decimal notation?",
+    "options": [
+      "2 octets (16 bits total)",
+      "4 octets (32 bits total)",
+      "6 octets (48 bits total)",
+      "8 octets (64 bits total)"
+    ],
+    "correct": 1,
+    "explanation": "An IPv4 address is 32 bits long, written as four octets (8-bit groups) in dotted decimal notation, e.g. 192.168.1.100. Each octet can range from 0 to 255. IPv6 is 128 bits and uses hexadecimal notation."
+  },
+  {
+    "section": "B1 - IP Protocols",
+    "q": "What is the purpose of the TTL (Time to Live) field in an IPv4 packet?",
+    "options": [
+      "To encrypt the packet contents during transit",
+      "To specify the maximum file size allowed in the packet",
+      "To prevent packets from looping infinitely by decrementing by 1 at each router hop, discarding when it reaches 0",
+      "To set the priority of the packet on congested networks"
+    ],
+    "correct": 2,
+    "explanation": "TTL prevents infinite routing loops. Each router that forwards the packet decrements the TTL by 1. If TTL reaches 0, the packet is discarded and an ICMP Type 11 (Time Exceeded) message is sent back to the sender. This is also how traceroute works."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "If you receive a ping reply with a TTL of 121, what operating system sent the reply and how many hops away is it?",
+    "options": [
+      "Linux, 57 hops away",
+      "Windows, 7 hops away",
+      "Cisco, 134 hops away",
+      "Linux, 7 hops away"
+    ],
+    "correct": 1,
+    "explanation": "Windows default TTL is 128. If you receive a TTL of 121, that is 128 minus 7, meaning the Windows host is 7 router hops away. Linux defaults to 64 and Cisco to 255. TTL fingerprinting is a quick way to identify OS type and approximate distance."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "Before starting any scanning activity, what is the first thing you should do on your Kali machine?",
+    "options": [
+      "Launch nmap with -p- to scan all ports on the target range",
+      "Run 'ip a' to identify your own IP address and confirm which network you are connected to",
+      "Run sudo su to escalate to root for all scanning activities",
+      "Start Wireshark to capture all network traffic"
+    ],
+    "correct": 1,
+    "explanation": "Before scanning, always run 'ip a' (or ifconfig) to identify your own IP address and confirm you are on the correct network. This tells you your subnet and helps you set the correct scan range. You need to know what network you are on before you can scan it."
+  },
+  {
+    "section": "B4 - Host Discovery",
+    "q": "Why are ping sweeps particularly important when given a large address range such as a /16 subnet?",
+    "options": [
+      "A /16 means all hosts use DHCP, so you need to sweep to find them",
+      "A /16 contains up to 65,534 hosts - sweeping identifies which ones are live before spending time scanning all ports on every address",
+      "Ping sweeps are only important for /24 subnets",
+      "A /16 requires root access, which a ping sweep confirms you have"
+    ],
+    "correct": 1,
+    "explanation": "A /16 network contains up to 65,534 potential host addresses. Running a full port scan against every address would be impractical. A ping sweep (nmap -sn) quickly identifies which hosts are actually live, so you can focus port scanning on only those hosts."
+  },
+  {
+    "section": "B2 - TCP Handshake",
+    "q": "In a TCP SYN scan (stealth scan), which flags are exchanged and which is intentionally NOT sent?",
+    "options": [
+      "SYN is sent, SYN-ACK is received, ACK is NOT sent back - the handshake is left incomplete",
+      "SYN and ACK are sent together, the target responds with SYN only",
+      "RST is sent first, then SYN if the port is open",
+      "SYN is sent and ACK is received, completing the handshake normally"
+    ],
+    "correct": 0,
+    "explanation": "In a SYN scan: (1) Scanner sends SYN, (2) if port is open, target responds with SYN-ACK, (3) the scanner does NOT send the final ACK. This leaves the handshake incomplete. Historically this avoided log entries, but modern firewalls and IDS now log the initial SYN, so it is no longer truly stealthy."
+  },
+  {
+    "section": "B2 - TCP Handshake",
+    "q": "What is the difference between a full TCP connect scan (-sT) and a SYN scan (-sS)?",
+    "options": [
+      "They are identical - only the flag letter differs in nmap",
+      "-sT completes the full three-way handshake using the OS socket API (no root needed); -sS sends only SYN and never completes the handshake (requires root)",
+      "-sT is for TCP, -sS is for SSL/TLS encrypted ports",
+      "-sT requires root; -sS does not require any privileges"
+    ],
+    "correct": 1,
+    "explanation": "A TCP connect scan (-sT) uses the OS's standard socket API to complete the full SYN, SYN-ACK, ACK handshake - it does NOT require root privileges. A SYN scan (-sS) crafts raw TCP packets and never completes the handshake - it DOES require root/sudo. A connect scan creates a full log entry; a SYN scan historically did not."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "What ICMP type number is an echo request (sent when you run ping)?",
+    "options": [
+      "Type 0",
+      "Type 3",
+      "Type 8",
+      "Type 11"
+    ],
+    "correct": 2,
+    "explanation": "ICMP Type 8 is an echo request - this is the packet your machine sends when you run the ping command. The target responds with an ICMP Type 0 (echo reply) if it is alive and accepting ICMP. These are the two most important ICMP types for host discovery."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "What ICMP type is returned when a packet's TTL reaches 0 in transit?",
+    "options": [
+      "Type 0 - Echo Reply",
+      "Type 3 - Destination Unreachable",
+      "Type 8 - Echo Request",
+      "Type 11 - Time Exceeded"
+    ],
+    "correct": 3,
+    "explanation": "ICMP Type 11 (Time Exceeded) is sent when a packet's TTL is decremented to 0 by a router. The router discards the packet and sends a Type 11 back to the source. This is the mechanism traceroute uses - it deliberately sends packets with low TTL values to map each router hop."
+  },
+  {
+    "section": "B1 - ICMP",
+    "q": "What ICMP type is returned when a destination is unreachable?",
+    "options": [
+      "Type 0",
+      "Type 3",
+      "Type 8",
+      "Type 11"
+    ],
+    "correct": 1,
+    "explanation": "ICMP Type 3 (Destination Unreachable) is returned when a host or service cannot be reached. This can indicate a filtered UDP port, a network routing issue, or that the host is offline. During scanning, a Type 3 response to a UDP probe indicates the port is closed."
+  },
+  {
+    "section": "B9 - Banner Grabbing",
+    "q": "What command-line tool can be used for banner grabbing by connecting to a port and reading the service response?",
+    "options": [
+      "ping",
+      "nmap -sn",
+      "nc (netcat) or telnet",
+      "arp -a"
+    ],
+    "correct": 2,
+    "explanation": "Netcat (nc) and telnet can both be used for manual banner grabbing by connecting to a TCP port and reading the service banner. For example: 'nc target.com 22' will show the SSH version banner. This is useful for confirming what nmap reports and getting exact version strings."
+  },
+  {
+    "section": "B9 - Banner Grabbing",
+    "q": "What nmap flag enables service version detection, which performs banner grabbing automatically?",
+    "options": [
+      "-O (OS detection)",
+      "-sV (version detection)",
+      "-A (aggressive scan)",
+      "-Pn (no ping)"
+    ],
+    "correct": 1,
+    "explanation": "-sV enables version detection in nmap. It probes open ports and reads service banners to identify the software name and version running. This is essential for identifying vulnerable versions of services. -A enables -sV along with OS detection, script scanning, and traceroute."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "What tool is used to enumerate SMB shares and user accounts on a Windows host using null sessions?",
+    "options": [
+      "nmap -sV",
+      "enum4linux",
+      "netcat",
+      "showmount"
+    ],
+    "correct": 1,
+    "explanation": "enum4linux is a tool specifically designed to enumerate SMB/Windows hosts. It can extract user lists, share names, group memberships, and OS information through SMB null sessions (unauthenticated connections). It is equivalent to running multiple smbclient and rpcclient commands automatically."
+  },
+  {
+    "section": "B3 - Service Enumeration",
+    "q": "What command is used to list NFS exports on a remote server?",
+    "options": [
+      "smbclient -L target",
+      "showmount -e target",
+      "enum4linux -a target",
+      "nmap --script nfs-showmount target"
+    ],
+    "correct": 1,
+    "explanation": "'showmount -e target' lists the NFS (Network File System) exports available on a remote server. NFS exports can expose sensitive files if misconfigured to allow unauthenticated access. This is a key enumeration step when port 2049 (NFS) is found open."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "What port does LDAP use by default?",
+    "options": [
+      "139",
+      "161",
+      "389",
+      "445"
+    ],
+    "correct": 2,
+    "explanation": "LDAP (Lightweight Directory Access Protocol) uses port 389 (TCP/UDP). LDAP is used for directory services such as Microsoft Active Directory. Finding port 389 open indicates you are likely targeting a domain controller, which is a high-value target."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "What protocol and port does SNMP use?",
+    "options": [
+      "TCP port 161",
+      "UDP port 161",
+      "TCP port 162",
+      "UDP port 53"
+    ],
+    "correct": 1,
+    "explanation": "SNMP (Simple Network Management Protocol) uses UDP port 161 for queries. SNMP is used for network device management. If SNMP is using the default community string of 'public', it can expose a large amount of information about network devices without authentication."
+  },
+  {
+    "section": "B1 - Networking",
+    "q": "What is the default port for MySQL?",
+    "options": [
+      "1433",
+      "3306",
+      "5432",
+      "1521"
+    ],
+    "correct": 1,
+    "explanation": "MySQL uses TCP port 3306 by default. Finding MySQL open on a network can indicate a database server that may be directly accessible. PostgreSQL uses 5432, Microsoft SQL Server uses 1433, and Oracle uses 1521."
+  },
+  {
+    "section": "B4 - Port Scanning",
+    "q": "What does the nmap -Pn flag do, and when would you use it?",
+    "options": [
+      "It enables a ping sweep with no port scanning",
+      "It skips host discovery (treats all hosts as up), used when targets block ICMP ping but are reachable",
+      "It enables paranoid timing to avoid IDS detection",
+      "It scans only the top 1,000 ports with no ping"
+    ],
+    "correct": 1,
+    "explanation": "-Pn tells nmap to skip host discovery and treat all specified targets as up. Use this when a target blocks ICMP ping (and would appear as down to a normal scan) but you know the host is alive. Without -Pn, nmap may skip a host entirely if the ping probe gets no response."
   }
 ]
