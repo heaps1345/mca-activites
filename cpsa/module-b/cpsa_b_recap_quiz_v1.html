@@ -267,6 +267,18 @@
   .mode-btn .title { font-weight: 600; margin-bottom: 0.25rem; }
   .mode-btn .desc { font-size: 0.8rem; color: var(--text-dim); }
 
+  .port-btn {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    display: block;
+    border-color: #4f8ef7;
+    padding: 1.5rem 2rem;
+  }
+  .port-btn:hover { border-color: #4f8ef7; background: rgba(79, 142, 247, 0.1); }
+  .port-btn .title { font-size: 1.1rem; color: #4f8ef7; }
+  .port-btn .desc { font-size: 0.85rem; }
+
   .loading {
     text-align: center;
     padding: 4rem 1rem;
@@ -436,8 +448,14 @@ function renderStart() {
           <div class="desc">${questions.filter(q => q.section !== 'B1 - Port Numbers').length} questions - no ports</div>
         </div>
       </div>
+      <div style="margin-top: 1rem;">
+        <div class="mode-btn port-btn" onclick="startQuiz('B1 - Port Numbers')">
+          <div class="title">&#128268; Port Numbers</div>
+          <div class="desc">${questions.filter(q => q.section === 'B1 - Port Numbers').length} questions - dedicated port recall drill</div>
+        </div>
+      </div>
       <div class="mode-select" style="margin-top: 0.75rem;">
-        ${sections.map(s => {
+        ${sections.filter(s => s !== 'B1 - Port Numbers').map(s => {
           const count = questions.filter(q => q.section === s).length;
           return `<div class="mode-btn" onclick="startQuiz('${s}')">
             <div class="title">${s}</div>
